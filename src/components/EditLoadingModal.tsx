@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { Input } from './Input';
 import { loadingService } from '../services/loading';
 import { LoadingEntry } from '../types/loading';
+import { authService } from '../services/auth';
+import { User } from '../types/auth';
 import Alert from './Alert';
 
 interface EditLoadingModalProps {
@@ -22,19 +24,56 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState<LoadingEntry | null>(null);
+  const [dealers, setDealers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedDealerId, setSelectedDealerId] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState('');
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [dealersList, usersList] = await Promise.all([
+          authService.getDealers(),
+          authService.searchUsers('')
+        ]);
+        setDealers(dealersList);
+        setUsers(usersList.filter(u => u.role !== 'vendor'));
+      } catch (err) {
+        console.error('Failed to fetch data:', err);
+        setError('Failed to load dealers and users');
+      }
+    };
+
     if (isOpen && loadingEntry) {
       setFormData(loadingEntry);
+      fetchData();
     }
   }, [isOpen, loadingEntry]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => prev ? {
-      ...prev,
-      [name]: name === 'amali' ? parseFloat(value) : value
-    } : null);
+
+    if (name === 'dealer') {
+      setSelectedDealerId(value);
+      const selectedDealer = dealers.find(d => d.id === value);
+      if (selectedDealer) {
+        setFormData(prev => prev ? {
+          ...prev,
+          dealer: selectedDealer.name
+        } : null);
+      }
+    } else if (name === 'amali') {
+      setSelectedUserId(value);
+      setFormData(prev => prev ? {
+        ...prev,
+        amali: parseFloat(value)
+      } : null);
+    } else {
+      setFormData(prev => prev ? {
+        ...prev,
+        [name]: value
+      } : null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -45,10 +84,22 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
     setSuccess('');
     setLoading(true);
 
+    if (!selectedDealerId) {
+      setError('Please select a dealer');
+      setLoading(false);
+      return;
+    }
+
+    if (!selectedUserId) {
+      setError('Please select a user for amali');
+      setLoading(false);
+      return;
+    }
+
     try {
       await loadingService.updateLoadingEntry(formData.id!, {
         ...formData,
-        amali: parseFloat(formData.amali.toString()),
+        amali: parseFloat(selectedUserId),
       });
 
       setSuccess('Loading entry updated successfully!');
@@ -111,29 +162,43 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
               </div>
 
               <div>
-                <Input
-                  label="Dealer"
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Dealer
+                </label>
+                <select
                   name="dealer"
-                  type="text"
                   required
-                  value={formData.dealer}
+                  value={selectedDealerId}
                   onChange={handleChange}
-                  className="h-10"
-                />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                >
+                  <option value="">Select a dealer</option>
+                  {dealers.map((dealer) => (
+                    <option key={dealer.id} value={dealer.id}>
+                      {dealer.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <Input
-                  label="Amali (Weight in KGs)"
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Amali (User)
+                </label>
+                <select
                   name="amali"
-                  type="number"
                   required
-                  min="0.01"
-                  step="0.01"
-                  value={formData.amali}
+                  value={selectedUserId}
                   onChange={handleChange}
-                  className="h-10"
-                />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                >
+                  <option value="">Select a user</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} ({user.role})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {error && <Alert type="error" message={error} />}

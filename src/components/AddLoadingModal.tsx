@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Input } from './Input';
 import { loadingService } from '../services/loading';
 import { LoadingEntry } from '../types/loading';
+import { authService } from '../services/auth';
+import { User } from '../types/auth';
 import Alert from './Alert';
 
 interface AddLoadingModalProps {
@@ -19,6 +21,28 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [dealers, setDealers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [dealersList, usersList] = await Promise.all([
+          authService.getDealers(),
+          authService.searchUsers('')
+        ]);
+        setDealers(dealersList);
+        setUsers(usersList.filter(u => u.role !== 'vendor'));
+      } catch (err) {
+        console.error('Failed to fetch data:', err);
+        setError('Failed to load dealers and users');
+      }
+    };
+
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen]);
 
   const getTodayDate = () => {
     const today = new Date();
@@ -35,12 +59,29 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    const dealerId = formData.get('dealer') as string;
+    const amaliUserId = formData.get('amali') as string;
+
+    if (!dealerId) {
+      setError('Please select a dealer');
+      setLoading(false);
+      return;
+    }
+
+    if (!amaliUserId) {
+      setError('Please select a user for amali');
+      setLoading(false);
+      return;
+    }
+
+    const selectedDealer = dealers.find(d => d.id === dealerId);
+    const selectedUser = users.find(u => u.id === amaliUserId);
 
     const loadingData: LoadingEntry = {
       date: formData.get('date') as string,
       lorryNumber: formData.get('lorryNumber') as string,
-      dealer: formData.get('dealer') as string,
-      amali: parseFloat(formData.get('amali') as string),
+      dealer: selectedDealer?.name || '',
+      amali: parseFloat(amaliUserId),
     };
 
     try {
@@ -104,27 +145,39 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
               </div>
 
               <div>
-                <Input
-                  label="Dealer"
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Dealer
+                </label>
+                <select
                   name="dealer"
-                  type="text"
                   required
-                  placeholder="Enter dealer name"
-                  className="h-10"
-                />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                >
+                  <option value="">Select a dealer</option>
+                  {dealers.map((dealer) => (
+                    <option key={dealer.id} value={dealer.id}>
+                      {dealer.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <Input
-                  label="Amali (Weight in KGs)"
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Amali (User)
+                </label>
+                <select
                   name="amali"
-                  type="number"
                   required
-                  min="0.01"
-                  step="0.01"
-                  placeholder="Enter weight in KGs"
-                  className="h-10"
-                />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                >
+                  <option value="">Select a user</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} ({user.role})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {error && <Alert type="error" message={error} />}
