@@ -1,0 +1,8 @@
+{
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/d8e4f4dd-d5c5-4e12-a2d4-ed21bcd7a9a7/resourceGroups/paddy-app-fe_group/providers/Microsoft.Web/sites/Paddy-App-FE",
+    "appService.deploySubpath": "dist"
+}
