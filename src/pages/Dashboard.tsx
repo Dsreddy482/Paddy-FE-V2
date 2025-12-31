@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Truck, IndianRupee, Clock } from 'lucide-react';
-import { paddyService } from '../services/paddy';
+import { paddyService } from '../services/Paddy';
 import { PaddyEntryDetails } from '../types/paddy';
 import { Header } from '../components/Header';
 

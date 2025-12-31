@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Filter, User, ExternalLink } from 'lucide-react';
-import { paddyService } from '../services/paddy';
+import { paddyService } from '../services/Paddy';
 import { PaddyEntryDetails } from '../types/paddy';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';

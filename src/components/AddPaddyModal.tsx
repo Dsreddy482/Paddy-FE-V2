@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Input } from './Input';
-import { paddyService } from '../services/paddy';
+import { paddyService } from '../services/Paddy';
 import { authService } from '../services/auth';
 import { PaddyEntry, Dealer } from '../types/paddy';
 import Alert from './Alert';

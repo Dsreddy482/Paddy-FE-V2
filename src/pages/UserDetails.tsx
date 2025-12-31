@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Phone, Plus, Download, CheckCircle, Clock, Edit, Filter, IndianRupee } from 'lucide-react';
 import { authService } from '../services/auth';
-import { paddyService } from '../services/paddy';
+import { paddyService } from '../services/Paddy';
 import { transactionService } from '../services/transaction';
 import { AddPaddyModal } from '../components/AddPaddyModal';
 import { EditPaddyModal } from '../components/EditPaddyModal';
