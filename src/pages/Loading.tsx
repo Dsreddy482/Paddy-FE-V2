@@ -129,7 +129,7 @@ export const Loading: React.FC = () => {
                         {entry.lorryNumber}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {entry.dealerName}
+                        {entry.delaerName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {entry.amaliName}

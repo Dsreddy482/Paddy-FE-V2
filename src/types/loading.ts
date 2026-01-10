@@ -17,5 +17,6 @@ export interface LoadingEntryDetails {
   amaliId: string;
   seasonId: number;
   amaliName: string;
-  dealerName: string;
+  delaerName: string;
+  id: number;
 }

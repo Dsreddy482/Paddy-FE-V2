@@ -4,7 +4,7 @@ import { LoadingEntry, LoadingEntryDetails } from '../types/loading';
 export const loadingService = {
   async getLoadingEntries(): Promise<LoadingEntryDetails[]> {
     try {
-      const response = await api.get('/Account/getLoadingDetails');
+      const response = await api.post('/Account/getLoadingDetails');
       return response.data;
     } catch (error) {
       console.error('Failed to fetch loading entries:', error);
