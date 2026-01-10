@@ -32,7 +32,7 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
           authService.searchUsers('')
         ]);
         setDealers(dealersList);
-        setUsers(usersList.filter(u => u.role !== 'vendor'));
+        setUsers(usersList.filter(u => u.role?.toLowerCase() === 'amali'));
       } catch (err) {
         console.error('Failed to fetch data:', err);
         setError('Failed to load dealers and users');
@@ -69,7 +69,7 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
     }
 
     if (!amaliUserId) {
-      setError('Please select a user for amali');
+      setError('Please select an amali');
       setLoading(false);
       return;
     }
@@ -164,17 +164,17 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Amali (User)
+                  Amali
                 </label>
                 <select
                   name="amali"
                   required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
                 >
-                  <option value="">Select a user</option>
+                  <option value="">Select amali</option>
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
-                      {user.name} ({user.role})
+                      {user.name}
                     </option>
                   ))}
                 </select>
