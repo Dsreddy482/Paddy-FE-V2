@@ -180,6 +180,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                   <option value="">Select a role</option>
                   <option value="vendor">Vendor</option>
                   <option value="rythu">Rythu</option>
+                  <option value="amali">Amali</option>
                 </select>
               </div>
 
