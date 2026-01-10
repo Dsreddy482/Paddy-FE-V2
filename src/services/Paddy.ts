@@ -1,16 +1,28 @@
 import { api } from './api';
 import { PaddyEntry, PaddyEntryDetails } from '../types/paddy';
 
+const formatDate = (dateString: string) => {
+  if (dateString.includes('T')) {
+    return dateString.split('T')[0];
+  }
+  if (dateString.includes('/')) {
+    const [day, month, year] = dateString.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  return dateString;
+};
+
 export const paddyService = {
   async createPaddyEntry(data: PaddyEntry) {
     try {
+
       const datass =  {
             "userId": data.userId,
             "lorryNumber": data.lorryNumber,
             "bags": data.bags,
             "kgperBag": data.kgsPerBag,
             "bagAmount": data.bagAmount,
-            "loadedDate": data.loadedDate,
+            "loadedDate": formatDate(data.loadedDate),
             "totalWeight": data.totalWeight,
             "dealerId": data.dealerId,
             "rythuId": data.rythuId,
@@ -31,7 +43,7 @@ export const paddyService = {
         "bags": data.bags,
         "kgperBag": data.kgsPerBag,
         "bagAmount": data.bagAmount,
-        "loadedDate": data.loadedDate!.split('T')[0],
+        "loadedDate": data.loadedDate ? formatDate(data.loadedDate) : undefined,
         "totalWeight": data.totalWeight,
         "dealerId": data.dealerId?.toString(),
         "dealerBagAmount": data.dealerBagAmount,
