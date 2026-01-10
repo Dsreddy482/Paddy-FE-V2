@@ -46,6 +46,8 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
 
     if (isOpen && loadingEntry) {
       setFormData(loadingEntry);
+      setSelectedDealerId(loadingEntry.dealerId || '');
+      setSelectedUserId(loadingEntry.amaliId || '');
       fetchData();
     }
   }, [isOpen, loadingEntry]);
@@ -55,18 +57,20 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
 
     if (name === 'dealer') {
       setSelectedDealerId(value);
-      const selectedDealer = dealers.find(d => d.id === value);
-      if (selectedDealer) {
-        setFormData(prev => prev ? {
-          ...prev,
-          dealer: selectedDealer.name
-        } : null);
-      }
+      setFormData(prev => prev ? {
+        ...prev,
+        dealerId: value
+      } : null);
     } else if (name === 'amali') {
       setSelectedUserId(value);
       setFormData(prev => prev ? {
         ...prev,
-        amali: parseFloat(value)
+        amaliId: value
+      } : null);
+    } else if (name === 'date') {
+      setFormData(prev => prev ? {
+        ...prev,
+        loadedDate: value
       } : null);
     } else {
       setFormData(prev => prev ? {
@@ -97,9 +101,10 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
     }
 
     try {
-      await loadingService.updateLoadingEntry(formData.id!, {
+      await loadingService.updateLoadingEntry(formData.userId!, {
         ...formData,
-        amali: parseFloat(selectedUserId),
+        dealerId: selectedDealerId,
+        amaliId: selectedUserId,
       });
 
       setSuccess('Loading entry updated successfully!');
@@ -143,7 +148,7 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
                   name="date"
                   type="date"
                   required
-                  value={formData.date}
+                  value={formData.loadedDate ? new Date(formData.loadedDate).toISOString().split('T')[0] : ''}
                   onChange={handleChange}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
                 />

@@ -75,10 +75,11 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
     }
 
     const loadingData: LoadingEntry = {
-      date: formData.get('date') as string,
+      loadedDate: formData.get('date') as string,
       lorryNumber: formData.get('lorryNumber') as string,
-      dealer: (dealerId),
-      amali: (amaliUserId),
+      dealerId: dealerId,
+      amaliId: amaliUserId,
+      seasonId: 0,
     };
 
     try {

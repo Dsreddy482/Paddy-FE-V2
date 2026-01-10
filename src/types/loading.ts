@@ -1,12 +1,21 @@
 export interface LoadingEntry {
-  id?: string;
-  date: string;
+  userId?: string;
   lorryNumber: string;
-  dealer: string;
-  amali: string;
-  createdAt?: string;
+  loadedDate: string;
+  dealerId: string;
+  amaliId: string;
+  seasonId?: number;
+  amaliName?: string;
+  dealerName?: string;
 }
 
-export interface LoadingEntryDetails extends LoadingEntry {
-  createdAt: string;
+export interface LoadingEntryDetails {
+  userId: string;
+  lorryNumber: string;
+  loadedDate: string;
+  dealerId: string;
+  amaliId: string;
+  seasonId: number;
+  amaliName: string;
+  dealerName: string;
 }

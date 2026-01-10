@@ -37,13 +37,13 @@ export const Loading: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteClick = async (id: string | undefined) => {
-    if (!id) return;
+  const handleDeleteClick = async (userId: string | undefined) => {
+    if (!userId) return;
 
     if (window.confirm('Are you sure you want to delete this entry?')) {
       try {
-        await loadingService.deleteLoadingEntry(id);
-        setLoadingEntries(entries => entries.filter(e => e.id !== id));
+        await loadingService.deleteLoadingEntry(userId);
+        setLoadingEntries(entries => entries.filter(e => e.userId !== userId));
       } catch (err) {
         setError('Failed to delete loading entry');
       }
@@ -112,7 +112,7 @@ export const Loading: React.FC = () => {
                       Dealer
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amali (KGs)
+                      Amali
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -121,18 +121,18 @@ export const Loading: React.FC = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {loadingEntries.map((entry) => (
-                    <tr key={entry.id} className="hover:bg-gray-50">
+                    <tr key={entry.userId} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {entry.date}
+                        {new Date(entry.loadedDate).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {entry.lorryNumber}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {entry.dealer}
+                        {entry.dealerName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {entry.amali.toLocaleString()} KGs
+                        {entry.amaliName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                         <button
@@ -143,7 +143,7 @@ export const Loading: React.FC = () => {
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDeleteClick(entry.id)}
+                          onClick={() => handleDeleteClick(entry.userId)}
                           className="text-red-600 hover:text-red-900 inline-flex items-center"
                         >
                           <Trash2 className="h-4 w-4 mr-1" />

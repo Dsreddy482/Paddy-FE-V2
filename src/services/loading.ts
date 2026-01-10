@@ -7,70 +7,51 @@ export const loadingService = {
       const response = await api.get('/Account/getLoadingDetails');
       return response.data;
     } catch (error) {
-      return [
-        {
-          id: '1',
-          date: '2024-03-15',
-          lorryNumber: 'AP 05 BD 1234',
-          dealer: 'John Doe',
-          amali: 5000,
-          createdAt: '2024-03-15T10:30:00Z',
-        },
-        {
-          id: '2',
-          date: '2024-03-14',
-          lorryNumber: 'TS 09 XY 5678',
-          dealer: 'Jane Smith',
-          amali: 3000,
-          createdAt: '2024-03-14T15:45:00Z',
-        }
-      ];
+      console.error('Failed to fetch loading entries:', error);
+      throw error;
     }
   },
 
   async createLoadingEntry(data: LoadingEntry): Promise<LoadingEntry> {
     try {
       const response = await api.post('/Account/insertLoadingDetails', {
-        loadedDate: data.date,
+        loadedDate: data.loadedDate,
         lorryNumber: data.lorryNumber,
-        dealerId: data.dealer,
-        amaliId: data.amali,
-        userId: "0",
-        seasonId: 0
+        dealerId: data.dealerId,
+        amaliId: data.amaliId,
+        userId: data.userId || "0",
+        seasonId: data.seasonId || 0
       });
       return response.data;
     } catch (error) {
-      return {
-        ...data,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-      };
+      console.error('Failed to create loading entry:', error);
+      throw error;
     }
   },
 
-  async updateLoadingEntry(id: string, data: Partial<LoadingEntry>): Promise<LoadingEntry> {
+  async updateLoadingEntry(userId: string, data: LoadingEntry): Promise<LoadingEntry> {
     try {
       const response = await api.post('/Account/updateLoadingDetails', {
-        id,
-        date: data.date,
+        userId,
+        loadedDate: data.loadedDate,
         lorryNumber: data.lorryNumber,
-        dealer: data.dealer,
-        amali: data.amali,
+        dealerId: data.dealerId,
+        amaliId: data.amaliId,
+        seasonId: data.seasonId || 0
       });
       return response.data;
     } catch (error) {
-      return {
-        ...data,
-        id,
-      } as LoadingEntry;
+      console.error('Failed to update loading entry:', error);
+      throw error;
     }
   },
 
-  async deleteLoadingEntry(id: string): Promise<void> {
+  async deleteLoadingEntry(userId: string): Promise<void> {
     try {
-      await api.post('/Account/deleteLoadingDetails', { id });
+      await api.post('/Account/deleteLoadingDetails', { userId });
     } catch (error) {
       console.error('Failed to delete loading entry:', error);
+      throw error;
     }
   },
 };
