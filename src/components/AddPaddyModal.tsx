@@ -92,6 +92,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       userId: rythuId,
       dealerId: loadingEntry?.dealerId || '',
       rythuId: rythuId,
+      loadingId: loadingId,
     };
 
     try {
