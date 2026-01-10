@@ -27,6 +27,7 @@ export const paddyService = {
             "dealerId": data.dealerId,
             "rythuId": data.rythuId,
             "dealerBagAmount": data.dealerBagAmount,
+            "loadingId": data.loadingId,
           }
       const response = await api.post('/Account/insertPaddy', datass);
       return response.data;
@@ -47,6 +48,7 @@ export const paddyService = {
         "totalWeight": data.totalWeight,
         "dealerId": data.dealerId?.toString(),
         "dealerBagAmount": data.dealerBagAmount,
+        "loadingId": data.loadingId,
         "id": id,
       }
   const response = await api.post('/Account/updatePaddyDetails', datass);
