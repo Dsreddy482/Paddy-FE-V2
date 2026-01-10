@@ -24,22 +24,17 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [dealers, setDealers] = useState<Dealer[]>([]);
   const [rythus, setRythus] = useState<Dealer[]>([]);
   const [rythuSearch, setRythuSearch] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [dealersList, rythusList] = await Promise.all([
-          authService.getDealers(),
-          authService.searchUsers('')
-        ]);
-        setDealers(dealersList);
+        const rythusList = await authService.searchUsers('');
         setRythus(rythusList.filter(u => u.role?.toLowerCase() === 'rythu'));
       } catch (err) {
         console.error('Failed to fetch data:', err);
-        setError('Failed to load dealers and rythus');
+        setError('Failed to load rythus');
       }
     };
 
@@ -75,15 +70,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const loadedDate = formData.get('loadedDate') as string;
-    const dealerId = formData.get('dealerId') as string;
     const rythuId = formData.get('rythuId') as string;
-
-    if (!dealerId) {
-      setError('Please select a dealer');
-      setLoading(false);
-      return;
-    }
 
     if (!rythuId) {
       setError('Please select a rythu');
@@ -92,15 +79,15 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
     }
 
     const paddyData: PaddyEntry = {
-      lorryNumber: formData.get('lorryNumber') as string,
+      lorryNumber: '',
       totalWeight: parseFloat(formData.get('weight') as string),
       bags: parseInt(formData.get('bags') as string),
       kgsPerBag: parseFloat(formData.get('kgsPerBag') as string),
       bagAmount: parseInt(formData.get('amountPerBag') as string),
       dealerBagAmount: parseInt(formData.get('dealerAmountPerBag') as string),
-      loadedDate: loadedDate,
+      loadedDate: getTodayDate(),
       userId: loadingId || userId,
-      dealerId: dealerId,
+      dealerId: '',
       rythuId: rythuId,
     };
 
@@ -140,35 +127,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Input
-                    label="Lorry Number"
-                    name="lorryNumber"
-                    type="text"
-                    required
-                    placeholder="Enter lorry number"
-                    className="h-12"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dealer
-                  </label>
-                  <select
-                    name="dealerId"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-12 focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                  >
-                    <option value="">Select a dealer</option>
-                    {dealers.map((dealer) => (
-                      <option key={dealer.id} value={dealer.id}>
-                        {dealer.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
+                <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Rythu
                   </label>
@@ -191,20 +150,6 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Loaded Date
-                  </label>
-                  <input
-                    name="loadedDate"
-                    type="date"
-                    required
-                    defaultValue={getTodayDate()}
-                    max={getTodayDate()}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-12 focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                  />
                 </div>
                 <div>
                   <Input
