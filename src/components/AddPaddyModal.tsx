@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { Input } from './Input';
 import { paddyService } from '../services/Paddy';
@@ -45,15 +45,20 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
 
     if (isOpen) {
       fetchData();
+      setRythuSearch('');
     }
   }, [isOpen]);
 
-  const filteredRythus = rythuSearch
-    ? rythus.filter(r =>
-        r.name.toLowerCase().includes(rythuSearch.toLowerCase()) ||
-        r.phoneNumber?.toLowerCase().includes(rythuSearch.toLowerCase())
-      )
-    : rythus;
+  const filteredRythus = useMemo(() => {
+    if (!rythuSearch.trim()) {
+      return rythus;
+    }
+    const searchLower = rythuSearch.toLowerCase();
+    return rythus.filter(r =>
+      r.name?.toLowerCase().includes(searchLower) ||
+      r.phoneNumber?.toLowerCase().includes(searchLower)
+    );
+  }, [rythuSearch, rythus]);
 
   const getTodayDate = () => {
     const today = new Date();
