@@ -89,7 +89,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       bagAmount: parseInt(formData.get('amountPerBag') as string),
       dealerBagAmount: parseInt(formData.get('dealerAmountPerBag') as string),
       loadedDate: loadingEntry?.loadedDate || getTodayDate(),
-      userId: loadingId || userId,
+      userId: rythuId,
       dealerId: loadingEntry?.dealerId || '',
       rythuId: rythuId,
     };
