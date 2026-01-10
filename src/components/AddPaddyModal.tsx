@@ -4,6 +4,7 @@ import { Input } from './Input';
 import { paddyService } from '../services/Paddy';
 import { authService } from '../services/auth';
 import { PaddyEntry, Dealer } from '../types/paddy';
+import { LoadingEntryDetails } from '../types/loading';
 import Alert from './Alert';
 
 interface AddPaddyModalProps {
@@ -12,6 +13,7 @@ interface AddPaddyModalProps {
   onSuccess: () => void;
   userId: string;
   loadingId?: string;
+  loadingEntry?: LoadingEntryDetails | null;
 }
 
 export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
@@ -20,6 +22,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
   onSuccess,
   userId,
   loadingId,
+  loadingEntry,
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -79,15 +82,15 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
     }
 
     const paddyData: PaddyEntry = {
-      lorryNumber: '',
+      lorryNumber: loadingEntry?.lorryNumber || '',
       totalWeight: parseFloat(formData.get('weight') as string),
       bags: parseInt(formData.get('bags') as string),
       kgsPerBag: parseFloat(formData.get('kgsPerBag') as string),
       bagAmount: parseInt(formData.get('amountPerBag') as string),
       dealerBagAmount: parseInt(formData.get('dealerAmountPerBag') as string),
-      loadedDate: getTodayDate(),
+      loadedDate: loadingEntry?.loadedDate || getTodayDate(),
       userId: loadingId || userId,
-      dealerId: '',
+      dealerId: loadingEntry?.dealerId || '',
       rythuId: rythuId,
     };
 
@@ -126,6 +129,34 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {loadingEntry && (
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Loading Details</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Lorry Number
+                      </label>
+                      <p className="text-sm font-medium text-gray-900">{loadingEntry.lorryNumber}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Dealer
+                      </label>
+                      <p className="text-sm font-medium text-gray-900">{loadingEntry.delaerName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Loaded Date
+                      </label>
+                      <p className="text-sm font-medium text-gray-900">
+                        {new Date(loadingEntry.loadedDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">

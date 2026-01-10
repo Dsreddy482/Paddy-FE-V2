@@ -17,7 +17,7 @@ export const Loading: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddPaddyModalOpen, setIsAddPaddyModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<LoadingEntry | null>(null);
-  const [selectedLoadingId, setSelectedLoadingId] = useState<string>('');
+  const [selectedLoadingEntry, setSelectedLoadingEntry] = useState<LoadingEntryDetails | null>(null);
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -40,8 +40,8 @@ export const Loading: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleAddPaddyClick = (loadingId: string) => {
-    setSelectedLoadingId(loadingId);
+  const handleAddPaddyClick = (entry: LoadingEntryDetails) => {
+    setSelectedLoadingEntry(entry);
     setIsAddPaddyModalOpen(true);
   };
 
@@ -144,7 +144,7 @@ export const Loading: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                         <button
-                          onClick={() => handleAddPaddyClick(entry.id?.toString() || '')}
+                          onClick={() => handleAddPaddyClick(entry)}
                           className="text-green-600 hover:text-green-900 inline-flex items-center"
                         >
                           <PackagePlus className="h-4 w-4 mr-1" />
@@ -194,11 +194,12 @@ export const Loading: React.FC = () => {
         isOpen={isAddPaddyModalOpen}
         onClose={() => {
           setIsAddPaddyModalOpen(false);
-          setSelectedLoadingId('');
+          setSelectedLoadingEntry(null);
         }}
         onSuccess={handleSuccess}
-        userId={selectedLoadingId}
-        loadingId={selectedLoadingId}
+        userId={selectedLoadingEntry?.id?.toString() || ''}
+        loadingId={selectedLoadingEntry?.id?.toString() || ''}
+        loadingEntry={selectedLoadingEntry}
       />
     </div>
   );
