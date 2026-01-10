@@ -3,7 +3,7 @@ export interface LoadingEntry {
   date: string;
   lorryNumber: string;
   dealer: string;
-  amali: number;
+  amali: string;
   createdAt?: string;
 }
 

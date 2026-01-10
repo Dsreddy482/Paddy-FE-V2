@@ -31,10 +31,12 @@ export const loadingService = {
   async createLoadingEntry(data: LoadingEntry): Promise<LoadingEntry> {
     try {
       const response = await api.post('/Account/insertLoadingDetails', {
-        date: data.date,
+        loadedDate: data.date,
         lorryNumber: data.lorryNumber,
-        dealer: data.dealer,
-        amali: data.amali,
+        dealerId: data.dealer,
+        amaliId: data.amali,
+        userId: "0",
+        seasonId: 0
       });
       return response.data;
     } catch (error) {

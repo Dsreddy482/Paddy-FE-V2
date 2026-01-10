@@ -74,14 +74,11 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
       return;
     }
 
-    const selectedDealer = dealers.find(d => d.id === dealerId);
-    const selectedUser = users.find(u => u.id === amaliUserId);
-
     const loadingData: LoadingEntry = {
       date: formData.get('date') as string,
       lorryNumber: formData.get('lorryNumber') as string,
-      dealer: selectedDealer?.name || '',
-      amali: parseFloat(amaliUserId),
+      dealer: (dealerId),
+      amali: (amaliUserId),
     };
 
     try {
