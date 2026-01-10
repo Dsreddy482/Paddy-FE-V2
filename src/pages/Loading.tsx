@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, PackagePlus } from 'lucide-react';
 import { loadingService } from '../services/loading';
 import { LoadingEntryDetails, LoadingEntry } from '../types/loading';
 import { AddLoadingModal } from '../components/AddLoadingModal';
 import { EditLoadingModal } from '../components/EditLoadingModal';
+import { AddPaddyModal } from '../components/AddPaddyModal';
 import { Header } from '../components/Header';
 
 export const Loading: React.FC = () => {
@@ -14,7 +15,9 @@ export const Loading: React.FC = () => {
   const [error, setError] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddPaddyModalOpen, setIsAddPaddyModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<LoadingEntry | null>(null);
+  const [selectedLoadingId, setSelectedLoadingId] = useState<string>('');
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -35,6 +38,11 @@ export const Loading: React.FC = () => {
   const handleEditClick = (entry: LoadingEntryDetails) => {
     setSelectedEntry(entry as LoadingEntry);
     setIsEditModalOpen(true);
+  };
+
+  const handleAddPaddyClick = (loadingId: string) => {
+    setSelectedLoadingId(loadingId);
+    setIsAddPaddyModalOpen(true);
   };
 
   const handleDeleteClick = async (userId: string | undefined) => {
@@ -136,6 +144,13 @@ export const Loading: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                         <button
+                          onClick={() => handleAddPaddyClick(entry.id?.toString() || '')}
+                          className="text-green-600 hover:text-green-900 inline-flex items-center"
+                        >
+                          <PackagePlus className="h-4 w-4 mr-1" />
+                          Add Paddy
+                        </button>
+                        <button
                           onClick={() => handleEditClick(entry)}
                           className="text-blue-600 hover:text-blue-900 inline-flex items-center"
                         >
@@ -173,6 +188,17 @@ export const Loading: React.FC = () => {
         }}
         onSuccess={handleSuccess}
         loadingEntry={selectedEntry}
+      />
+
+      <AddPaddyModal
+        isOpen={isAddPaddyModalOpen}
+        onClose={() => {
+          setIsAddPaddyModalOpen(false);
+          setSelectedLoadingId('');
+        }}
+        onSuccess={handleSuccess}
+        userId={selectedLoadingId}
+        loadingId={selectedLoadingId}
       />
     </div>
   );

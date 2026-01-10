@@ -8,6 +8,7 @@ export interface PaddyEntry {
     totalWeight?: number;
     userId?: string;
     dealerId?: string;
+    rythuId?: string;
     dealerBagAmount: number;
   }
 

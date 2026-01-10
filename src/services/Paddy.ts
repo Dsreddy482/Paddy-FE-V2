@@ -13,18 +13,14 @@ export const paddyService = {
             "loadedDate": data.loadedDate,
             "totalWeight": data.totalWeight,
             "dealerId": data.dealerId,
+            "rythuId": data.rythuId,
             "dealerBagAmount": data.dealerBagAmount,
           }
       const response = await api.post('/Account/insertPaddy', datass);
       return response.data;
     } catch (error) {
-      // For development, return mock data
-      return {
-        ...data,
-        id: crypto.randomUUID(),
-        totalWeight: data.totalWeight,
-        createdAt: new Date().toISOString(),
-      };
+      console.error('Failed to create paddy entry:', error);
+      throw error;
     }
   },
   async updatePaddyEntry(id: string, data: Partial<PaddyEntry>) {

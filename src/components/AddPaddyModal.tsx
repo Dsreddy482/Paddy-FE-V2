@@ -11,6 +11,7 @@ interface AddPaddyModalProps {
   onClose: () => void;
   onSuccess: () => void;
   userId: string;
+  loadingId?: string;
 }
 
 export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
@@ -18,27 +19,41 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
   onClose,
   onSuccess,
   userId,
+  loadingId,
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [dealers, setDealers] = useState<Dealer[]>([]);
+  const [rythus, setRythus] = useState<Dealer[]>([]);
+  const [rythuSearch, setRythuSearch] = useState('');
 
   useEffect(() => {
-    const fetchDealers = async () => {
+    const fetchData = async () => {
       try {
-        const dealersList = await authService.getDealers();
+        const [dealersList, rythusList] = await Promise.all([
+          authService.getDealers(),
+          authService.searchUsers('')
+        ]);
         setDealers(dealersList);
+        setRythus(rythusList.filter(u => u.role?.toLowerCase() === 'rythu'));
       } catch (err) {
-        console.error('Failed to fetch dealers:', err);
-        setError('Failed to load dealers');
+        console.error('Failed to fetch data:', err);
+        setError('Failed to load dealers and rythus');
       }
     };
 
     if (isOpen) {
-      fetchDealers();
+      fetchData();
     }
   }, [isOpen]);
+
+  const filteredRythus = rythuSearch
+    ? rythus.filter(r =>
+        r.name.toLowerCase().includes(rythuSearch.toLowerCase()) ||
+        r.phoneNumber?.toLowerCase().includes(rythuSearch.toLowerCase())
+      )
+    : rythus;
 
   const getTodayDate = () => {
     const today = new Date();
@@ -57,9 +72,16 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
     const formData = new FormData(e.currentTarget);
     const loadedDate = formData.get('loadedDate') as string;
     const dealerId = formData.get('dealerId') as string;
-    
+    const rythuId = formData.get('rythuId') as string;
+
     if (!dealerId) {
       setError('Please select a dealer');
+      setLoading(false);
+      return;
+    }
+
+    if (!rythuId) {
+      setError('Please select a rythu');
       setLoading(false);
       return;
     }
@@ -72,8 +94,9 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       bagAmount: parseInt(formData.get('amountPerBag') as string),
       dealerBagAmount: parseInt(formData.get('dealerAmountPerBag') as string),
       loadedDate: loadedDate,
-      userId: userId,
+      userId: loadingId || userId,
       dealerId: dealerId,
+      rythuId: rythuId,
     };
 
     try {
@@ -135,6 +158,31 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
                     {dealers.map((dealer) => (
                       <option key={dealer.id} value={dealer.id}>
                         {dealer.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Rythu
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Search rythu by name or phone..."
+                    value={rythuSearch}
+                    onChange={(e) => setRythuSearch(e.target.value)}
+                    className="mt-1 mb-2 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                  />
+                  <select
+                    name="rythuId"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-12 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                  >
+                    <option value="">Select a rythu</option>
+                    {filteredRythus.map((rythu) => (
+                      <option key={rythu.id} value={rythu.id}>
+                        {rythu.name} {rythu.phoneNumber ? `- ${rythu.phoneNumber}` : ''}
                       </option>
                     ))}
                   </select>
