@@ -168,4 +168,13 @@ export const paddyService = {
       ];
     }
   },
+  async getPaddyByLoadingId(loadingId: string): Promise<PaddyEntryDetails[]> {
+    try {
+      const response = await api.get(`/Account/getPaddyByLoading?loadingId=${loadingId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch paddy entries by loading ID:', error);
+      return [];
+    }
+  },
 };
