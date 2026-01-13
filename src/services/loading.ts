@@ -33,6 +33,7 @@ export const loadingService = {
     try {
       const response = await api.post('/Account/updateLoadingDetails', {
         userId,
+        loadingId: data.loadingId,
         loadedDate: data.loadedDate,
         lorryNumber: data.lorryNumber,
         dealerId: data.dealerId,

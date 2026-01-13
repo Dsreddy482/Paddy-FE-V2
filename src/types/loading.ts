@@ -1,5 +1,6 @@
 export interface LoadingEntry {
   userId?: string;
+  loadingId?: number;
   lorryNumber: string;
   loadedDate: string;
   dealerId: string;
