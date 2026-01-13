@@ -166,6 +166,31 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Total Load Weight (kg)
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.totalLoadWeight || 0}
+                    className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm h-10 sm:text-sm cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Total No. of Bags
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.totalNoOfBags || 0}
+                    className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm h-10 sm:text-sm cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Dealer

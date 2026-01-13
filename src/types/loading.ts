@@ -7,6 +7,8 @@ export interface LoadingEntry {
   seasonId?: number;
   amaliName?: string;
   dealerName?: string;
+  totalLoadWeight?: number;
+  totalNoOfBags?: number;
 }
 
 export interface LoadingEntryDetails {
@@ -19,4 +21,6 @@ export interface LoadingEntryDetails {
   amaliName: string;
   delaerName: string;
   id: number;
+  totalLoadWeight?: number;
+  totalNoOfBags?: number;
 }
