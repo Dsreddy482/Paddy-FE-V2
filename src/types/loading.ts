@@ -11,6 +11,7 @@ export interface LoadingEntry {
   totalLoadWeight?: number;
   totalNoOfBags?: number;
   status?: string;
+  id: number;
 }
 
 export interface LoadingEntryDetails {
