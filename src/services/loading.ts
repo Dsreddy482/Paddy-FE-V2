@@ -37,7 +37,10 @@ export const loadingService = {
         lorryNumber: data.lorryNumber,
         dealerId: data.dealerId,
         amaliId: data.amaliId,
-        seasonId: data.seasonId || 0
+        seasonId: data.seasonId || 0,
+        totalLoadWeight: data.totalLoadWeight || 0,
+        totalNoOfBags: data.totalNoOfBags || 0,
+        status: data.status || 'loading not started'
       });
       return response.data;
     } catch (error) {
