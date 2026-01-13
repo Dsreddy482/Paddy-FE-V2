@@ -133,7 +133,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
               {loadingEntry && (
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
                   <h4 className="text-sm font-semibold text-gray-700 mb-3">Loading Details</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">
                         Lorry Number
@@ -153,6 +153,18 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
                       <p className="text-sm font-medium text-gray-900">
                         {new Date(loadingEntry.loadedDate).toLocaleDateString()}
                       </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Total Bags
+                      </label>
+                      <p className="text-sm font-medium text-gray-900">{loadingEntry.totalNoOfBags || 0}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Total Weight
+                      </label>
+                      <p className="text-sm font-medium text-gray-900">{loadingEntry.totalLoadWeight || 0} kg</p>
                     </div>
                   </div>
                 </div>

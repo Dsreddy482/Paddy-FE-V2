@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, Trash2, PackagePlus } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, PackagePlus, ChevronDown, ChevronRight } from 'lucide-react';
 import { loadingService } from '../services/loading';
 import { LoadingEntryDetails, LoadingEntry } from '../types/loading';
+import { PaddyEntryDetails } from '../types/paddy';
+import { paddyService } from '../services/Paddy';
 import { AddLoadingModal } from '../components/AddLoadingModal';
 import { EditLoadingModal } from '../components/EditLoadingModal';
 import { AddPaddyModal } from '../components/AddPaddyModal';
@@ -18,6 +20,8 @@ export const Loading: React.FC = () => {
   const [isAddPaddyModalOpen, setIsAddPaddyModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<LoadingEntry | null>(null);
   const [selectedLoadingEntry, setSelectedLoadingEntry] = useState<LoadingEntryDetails | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [paddyDetails, setPaddyDetails] = useState<Map<number, PaddyEntryDetails[]>>(new Map());
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -48,21 +52,41 @@ export const Loading: React.FC = () => {
     setIsAddPaddyModalOpen(true);
   };
 
-  const handleDeleteClick = async (userId: string | undefined) => {
-    if (!userId) return;
+  const toggleRowExpansion = async (entryId: number) => {
+    const newExpandedRows = new Set(expandedRows);
 
-    if (window.confirm('Are you sure you want to delete this entry?')) {
-      try {
-        await loadingService.deleteLoadingEntry(userId);
-        setLoadingEntries(entries => entries.filter(e => e.userId !== userId));
-      } catch (err) {
-        setError('Failed to delete loading entry');
+    if (expandedRows.has(entryId)) {
+      newExpandedRows.delete(entryId);
+    } else {
+      newExpandedRows.add(entryId);
+      if (!paddyDetails.has(entryId)) {
+        try {
+          const paddy = await paddyService.getPaddyByLoadingId(entryId.toString());
+          setPaddyDetails(prev => new Map(prev).set(entryId, paddy));
+        } catch (err) {
+          console.error('Failed to fetch paddy details:', err);
+        }
       }
     }
+
+    setExpandedRows(newExpandedRows);
   };
 
   const handleSuccess = async () => {
     await fetchLoadingEntries();
+    const expandedIds = Array.from(expandedRows);
+    const newPaddyDetails = new Map<number, PaddyEntryDetails[]>();
+
+    for (const id of expandedIds) {
+      try {
+        const paddy = await paddyService.getPaddyByLoadingId(id.toString());
+        newPaddyDetails.set(id, paddy);
+      } catch (err) {
+        console.error('Failed to refresh paddy details:', err);
+      }
+    }
+
+    setPaddyDetails(newPaddyDetails);
   };
 
   if (loading) {
@@ -113,6 +137,8 @@ export const Loading: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                    </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Date
                     </th>
@@ -126,49 +152,141 @@ export const Loading: React.FC = () => {
                       Amali
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Bags
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Weight
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {loadingEntries.map((entry) => (
-                    <tr key={entry.userId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(entry.loadedDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {entry.lorryNumber}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {entry.delaerName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {entry.amaliName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                        <button
-                          onClick={() => handleAddPaddyClick(entry)}
-                          className="text-green-600 hover:text-green-900 inline-flex items-center"
-                        >
-                          <PackagePlus className="h-4 w-4 mr-1" />
-                          Add Paddy
-                        </button>
-                        <button
-                          onClick={() => handleEditClick(entry)}
-                          className="text-blue-600 hover:text-blue-900 inline-flex items-center"
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(entry.userId)}
-                          className="text-red-600 hover:text-red-900 inline-flex items-center"
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
+                    <React.Fragment key={entry.id}>
+                      <tr className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <button
+                            onClick={() => toggleRowExpansion(entry.id)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            {expandedRows.has(entry.id) ? (
+                              <ChevronDown className="h-5 w-5" />
+                            ) : (
+                              <ChevronRight className="h-5 w-5" />
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(entry.loadedDate).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {entry.lorryNumber}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {entry.delaerName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {entry.amaliName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {entry.totalNoOfBags || 0}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {entry.totalLoadWeight || 0} kg
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                          <button
+                            onClick={() => handleAddPaddyClick(entry)}
+                            className="text-green-600 hover:text-green-900 inline-flex items-center"
+                          >
+                            <PackagePlus className="h-4 w-4 mr-1" />
+                            Add Paddy
+                          </button>
+                          <button
+                            onClick={() => handleEditClick(entry)}
+                            className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                      {expandedRows.has(entry.id) && (
+                        <tr>
+                          <td colSpan={8} className="px-6 py-4 bg-gray-50">
+                            <div className="overflow-x-auto">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Paddy Details</h4>
+                              {paddyDetails.get(entry.id)?.length ? (
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <thead className="bg-gray-100">
+                                    <tr>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Rythu
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Bags
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        KGs per Bag
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Total Weight
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Amount/Bag
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Dealer Amount/Bag
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Status
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="bg-white divide-y divide-gray-200">
+                                    {paddyDetails.get(entry.id)?.map((paddy) => (
+                                      <tr key={paddy.id}>
+                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                          {paddy.rythu}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                          {paddy.bags}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                          {paddy.kgperBag}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                          {paddy.totalWeight} kg
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                          ₹{paddy.bagAmount}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                          ₹{paddy.dealerBagAmount}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm">
+                                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                            paddy.status === 'completed'
+                                              ? 'bg-green-100 text-green-800'
+                                              : 'bg-yellow-100 text-yellow-800'
+                                          }`}>
+                                            {paddy.status || 'pending'}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              ) : (
+                                <p className="text-sm text-gray-500 italic">No paddy entries found for this loading.</p>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
