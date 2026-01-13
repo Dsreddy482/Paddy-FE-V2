@@ -9,6 +9,7 @@ export interface LoadingEntry {
   dealerName?: string;
   totalLoadWeight?: number;
   totalNoOfBags?: number;
+  status?: string;
 }
 
 export interface LoadingEntryDetails {
@@ -23,4 +24,5 @@ export interface LoadingEntryDetails {
   id: number;
   totalLoadWeight?: number;
   totalNoOfBags?: number;
+  status?: string;
 }

@@ -168,27 +168,42 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Total Load Weight (kg)
-                  </label>
-                  <input
-                    type="text"
-                    readOnly
-                    value={formData.totalLoadWeight || 0}
-                    className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm h-10 sm:text-sm cursor-not-allowed"
+                  <Input
+                    label="Total Load Weight (kg)"
+                    name="totalLoadWeight"
+                    type="number"
+                    value={formData.totalLoadWeight || ''}
+                    onChange={handleChange}
+                    className="h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Total No. of Bags
-                  </label>
-                  <input
-                    type="text"
-                    readOnly
-                    value={formData.totalNoOfBags || 0}
-                    className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm h-10 sm:text-sm cursor-not-allowed"
+                  <Input
+                    label="Total No. of Bags"
+                    name="totalNoOfBags"
+                    type="number"
+                    value={formData.totalNoOfBags || ''}
+                    onChange={handleChange}
+                    className="h-10"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  value={formData.status || 'loading not started'}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                >
+                  <option value="loading not started">loading not started</option>
+                  <option value="Loading Started">Loading Started</option>
+                  <option value="Loading Completed">Loading Completed</option>
+                  <option value="Amount Received">Amount Received</option>
+                </select>
               </div>
 
               <div>
