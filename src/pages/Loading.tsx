@@ -36,7 +36,10 @@ export const Loading: React.FC = () => {
   };
 
   const handleEditClick = (entry: LoadingEntryDetails) => {
-    setSelectedEntry(entry as LoadingEntry);
+    setSelectedEntry({
+      ...entry,
+      loadingId: entry.id
+    } as LoadingEntry);
     setIsEditModalOpen(true);
   };
 
