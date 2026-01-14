@@ -195,15 +195,13 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
       'KG/Bag',
       'Weight (KG)',
       'Rate/Bag',
-      'Amount',
-      'Status'
+      'Amount'
     ]
   ];
 
   const tableBody = entries.map(entry => {
     const bagAmount = userRole === 'vendor' ? entry.dealerBagAmount : entry.bagAmount;
     const finalAmount = userRole === 'vendor' ? entry.dealerFinalAmount : entry.finalAmount;
-    const status = userRole === 'vendor' ? entry.dealerPaddyStatus : entry.status;
     const loadedDate = entry.loadedDate.split('T')[0];
 
     return [
@@ -215,8 +213,7 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
       String(entry.kgperBag || 0),
       entry.totalWeight?.toLocaleString() || '0',
       `₹${(bagAmount || 0).toLocaleString()}`,
-      `₹${(finalAmount || 0).toLocaleString()}`,
-      status === 'paid' ? 'PAID' : status === 'pending' ? 'PENDING' : 'PARTIAL'
+      `₹${(finalAmount || 0).toLocaleString()}`
     ];
   });
 
@@ -240,31 +237,15 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
       fillColor: [245, 245, 245]
     },
     columnStyles: {
-      0: { cellWidth: 25 },
-      1: { cellWidth: 25 },
-      2: { cellWidth: 25 },
-      3: { cellWidth: 22 },
-      4: { cellWidth: 15, halign: 'right' },
-      5: { cellWidth: 18, halign: 'right' },
-      6: { cellWidth: 25, halign: 'right' },
-      7: { cellWidth: 22, halign: 'right' },
-      8: { cellWidth: 25, halign: 'right' },
-      9: { cellWidth: 22, halign: 'center' }
-    },
-    didParseCell: (data: any) => {
-      if (data.section === 'body' && data.column.index === 9) {
-        const statusText = data.cell.raw as string;
-        if (statusText === 'PAID') {
-          data.cell.styles.textColor = [34, 197, 94];
-          data.cell.styles.fontStyle = 'bold';
-        } else if (statusText === 'PENDING') {
-          data.cell.styles.textColor = [239, 68, 68];
-          data.cell.styles.fontStyle = 'bold';
-        } else {
-          data.cell.styles.textColor = [251, 191, 36];
-          data.cell.styles.fontStyle = 'bold';
-        }
-      }
+      0: { cellWidth: 28 },
+      1: { cellWidth: 28 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 25 },
+      4: { cellWidth: 18, halign: 'right' },
+      5: { cellWidth: 20, halign: 'right' },
+      6: { cellWidth: 28, halign: 'right' },
+      7: { cellWidth: 25, halign: 'right' },
+      8: { cellWidth: 30, halign: 'right' }
     }
   });
 
