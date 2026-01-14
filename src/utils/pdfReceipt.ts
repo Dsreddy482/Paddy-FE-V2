@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { PaddyEntryDetails } from '../types/paddy';
 
 export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string, userRole: string) => {
@@ -171,197 +172,139 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
 
 export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName: string, userRole: string) => {
   const pdf = new jsPDF({
-    orientation: 'portrait',
+    orientation: 'landscape',
     unit: 'mm',
-    format: [80, 297]
+    format: 'a4'
   });
 
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  let yPosition = 10;
+  pdf.setFontSize(20);
+  pdf.text('Paddy Receipts Report', 14, 15);
 
-  pdf.setFontSize(14);
-  pdf.setFont('helvetica', 'bold');
-  const title = 'PADDY RECEIPT';
-  const titleWidth = pdf.getTextWidth(title);
-  pdf.text(title, (pageWidth - titleWidth) / 2, yPosition);
-  yPosition += 2;
+  pdf.setFontSize(12);
+  pdf.text(`User: ${userName}`, 14, 25);
+  pdf.text(`Generated on: ${new Date().toLocaleDateString('en-IN')}`, 14, 32);
+  pdf.text(`Total Entries: ${entries.length}`, 14, 39);
 
-  pdf.setLineWidth(0.5);
-  pdf.line(10, yPosition, pageWidth - 10, yPosition);
-  yPosition += 5;
+  const tableHead = [
+    [
+      'Rythu',
+      'Dealer',
+      'Lorry No.',
+      'Date',
+      'Bags',
+      'KG/Bag',
+      'Weight (KG)',
+      'Rate/Bag',
+      'Amount',
+      'Status'
+    ]
+  ];
 
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'normal');
-  const currentDate = new Date().toLocaleString('en-IN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
-  pdf.text(`Date: ${currentDate}`, 10, yPosition);
-  yPosition += 4;
-
-  pdf.text(`User: ${userName}`, 10, yPosition);
-  yPosition += 4;
-
-  pdf.text(`Entries: ${entries.length}`, 10, yPosition);
-  yPosition += 6;
-
-  pdf.setLineWidth(0.3);
-  pdf.line(10, yPosition, pageWidth - 10, yPosition);
-  yPosition += 5;
-
-  let grandTotal = 0;
-  let totalBags = 0;
-  let totalWeight = 0;
-
-  entries.forEach((entry, index) => {
-    if (yPosition > 270) {
-      pdf.addPage();
-      yPosition = 10;
-    }
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(10);
-    pdf.text(`#${index + 1}`, 10, yPosition);
-    yPosition += 5;
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-
-    pdf.text(`Rythu: ${entry.rythu || 'N/A'}`, 10, yPosition);
-    yPosition += 3;
-
-    pdf.text(`Dealer: ${entry.dealer || 'N/A'}`, 10, yPosition);
-    yPosition += 3;
-
-    pdf.text(`Lorry: ${entry.lorryNumber}`, 10, yPosition);
-    yPosition += 3;
-
-    const loadedDate = entry.loadedDate.split('T')[0];
-    pdf.text(`Date: ${loadedDate}`, 10, yPosition);
-    yPosition += 4;
-
-    const items = [
-      { label: 'Bags', value: String(entry.bags || 0) },
-      { label: 'KG/Bag', value: String(entry.kgperBag || 0) },
-      { label: 'Weight', value: `${entry.totalWeight?.toLocaleString() || '0'} KG` },
-    ];
-
-    items.forEach(item => {
-      pdf.text(item.label, 12, yPosition);
-      const valueWidth = pdf.getTextWidth(item.value);
-      pdf.text(item.value, pageWidth - 10 - valueWidth, yPosition);
-      yPosition += 3;
-    });
-
-    yPosition += 1;
-
+  const tableBody = entries.map(entry => {
     const bagAmount = userRole === 'vendor' ? entry.dealerBagAmount : entry.bagAmount;
     const finalAmount = userRole === 'vendor' ? entry.dealerFinalAmount : entry.finalAmount;
     const status = userRole === 'vendor' ? entry.dealerPaddyStatus : entry.status;
+    const loadedDate = entry.loadedDate.split('T')[0];
 
-    pdf.text('Rate/Bag', 12, yPosition);
-    const rateText = `₹${(bagAmount || 0).toLocaleString()}`;
-    const rateWidth = pdf.getTextWidth(rateText);
-    pdf.text(rateText, pageWidth - 10 - rateWidth, yPosition);
-    yPosition += 3;
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Amount', 12, yPosition);
-    const amtText = `₹${(finalAmount || 0).toLocaleString()}`;
-    const amtWidth = pdf.getTextWidth(amtText);
-    pdf.text(amtText, pageWidth - 10 - amtWidth, yPosition);
-    yPosition += 3;
-
-    const statusLabel = status === 'paid' ? 'PAID ✓' :
-                        status === 'pending' ? 'PENDING' :
-                        'PARTIAL';
-    const statusColor = status === 'paid' ? [34, 197, 94] :
-                        status === 'pending' ? [239, 68, 68] :
-                        [251, 191, 36];
-
-    pdf.setTextColor(...statusColor);
-    pdf.setFontSize(7);
-    pdf.text(`[${statusLabel}]`, 12, yPosition);
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-
-    yPosition += 4;
-    pdf.setLineWidth(0.1);
-    pdf.setDrawColor(200, 200, 200);
-    pdf.line(10, yPosition, pageWidth - 10, yPosition);
-    pdf.setDrawColor(0, 0, 0);
-    yPosition += 4;
-
-    grandTotal += finalAmount || 0;
-    totalBags += entry.bags || 0;
-    totalWeight += entry.totalWeight || 0;
+    return [
+      entry.rythu || 'N/A',
+      entry.dealer || 'N/A',
+      entry.lorryNumber,
+      loadedDate,
+      String(entry.bags || 0),
+      String(entry.kgperBag || 0),
+      entry.totalWeight?.toLocaleString() || '0',
+      `₹${(bagAmount || 0).toLocaleString()}`,
+      `₹${(finalAmount || 0).toLocaleString()}`,
+      status === 'paid' ? 'PAID' : status === 'pending' ? 'PENDING' : 'PARTIAL'
+    ];
   });
 
-  if (yPosition > 250) {
-    pdf.addPage();
-    yPosition = 10;
-  }
+  autoTable(pdf, {
+    startY: 45,
+    head: tableHead,
+    body: tableBody,
+    theme: 'striped',
+    headStyles: {
+      fillColor: [34, 197, 94],
+      textColor: 255,
+      fontSize: 10,
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      cellPadding: 2
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245]
+    },
+    columnStyles: {
+      0: { cellWidth: 25 },
+      1: { cellWidth: 25 },
+      2: { cellWidth: 25 },
+      3: { cellWidth: 22 },
+      4: { cellWidth: 15, halign: 'right' },
+      5: { cellWidth: 18, halign: 'right' },
+      6: { cellWidth: 25, halign: 'right' },
+      7: { cellWidth: 22, halign: 'right' },
+      8: { cellWidth: 25, halign: 'right' },
+      9: { cellWidth: 22, halign: 'center' }
+    },
+    didParseCell: (data: any) => {
+      if (data.section === 'body' && data.column.index === 9) {
+        const statusText = data.cell.raw as string;
+        if (statusText === 'PAID') {
+          data.cell.styles.textColor = [34, 197, 94];
+          data.cell.styles.fontStyle = 'bold';
+        } else if (statusText === 'PENDING') {
+          data.cell.styles.textColor = [239, 68, 68];
+          data.cell.styles.fontStyle = 'bold';
+        } else {
+          data.cell.styles.textColor = [251, 191, 36];
+          data.cell.styles.fontStyle = 'bold';
+        }
+      }
+    }
+  });
 
-  yPosition += 2;
-  pdf.setLineWidth(0.5);
-  pdf.line(10, yPosition, pageWidth - 10, yPosition);
-  yPosition += 5;
+  const finalY = (pdf as any).lastAutoTable.finalY + 10;
 
+  const totalWeight = entries.reduce((sum, entry) => sum + (entry.totalWeight || 0), 0);
+  const totalBags = entries.reduce((sum, entry) => sum + (entry.bags || 0), 0);
+  const grandTotal = entries.reduce((sum, entry) => {
+    const finalAmount = userRole === 'vendor' ? entry.dealerFinalAmount : entry.finalAmount;
+    return sum + (finalAmount || 0);
+  }, 0);
+
+  pdf.setFontSize(14);
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(10);
-  pdf.text('SUMMARY', 10, yPosition);
-  yPosition += 5;
+  pdf.text('Summary:', 14, finalY);
 
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(9);
-
-  const summaryItems = [
-    { label: 'Total Entries:', value: String(entries.length) },
-    { label: 'Total Bags:', value: totalBags.toLocaleString() },
-    { label: 'Total Weight:', value: `${totalWeight.toLocaleString()} KG` },
+  const summaryData = [
+    ['Total Entries', entries.length.toString()],
+    ['Total Bags', totalBags.toLocaleString()],
+    ['Total Weight (KG)', totalWeight.toLocaleString()],
+    ['Grand Total Amount', `₹${grandTotal.toLocaleString()}`]
   ];
 
-  summaryItems.forEach(item => {
-    pdf.text(item.label, 10, yPosition);
-    const valueWidth = pdf.getTextWidth(item.value);
-    pdf.text(item.value, pageWidth - 10 - valueWidth, yPosition);
-    yPosition += 4;
+  autoTable(pdf, {
+    startY: finalY + 5,
+    body: summaryData,
+    theme: 'plain',
+    columnStyles: {
+      0: { cellWidth: 60, fontStyle: 'bold', fontSize: 11 },
+      1: { cellWidth: 60, halign: 'right', fontSize: 11 }
+    },
+    styles: {
+      cellPadding: 3
+    }
   });
 
-  yPosition += 2;
-  pdf.setLineWidth(0.5);
-  pdf.line(10, yPosition, pageWidth - 10, yPosition);
-  yPosition += 5;
-
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(12);
-  pdf.text('GRAND TOTAL', 10, yPosition);
-  const grandTotalText = `₹${grandTotal.toLocaleString()}`;
-  const grandTotalWidth = pdf.getTextWidth(grandTotalText);
-  pdf.text(grandTotalText, pageWidth - 10 - grandTotalWidth, yPosition);
-  yPosition += 2;
-
-  pdf.setLineWidth(0.5);
-  pdf.line(10, yPosition, pageWidth - 10, yPosition);
-  yPosition += 8;
-
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(9);
-  const thankYou = 'Thank you for your business!';
-  const thankYouWidth = pdf.getTextWidth(thankYou);
-  pdf.text(thankYou, (pageWidth - thankYouWidth) / 2, yPosition);
-
-  yPosition += 4;
-  pdf.setFontSize(7);
+  const pageHeight = pdf.internal.pageSize.height;
+  pdf.setFontSize(10);
   pdf.setTextColor(128, 128, 128);
-  const footer = 'Computer-generated receipt';
-  const footerWidth = pdf.getTextWidth(footer);
-  pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
+  pdf.text(`Generated on: ${new Date().toLocaleString('en-IN')} | Computer-generated report`, 14, pageHeight - 10);
   pdf.setTextColor(0, 0, 0);
 
   pdf.save(`paddy_receipts_bulk_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}.pdf`);
