@@ -78,9 +78,9 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   pdf.setFontSize(9);
 
   const items = [
-    { label: 'No. of Bags', value: entry.bags.toLocaleString() },
-    { label: 'KG per Bag', value: entry.kgperBag.toLocaleString() },
-    { label: 'Total Weight', value: `${entry.totalWeight?.toLocaleString() || 0} KG` },
+    { label: 'No. of Bags', value: String(entry.bags || 0) },
+    { label: 'KG per Bag', value: String(entry.kgperBag || 0) },
+    { label: 'Total Weight', value: `${entry.totalWeight?.toLocaleString() || '0'} KG` },
   ];
 
   items.forEach(item => {
@@ -108,13 +108,13 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   const status = userRole === 'vendor' ? entry.dealerPaddyStatus : entry.status;
 
   pdf.text('Rate per Bag', 10, yPosition);
-  const rateText = `₹${bagAmount.toLocaleString()}`;
+  const rateText = `₹${(bagAmount || 0).toLocaleString()}`;
   const rateWidth = pdf.getTextWidth(rateText);
   pdf.text(rateText, pageWidth - 10 - rateWidth, yPosition);
   yPosition += 4;
 
   pdf.text(`Bags x Rate`, 10, yPosition);
-  const calcText = `${entry.bags} x ₹${bagAmount.toLocaleString()}`;
+  const calcText = `${entry.bags || 0} x ₹${(bagAmount || 0).toLocaleString()}`;
   const calcWidth = pdf.getTextWidth(calcText);
   pdf.text(calcText, pageWidth - 10 - calcWidth, yPosition);
   yPosition += 6;
@@ -126,7 +126,7 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(12);
   pdf.text('TOTAL AMOUNT', 10, yPosition);
-  const totalText = `₹${finalAmount.toLocaleString()}`;
+  const totalText = `₹${(finalAmount || 0).toLocaleString()}`;
   const totalWidth = pdf.getTextWidth(totalText);
   pdf.text(totalText, pageWidth - 10 - totalWidth, yPosition);
   yPosition += 3;
@@ -247,7 +247,7 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
       pdf.setFont('helvetica', 'bold');
       pdf.text(detail.label, margin + 10, yPosition);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(detail.value, margin + 50, yPosition);
+      pdf.text(String(detail.value || 'N/A'), margin + 50, yPosition);
       yPosition += 7;
     });
 
@@ -277,9 +277,9 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
 
     pdf.setFont('helvetica', 'normal');
     const itemDetails = [
-      { desc: 'Number of Bags', qty: entry.bags.toLocaleString() },
-      { desc: 'KG per Bag', qty: entry.kgperBag.toLocaleString() },
-      { desc: 'Total Weight (KG)', qty: (entry.totalWeight?.toLocaleString() || '0') + ' KG' },
+      { desc: 'Number of Bags', qty: String(entry.bags || 0) },
+      { desc: 'KG per Bag', qty: String(entry.kgperBag || 0) },
+      { desc: 'Total Weight (KG)', qty: `${entry.totalWeight?.toLocaleString() || '0'} KG` },
     ];
 
     itemDetails.forEach(item => {
@@ -306,9 +306,9 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     pdf.setFont('helvetica', 'normal');
 
     const amountDetails = [
-      { label: 'Rate per Bag:', value: `₹${bagAmount.toLocaleString()}` },
-      { label: 'Total Bags:', value: entry.bags.toLocaleString() },
-      { label: 'Calculation:', value: `${entry.bags} × ₹${bagAmount.toLocaleString()}` },
+      { label: 'Rate per Bag:', value: `₹${String(bagAmount || 0)}` },
+      { label: 'Total Bags:', value: String(entry.bags || 0) },
+      { label: 'Calculation:', value: `${entry.bags || 0} × ₹${String(bagAmount || 0)}` },
     ];
 
     amountDetails.forEach(detail => {
@@ -328,7 +328,7 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(16);
     pdf.text('TOTAL AMOUNT:', margin + 10, yPosition);
-    const totalText = `₹${finalAmount.toLocaleString()}`;
+    const totalText = `₹${(finalAmount || 0).toLocaleString()}`;
     const totalWidth = pdf.getTextWidth(totalText);
     pdf.text(totalText, pageWidth - margin - 10 - totalWidth, yPosition);
 
