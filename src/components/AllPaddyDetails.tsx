@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Header } from './Header';
 import { shareOnWhatsApp, formatPaddyEntryForWhatsApp } from '../utils/whatsapp';
+import { generatePaddyReceipt, generateBulkPaddyReceipts } from '../utils/pdfReceipt';
 
 interface FilterState {
   lorryNumber: string;
@@ -251,6 +252,17 @@ const AllPaddyDetails: React.FC = () => {
     shareOnWhatsApp(message, phoneNumber);
   };
 
+  const downloadReceipt = (entry: PaddyEntryDetails) => {
+    generatePaddyReceipt(entry, entry.rythu, 'rythu');
+  };
+
+  const downloadSelectedReceipts = () => {
+    const selectedEntriesArray = paddyEntries.filter(entry => selectedEntries.has(entry.id!));
+    if (selectedEntriesArray.length === 0) return;
+
+    generateBulkPaddyReceipts(selectedEntriesArray, 'Admin', 'admin');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -398,14 +410,26 @@ const AllPaddyDetails: React.FC = () => {
                 {selectedEntries.size} selected
               </span>
             </div>
-            <button
-              onClick={downloadSelectedPDF}
-              disabled={selectedEntries.size === 0}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download Selected
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={downloadSelectedPDF}
+                disabled={selectedEntries.size === 0}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Download Table</span>
+                <span className="sm:hidden">Table</span>
+              </button>
+              <button
+                onClick={downloadSelectedReceipts}
+                disabled={selectedEntries.size === 0}
+                className="inline-flex items-center px-4 py-2 border border-green-600 text-sm font-medium rounded-md shadow-sm text-green-600 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Download Receipts</span>
+                <span className="sm:hidden">Receipts</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -497,14 +521,24 @@ const AllPaddyDetails: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleSharePaddyEntry(entry)}
-                        className="text-emerald-600 hover:text-emerald-900 focus:outline-none inline-flex items-center"
-                        title="Share on WhatsApp"
-                      >
-                        <Share2 className="h-5 w-5 mr-1" />
-                        Share
-                      </button>
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => downloadReceipt(entry)}
+                          className="text-green-600 hover:text-green-900 focus:outline-none inline-flex items-center"
+                          title="Download Receipt"
+                        >
+                          <Download className="h-5 w-5 mr-1" />
+                          Receipt
+                        </button>
+                        <button
+                          onClick={() => handleSharePaddyEntry(entry)}
+                          className="text-emerald-600 hover:text-emerald-900 focus:outline-none inline-flex items-center"
+                          title="Share on WhatsApp"
+                        >
+                          <Share2 className="h-5 w-5 mr-1" />
+                          Share
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

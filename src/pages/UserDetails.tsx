@@ -16,6 +16,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Header } from '../components/Header';
 import { shareOnWhatsApp, formatPaddyEntryForWhatsApp, formatUserSummaryForWhatsApp } from '../utils/whatsapp';
+import { generatePaddyReceipt, generateBulkPaddyReceipts } from '../utils/pdfReceipt';
 
 interface FilterState {
   lorryNumber: string;
@@ -446,6 +447,17 @@ export const UserDetails: React.FC = () => {
     } catch (error) {
       console.error('Error generating PDF:', error);
     }
+  };
+
+  const downloadReceipt = (entry: PaddyEntryDetails) => {
+    generatePaddyReceipt(entry, selectedUser.name, selectedUser.role);
+  };
+
+  const downloadSelectedReceipts = () => {
+    const selectedEntriesArray = paddyEntries.filter(entry => selectedEntries.has(entry.id!));
+    if (selectedEntriesArray.length === 0) return;
+
+    generateBulkPaddyReceipts(selectedEntriesArray, selectedUser.name, selectedUser.role);
   };
 
   const downloadPDF = (entry: PaddyEntryDetails) => {
@@ -970,14 +982,26 @@ export const UserDetails: React.FC = () => {
                 {selectedEntries.size} selected
               </span>
             </div>
-            <button
-              onClick={downloadSelectedPDF}
-              disabled={selectedEntries.size === 0}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download Selected
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={downloadSelectedPDF}
+                disabled={selectedEntries.size === 0}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Download Table</span>
+                <span className="sm:hidden">Table</span>
+              </button>
+              <button
+                onClick={downloadSelectedReceipts}
+                disabled={selectedEntries.size === 0}
+                className="inline-flex items-center px-4 py-2 border border-green-600 text-sm font-medium rounded-md shadow-sm text-green-600 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Download Receipts</span>
+                <span className="sm:hidden">Receipts</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -1061,9 +1085,9 @@ export const UserDetails: React.FC = () => {
                           </div>
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => downloadPDF(entry)}
-                              className="text-gray-600 hover:text-gray-900 focus:outline-none"
-                              title="Download PDF"
+                              onClick={() => downloadReceipt(entry)}
+                              className="text-green-600 hover:text-green-900 focus:outline-none"
+                              title="Download Receipt"
                             >
                               <Download className="h-5 w-5" />
                             </button>
