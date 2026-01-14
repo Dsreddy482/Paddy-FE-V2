@@ -36,7 +36,7 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   pdf.text(`Date: ${currentDate}`, 10, yPosition);
   yPosition += 5;
 
-  const receiptId = `#${entry.id?.substring(0, 8).toUpperCase() || 'N/A'}`;
+  const receiptId = entry.id ? `#${String(entry.id).substring(0, 8).toUpperCase()}` : '#N/A';
   pdf.text(`Receipt No: ${receiptId}`, 10, yPosition);
   yPosition += 5;
 
@@ -217,7 +217,8 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     });
 
     pdf.text(`Print Date: ${currentDate}`, margin, yPosition);
-    pdf.text(`Receipt No: #${entry.id?.substring(0, 8).toUpperCase() || 'N/A'}`, pageWidth - margin - 50, yPosition);
+    const receiptId = entry.id ? `#${String(entry.id).substring(0, 8).toUpperCase()}` : '#N/A';
+    pdf.text(`Receipt No: ${receiptId}`, pageWidth - margin - 50, yPosition);
 
     yPosition += 8;
     const loadedDate = entry.loadedDate.split('T')[0];
