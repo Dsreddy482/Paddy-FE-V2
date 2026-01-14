@@ -10,7 +10,7 @@ import Alert from './Alert';
 interface AddPaddyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (paddyData?: any, rythuData?: any) => void;
   userId: string;
   loadingId?: string;
   loadingEntry?: LoadingEntryDetails | null;
@@ -98,11 +98,17 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
     try {
       await paddyService.createPaddyEntry(paddyData);
       setSuccess('Paddy entry saved successfully!');
+
+      const selectedRythu = rythus.find(r => r.id === rythuId);
+
       setTimeout(() => {
         setSuccess('');
-        onSuccess();
+        onSuccess({
+          ...paddyData,
+          finalAmount: paddyData.bags * paddyData.bagAmount,
+        }, selectedRythu);
         onClose();
-      }, 2000);
+      }, 1000);
     } catch (err) {
       setError('Failed to save paddy entry. Please try again.');
     } finally {

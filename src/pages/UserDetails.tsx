@@ -8,6 +8,7 @@ import { AddPaddyModal } from '../components/AddPaddyModal';
 import { EditPaddyModal } from '../components/EditPaddyModal';
 import { AddTransactionModal } from '../components/AddTransactionModal';
 import { TransactionsModal } from '../components/TransactionsModal';
+import { PaddyConfirmationModal } from '../components/PaddyConfirmationModal';
 import { useAuthStore } from '../store/authStore';
 import { PaddyEntry, PaddyEntryDetails } from '../types/paddy';
 import { Transaction } from '../types/transaction';
@@ -54,6 +55,9 @@ export const UserDetails: React.FC = () => {
   const [isPayablesModalOpen, setIsPayablesModalOpen] = useState(false);
   const [isReceivablesModalOpen, setIsReceivablesModalOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [newPaddyEntry, setNewPaddyEntry] = useState<any>(null);
+  const [newRythuData, setNewRythuData] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -177,11 +181,17 @@ export const UserDetails: React.FC = () => {
     pdf.save(`pending-${type}-${new Date().toISOString()}.pdf`);
   };
 
-  const handlePaddySuccess = async () => {
+  const handlePaddySuccess = async (paddyData?: any, rythuData?: any) => {
     if (userId) {
       try {
-        const paddyData = await paddyService.getUserPaddyEntries(userId);
-        setPaddyEntries(paddyData);
+        const paddyDataList = await paddyService.getUserPaddyEntries(userId);
+        setPaddyEntries(paddyDataList);
+
+        if (paddyData && rythuData) {
+          setNewPaddyEntry(paddyData);
+          setNewRythuData(rythuData);
+          setIsConfirmationModalOpen(true);
+        }
       } catch (err) {
         console.error('Failed to refresh paddy entries:', err);
       }
@@ -1125,6 +1135,17 @@ export const UserDetails: React.FC = () => {
         onClose={() => setIsReceivablesModalOpen(false)}
         userId={userId}
         type="receivable"
+      />
+
+      <PaddyConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={() => {
+          setIsConfirmationModalOpen(false);
+          setNewPaddyEntry(null);
+          setNewRythuData(null);
+        }}
+        paddyEntry={newPaddyEntry}
+        rythu={newRythuData}
       />
     </div>
   );

@@ -8,6 +8,7 @@ import { paddyService } from '../services/Paddy';
 import { AddLoadingModal } from '../components/AddLoadingModal';
 import { EditLoadingModal } from '../components/EditLoadingModal';
 import { AddPaddyModal } from '../components/AddPaddyModal';
+import { PaddyConfirmationModal } from '../components/PaddyConfirmationModal';
 import { Header } from '../components/Header';
 import { shareOnWhatsApp, formatLoadingDetailsForWhatsApp } from '../utils/whatsapp';
 
@@ -23,6 +24,9 @@ export const Loading: React.FC = () => {
   const [selectedLoadingEntry, setSelectedLoadingEntry] = useState<LoadingEntryDetails | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [paddyDetails, setPaddyDetails] = useState<Map<number, PaddyEntryDetails[]>>(new Map());
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [newPaddyEntry, setNewPaddyEntry] = useState<any>(null);
+  const [newRythuData, setNewRythuData] = useState<any>(null);
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -73,21 +77,27 @@ export const Loading: React.FC = () => {
     setExpandedRows(newExpandedRows);
   };
 
-  const handleSuccess = async () => {
+  const handleSuccess = async (paddyData?: any, rythuData?: any) => {
     await fetchLoadingEntries();
     const expandedIds = Array.from(expandedRows);
-    const newPaddyDetails = new Map<number, PaddyEntryDetails[]>();
+    const newPaddyDetailsMap = new Map<number, PaddyEntryDetails[]>();
 
     for (const id of expandedIds) {
       try {
         const paddy = await paddyService.getPaddyByLoadingId(id.toString());
-        newPaddyDetails.set(id, paddy);
+        newPaddyDetailsMap.set(id, paddy);
       } catch (err) {
         console.error('Failed to refresh paddy details:', err);
       }
     }
 
-    setPaddyDetails(newPaddyDetails);
+    setPaddyDetails(newPaddyDetailsMap);
+
+    if (paddyData && rythuData) {
+      setNewPaddyEntry(paddyData);
+      setNewRythuData(rythuData);
+      setIsConfirmationModalOpen(true);
+    }
   };
 
   const handleShareLoading = async (entry: LoadingEntryDetails) => {
@@ -349,6 +359,17 @@ export const Loading: React.FC = () => {
         userId={selectedLoadingEntry?.id?.toString() || ''}
         loadingId={selectedLoadingEntry?.id?.toString() || ''}
         loadingEntry={selectedLoadingEntry}
+      />
+
+      <PaddyConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={() => {
+          setIsConfirmationModalOpen(false);
+          setNewPaddyEntry(null);
+          setNewRythuData(null);
+        }}
+        paddyEntry={newPaddyEntry}
+        rythu={newRythuData}
       />
     </div>
   );
