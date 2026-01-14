@@ -589,9 +589,14 @@ export const UserDetails: React.FC = () => {
         finalAmount: selectedUser.role === 'vendor' ? entry.dealerFinalAmount : entry.finalAmount,
         status: selectedUser.role === 'vendor' ? entry.dealerPaddyStatus : entry.status,
       },
-      selectedUser.name
+      selectedUser.role === 'vendor' ? entry.rythu : selectedUser.name
     );
-    shareOnWhatsApp(message);
+
+    const phoneNumber = selectedUser.role === 'vendor'
+      ? (entry.rythuPhone || selectedUser.phoneNumber)
+      : selectedUser.phoneNumber;
+
+    shareOnWhatsApp(message, phoneNumber);
   };
 
   const handleShareUserSummary = () => {

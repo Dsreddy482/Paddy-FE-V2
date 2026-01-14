@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Filter, User, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Download, Filter, User, ExternalLink, Share2 } from 'lucide-react';
 import { paddyService } from '../services/Paddy';
 import { PaddyEntryDetails } from '../types/paddy';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Header } from './Header';
+import { shareOnWhatsApp, formatPaddyEntryForWhatsApp } from '../utils/whatsapp';
 
 interface FilterState {
   lorryNumber: string;
@@ -231,6 +232,25 @@ const AllPaddyDetails: React.FC = () => {
     navigate(`/user/${userId}`);
   };
 
+  const handleSharePaddyEntry = (entry: PaddyEntryDetails) => {
+    const message = formatPaddyEntryForWhatsApp(
+      {
+        lorryNumber: entry.lorryNumber,
+        loadedDate: entry.loadedDate,
+        totalWeight: entry.totalWeight || 0,
+        bags: entry.bags,
+        kgperBag: entry.kgperBag,
+        bagAmount: entry.bagAmount,
+        finalAmount: entry.finalAmount,
+        status: entry.status,
+      },
+      entry.rythu
+    );
+
+    const phoneNumber = entry.rythuPhone || '';
+    shareOnWhatsApp(message, phoneNumber);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -418,9 +438,9 @@ const AllPaddyDetails: React.FC = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Dealer Amount
                   </th>
-                  {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th> */}
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -476,15 +496,16 @@ const AllPaddyDetails: React.FC = () => {
                         Total: ₹{entry.dealerFinalAmount.toLocaleString()}
                       </div>
                     </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        entry.status.toLowerCase() === 'completed'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {entry.status}
-                      </span>
-                    </td> */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleSharePaddyEntry(entry)}
+                        className="text-emerald-600 hover:text-emerald-900 focus:outline-none inline-flex items-center"
+                        title="Share on WhatsApp"
+                      >
+                        <Share2 className="h-5 w-5 mr-1" />
+                        Share
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

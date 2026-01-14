@@ -30,4 +30,6 @@ export interface PaddyEntry {
     dealerBagAmount:number;
     dealerFinalAmount:number;
     dealerId: string;
+    rythuPhone?: string;
+    dealerPhone?: string;
   }

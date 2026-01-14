@@ -10,7 +10,7 @@ import { EditLoadingModal } from '../components/EditLoadingModal';
 import { AddPaddyModal } from '../components/AddPaddyModal';
 import { PaddyConfirmationModal } from '../components/PaddyConfirmationModal';
 import { Header } from '../components/Header';
-import { shareOnWhatsApp, formatLoadingDetailsForWhatsApp } from '../utils/whatsapp';
+import { shareOnWhatsApp, formatLoadingDetailsForWhatsApp, formatPaddyEntryForWhatsApp } from '../utils/whatsapp';
 
 export const Loading: React.FC = () => {
   const navigate = useNavigate();
@@ -98,6 +98,25 @@ export const Loading: React.FC = () => {
       setNewRythuData(rythuData);
       setIsConfirmationModalOpen(true);
     }
+  };
+
+  const handleSharePaddyEntry = (paddy: PaddyEntryDetails) => {
+    const message = formatPaddyEntryForWhatsApp(
+      {
+        lorryNumber: paddy.lorryNumber,
+        loadedDate: paddy.loadedDate,
+        totalWeight: paddy.totalWeight || 0,
+        bags: paddy.bags,
+        kgperBag: paddy.kgperBag,
+        bagAmount: paddy.bagAmount,
+        finalAmount: paddy.finalAmount,
+        status: paddy.status,
+      },
+      paddy.rythu
+    );
+
+    const phoneNumber = paddy.rythuPhone || '';
+    shareOnWhatsApp(message, phoneNumber);
   };
 
   const handleShareLoading = async (entry: LoadingEntryDetails) => {
@@ -281,6 +300,9 @@ export const Loading: React.FC = () => {
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                         Status
                                       </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Actions
+                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody className="bg-white divide-y divide-gray-200">
@@ -312,6 +334,16 @@ export const Loading: React.FC = () => {
                                           }`}>
                                             {paddy.status || 'pending'}
                                           </span>
+                                        </td>
+                                        <td className="px-4 py-2 text-sm">
+                                          <button
+                                            onClick={() => handleSharePaddyEntry(paddy)}
+                                            className="text-emerald-600 hover:text-emerald-900 inline-flex items-center"
+                                            title="Share on WhatsApp"
+                                          >
+                                            <Share2 className="h-4 w-4 mr-1" />
+                                            Share
+                                          </button>
                                         </td>
                                       </tr>
                                     ))}
