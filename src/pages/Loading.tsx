@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, PackagePlus, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, PackagePlus, ChevronDown, ChevronRight, Share2 } from 'lucide-react';
 import { loadingService } from '../services/loading';
 import { LoadingEntryDetails, LoadingEntry } from '../types/loading';
 import { PaddyEntryDetails } from '../types/paddy';
@@ -9,6 +9,7 @@ import { AddLoadingModal } from '../components/AddLoadingModal';
 import { EditLoadingModal } from '../components/EditLoadingModal';
 import { AddPaddyModal } from '../components/AddPaddyModal';
 import { Header } from '../components/Header';
+import { shareOnWhatsApp, formatLoadingDetailsForWhatsApp } from '../utils/whatsapp';
 
 export const Loading: React.FC = () => {
   const navigate = useNavigate();
@@ -87,6 +88,25 @@ export const Loading: React.FC = () => {
     }
 
     setPaddyDetails(newPaddyDetails);
+  };
+
+  const handleShareLoading = async (entry: LoadingEntryDetails) => {
+    let paddy = paddyDetails.get(entry.id);
+
+    if (!paddy) {
+      try {
+        paddy = await paddyService.getPaddyByLoadingId(entry.id.toString());
+      } catch (err) {
+        console.error('Failed to fetch paddy details for sharing:', err);
+      }
+    }
+
+    const message = formatLoadingDetailsForWhatsApp({
+      ...entry,
+      paddyDetails: paddy
+    });
+
+    shareOnWhatsApp(message);
   };
 
   if (loading) {
@@ -210,6 +230,14 @@ export const Loading: React.FC = () => {
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
+                          </button>
+                          <button
+                            onClick={() => handleShareLoading(entry)}
+                            className="text-emerald-600 hover:text-emerald-900 inline-flex items-center"
+                            title="Share on WhatsApp"
+                          >
+                            <Share2 className="h-4 w-4 mr-1" />
+                            Share
                           </button>
                         </td>
                       </tr>

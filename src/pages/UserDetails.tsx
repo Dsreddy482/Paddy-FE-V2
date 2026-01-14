@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Plus, Download, CheckCircle, Clock, Edit, Filter, IndianRupee } from 'lucide-react';
+import { ArrowLeft, Phone, Plus, Download, CheckCircle, Clock, Edit, Filter, IndianRupee, Share2 } from 'lucide-react';
 import { authService } from '../services/auth';
 import { paddyService } from '../services/Paddy';
 import { transactionService } from '../services/transaction';
@@ -14,6 +14,7 @@ import { Transaction } from '../types/transaction';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Header } from '../components/Header';
+import { shareOnWhatsApp, formatPaddyEntryForWhatsApp, formatUserSummaryForWhatsApp } from '../utils/whatsapp';
 
 interface FilterState {
   lorryNumber: string;
@@ -545,7 +546,7 @@ export const UserDetails: React.FC = () => {
     const totalAmount = combinedData.reduce((sum, data) => sum + data.totalAmount, 0);
 
     pdf.text('Summary:', 20, finalY);
-    
+
     const summaryData = [
       ['Total Entries', combinedData.length.toString()],
       ['Total Weight (KGs)', totalWeight.toLocaleString()],
@@ -564,6 +565,38 @@ export const UserDetails: React.FC = () => {
     });
 
     pdf.save(`combined-paddy-report-${new Date().toISOString()}.pdf`);
+  };
+
+  const handleSharePaddyEntry = (entry: PaddyEntryDetails) => {
+    const message = formatPaddyEntryForWhatsApp(
+      {
+        lorryNumber: entry.lorryNumber,
+        loadedDate: entry.loadedDate,
+        totalWeight: entry.totalWeight,
+        bags: entry.bags,
+        kgperBag: entry.kgperBag,
+        bagAmount: selectedUser.role === 'vendor' ? entry.dealerBagAmount : entry.bagAmount,
+        finalAmount: selectedUser.role === 'vendor' ? entry.dealerFinalAmount : entry.finalAmount,
+        status: selectedUser.role === 'vendor' ? entry.dealerPaddyStatus : entry.status,
+      },
+      selectedUser.name
+    );
+    shareOnWhatsApp(message);
+  };
+
+  const handleShareUserSummary = () => {
+    const { payables, receivables } = calculateTransactionTotals();
+    const paddyAmount = calculateGrandTotal();
+    const netBalance = paddyAmount - receivables - payables;
+
+    const message = formatUserSummaryForWhatsApp(
+      selectedUser.name,
+      paddyAmount,
+      payables,
+      receivables,
+      netBalance
+    );
+    shareOnWhatsApp(message);
   };
 
   if (loading) {
@@ -707,11 +740,20 @@ export const UserDetails: React.FC = () => {
               </div>
 
               <div className="bg-white p-4 rounded-lg shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-500">Net Balance</span>
-                  <span className="text-xl font-bold text-blue-600">
-                    ₹{(calculateGrandTotal() - calculateTransactionTotals().receivables - calculateTransactionTotals().payables).toLocaleString()}
-                  </span>
+                <div className="flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-500">Net Balance</span>
+                    <span className="text-xl font-bold text-blue-600">
+                      ₹{(calculateGrandTotal() - calculateTransactionTotals().receivables - calculateTransactionTotals().payables).toLocaleString()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleShareUserSummary}
+                    className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
+                  >
+                    <Share2 className="h-3 w-3 mr-1" />
+                    Share Summary
+                  </button>
                 </div>
               </div>
             </div>
@@ -1009,6 +1051,13 @@ export const UserDetails: React.FC = () => {
                               title="Download PDF"
                             >
                               <Download className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleSharePaddyEntry(entry)}
+                              className="text-emerald-600 hover:text-emerald-900 focus:outline-none"
+                              title="Share on WhatsApp"
+                            >
+                              <Share2 className="h-5 w-5" />
                             </button>
                             {selectedUser?.role !== 'vendor' && (
                               <button
