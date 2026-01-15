@@ -187,8 +187,6 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
 
   const tableHead = [
     [
-      'Rythu',
-      'Dealer',
       'Lorry No.',
       'Date',
       'Bags',
@@ -205,8 +203,6 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     const loadedDate = entry.loadedDate.split('T')[0];
 
     return [
-      entry.rythu || 'N/A',
-      entry.dealer || 'N/A',
       entry.lorryNumber,
       loadedDate,
       String(entry.bags || 0),
@@ -221,31 +217,31 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     startY: 45,
     head: tableHead,
     body: tableBody,
-    theme: 'striped',
+    theme: 'grid',
     headStyles: {
-      fillColor: [34, 197, 94],
-      textColor: 255,
+      fillColor: [255, 255, 255],
+      textColor: 0,
       fontSize: 10,
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
+      lineWidth: 0.1,
+      lineColor: [0, 0, 0]
     },
     bodyStyles: {
       fontSize: 9,
-      cellPadding: 2
-    },
-    alternateRowStyles: {
-      fillColor: [245, 245, 245]
+      cellPadding: 2,
+      textColor: 0,
+      lineWidth: 0.1,
+      lineColor: [0, 0, 0]
     },
     columnStyles: {
-      0: { cellWidth: 28 },
-      1: { cellWidth: 28 },
-      2: { cellWidth: 28 },
-      3: { cellWidth: 25 },
-      4: { cellWidth: 18, halign: 'right' },
-      5: { cellWidth: 20, halign: 'right' },
-      6: { cellWidth: 28, halign: 'right' },
-      7: { cellWidth: 25, halign: 'right' },
-      8: { cellWidth: 30, halign: 'right' }
+      0: { cellWidth: 35 },
+      1: { cellWidth: 30 },
+      2: { cellWidth: 25, halign: 'right' },
+      3: { cellWidth: 25, halign: 'right' },
+      4: { cellWidth: 35, halign: 'right' },
+      5: { cellWidth: 30, halign: 'right' },
+      6: { cellWidth: 35, halign: 'right' }
     }
   });
 
