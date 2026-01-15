@@ -208,8 +208,8 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
       String(entry.bags || 0),
       String(entry.kgperBag || 0),
       entry.totalWeight?.toLocaleString() || '0',
-      `₹${(bagAmount || 0).toLocaleString()}`,
-      `₹${(finalAmount || 0).toLocaleString()}`
+      `${(bagAmount || 0).toLocaleString()}`,
+      `${(finalAmount || 0).toLocaleString()}`
     ];
   });
 
@@ -262,7 +262,7 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     ['Total Entries', entries.length.toString()],
     ['Total Bags', totalBags.toLocaleString()],
     ['Total Weight (KG)', totalWeight.toLocaleString()],
-    ['Grand Total Amount', `₹${grandTotal.toLocaleString()}`]
+    ['Grand Total Amount', `${grandTotal.toLocaleString()}`]
   ];
 
   autoTable(pdf, {
