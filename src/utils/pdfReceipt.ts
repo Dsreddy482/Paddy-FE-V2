@@ -235,13 +235,13 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
       lineColor: [0, 0, 0]
     },
     columnStyles: {
-      0: { cellWidth: 35 },
-      1: { cellWidth: 30 },
-      2: { cellWidth: 25, halign: 'right' },
-      3: { cellWidth: 25, halign: 'right' },
-      4: { cellWidth: 35, halign: 'right' },
-      5: { cellWidth: 30, halign: 'right' },
-      6: { cellWidth: 35, halign: 'right' }
+      0: { cellWidth: 30 },
+      1: { cellWidth: 28 },
+      2: { cellWidth: 20, halign: 'right' },
+      3: { cellWidth: 22, halign: 'right' },
+      4: { cellWidth: 30, halign: 'right' },
+      5: { cellWidth: 35, halign: 'right' },
+      6: { cellWidth: 40, halign: 'right' }
     }
   });
 
