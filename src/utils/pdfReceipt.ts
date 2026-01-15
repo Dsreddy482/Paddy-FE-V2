@@ -235,48 +235,50 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
       lineColor: [0, 0, 0]
     },
     columnStyles: {
-      0: { cellWidth: 30 },
-      1: { cellWidth: 28 },
-      2: { cellWidth: 20, halign: 'right' },
-      3: { cellWidth: 22, halign: 'right' },
-      4: { cellWidth: 30, halign: 'right' },
-      5: { cellWidth: 35, halign: 'right' },
-      6: { cellWidth: 40, halign: 'right' }
+      0: { cellWidth: 30, halign: 'center' },
+      1: { cellWidth: 28, halign: 'center' },
+      2: { cellWidth: 20, halign: 'center' },
+      3: { cellWidth: 22, halign: 'center' },
+      4: { cellWidth: 30, halign: 'center' },
+      5: { cellWidth: 35, halign: 'center' },
+      6: { cellWidth: 40, halign: 'center' }
     }
   });
 
   const finalY = (pdf as any).lastAutoTable.finalY + 10;
 
-  const totalWeight = entries.reduce((sum, entry) => sum + (entry.totalWeight || 0), 0);
-  const totalBags = entries.reduce((sum, entry) => sum + (entry.bags || 0), 0);
-  const grandTotal = entries.reduce((sum, entry) => {
-    const finalAmount = userRole === 'vendor' ? entry.dealerFinalAmount : entry.finalAmount;
-    return sum + (finalAmount || 0);
-  }, 0);
+  if (entries.length > 1) {
+    const totalWeight = entries.reduce((sum, entry) => sum + (entry.totalWeight || 0), 0);
+    const totalBags = entries.reduce((sum, entry) => sum + (entry.bags || 0), 0);
+    const grandTotal = entries.reduce((sum, entry) => {
+      const finalAmount = userRole === 'vendor' ? entry.dealerFinalAmount : entry.finalAmount;
+      return sum + (finalAmount || 0);
+    }, 0);
 
-  pdf.setFontSize(14);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Summary:', 14, finalY);
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Summary:', 14, finalY);
 
-  const summaryData = [
-    ['Total Entries', entries.length.toString()],
-    ['Total Bags', totalBags.toLocaleString()],
-    ['Total Weight (KG)', totalWeight.toLocaleString()],
-    ['Grand Total Amount', `₹${grandTotal.toLocaleString()}`]
-  ];
+    const summaryData = [
+      ['Total Entries', entries.length.toString()],
+      ['Total Bags', totalBags.toLocaleString()],
+      ['Total Weight (KG)', totalWeight.toLocaleString()],
+      ['Grand Total Amount', `₹${grandTotal.toLocaleString()}`]
+    ];
 
-  autoTable(pdf, {
-    startY: finalY + 5,
-    body: summaryData,
-    theme: 'plain',
-    columnStyles: {
-      0: { cellWidth: 60, fontStyle: 'bold', fontSize: 11 },
-      1: { cellWidth: 60, halign: 'right', fontSize: 11 }
-    },
-    styles: {
-      cellPadding: 3
-    }
-  });
+    autoTable(pdf, {
+      startY: finalY + 5,
+      body: summaryData,
+      theme: 'plain',
+      columnStyles: {
+        0: { cellWidth: 60, fontStyle: 'bold', fontSize: 11 },
+        1: { cellWidth: 60, halign: 'right', fontSize: 11 }
+      },
+      styles: {
+        cellPadding: 3
+      }
+    });
+  }
 
   const pageHeight = pdf.internal.pageSize.height;
   pdf.setFontSize(10);
