@@ -42,7 +42,6 @@ export const loadingService = {
         totalLoadWeight: data.totalLoadWeight || 0,
         totalNoOfBags: data.totalNoOfBags || 0,
         status: data.status || 'loading not started',
-        loadType: data.loadType || 'potha',
         paymentDone: data.paymentDone || false
       });
       return response.data;

@@ -28,6 +28,7 @@ export const paddyService = {
             "rythuId": data.rythuId,
             "dealerBagAmount": data.dealerBagAmount,
             "loadingId": data.loadingId,
+            "loadType": data.loadType || "potha"
           }
       const response = await api.post('/Account/insertPaddy', datass);
       return response.data;
@@ -50,6 +51,7 @@ export const paddyService = {
         "dealerBagAmount": data.dealerBagAmount,
         "loadingId": data.loadingId,
         "id": id,
+        "loadType": data.loadType || "potha"
       }
   const response = await api.post('/Account/updatePaddyDetails', datass);
   return response.data;

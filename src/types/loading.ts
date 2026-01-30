@@ -11,7 +11,6 @@ export interface LoadingEntry {
   totalLoadWeight?: number;
   totalNoOfBags?: number;
   status?: string;
-  loadType?: string;
   paymentDone?: boolean;
   id: number;
 }
@@ -29,6 +28,5 @@ export interface LoadingEntryDetails {
   totalLoadWeight?: number;
   totalNoOfBags?: number;
   status?: string;
-  loadType?: string;
   paymentDone?: boolean;
 }

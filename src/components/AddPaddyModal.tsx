@@ -93,6 +93,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       dealerId: loadingEntry?.dealerId || '',
       rythuId: rythuId,
       loadingId: loadingId,
+      loadType: formData.get('loadType') as string || 'potha',
     };
 
     try {
@@ -257,6 +258,20 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
                     placeholder="Enter dealer amount per bag"
                     className="h-12"
                   />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Load Type
+                  </label>
+                  <select
+                    name="loadType"
+                    defaultValue="potha"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-12 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                  >
+                    <option value="potha">Potha</option>
+                    <option value="potha+loading">Potha+Loading</option>
+                    <option value="potha+kata+loading">Potha+Kata+Loading</option>
+                  </select>
                 </div>
               </div>
 

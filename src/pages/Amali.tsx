@@ -78,6 +78,25 @@ export const Amali: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleLoadTypeChange = async (paddyId: string, newLoadType: string) => {
+    try {
+      await paddyService.updatePaddyEntry(paddyId, { loadType: newLoadType });
+
+      setPaddyDetails(prev => {
+        const updated = new Map(prev);
+        updated.forEach((paddies, loadingId) => {
+          const updatedPaddies = paddies.map(p =>
+            p.id === paddyId ? { ...p, loadType: newLoadType } : p
+          );
+          updated.set(loadingId, updatedPaddies);
+        });
+        return updated;
+      });
+    } catch (err) {
+      console.error('Failed to update load type:', err);
+    }
+  };
+
   const handleSuccess = async () => {
     await fetchLoadingEntries();
     const expandedIds = Array.from(expandedRows);
@@ -172,9 +191,6 @@ export const Amali: React.FC = () => {
                       Total Weight
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Load Type
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Payment
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -213,11 +229,6 @@ export const Amali: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {entry.totalLoadWeight || 0} kg
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {entry.loadType || 'potha'}
-                          </span>
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             entry.paymentDone
@@ -239,7 +250,7 @@ export const Amali: React.FC = () => {
                       </tr>
                       {expandedRows.has(entry.id) && (
                         <tr>
-                          <td colSpan={9} className="px-6 py-4 bg-gray-50">
+                          <td colSpan={8} className="px-6 py-4 bg-gray-50">
                             <div className="overflow-x-auto">
                               <h4 className="text-sm font-semibold text-gray-700 mb-3">Paddy Details</h4>
                               {paddyDetails.get(entry.id)?.length ? (
@@ -263,6 +274,9 @@ export const Amali: React.FC = () => {
                                       </th>
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                         Dealer Amount/Bag
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Load Type
                                       </th>
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                         Status
@@ -289,6 +303,17 @@ export const Amali: React.FC = () => {
                                         </td>
                                         <td className="px-4 py-2 text-sm text-gray-900">
                                           ₹{paddy.dealerBagAmount}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm">
+                                          <select
+                                            value={paddy.loadType || 'potha'}
+                                            onChange={(e) => handleLoadTypeChange(paddy.id!, e.target.value)}
+                                            className="text-xs rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                          >
+                                            <option value="potha">Potha</option>
+                                            <option value="potha+loading">Potha+Loading</option>
+                                            <option value="potha+kata+loading">Potha+Kata+Loading</option>
+                                          </select>
                                         </td>
                                         <td className="px-4 py-2 text-sm">
                                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${

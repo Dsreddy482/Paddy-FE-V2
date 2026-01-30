@@ -11,6 +11,7 @@ export interface PaddyEntry {
     rythuId?: string;
     dealerBagAmount: number;
     loadingId?: string;
+    loadType?: string;
   }
 
   export interface PaddyEntryDetails {
@@ -32,4 +33,5 @@ export interface PaddyEntry {
     dealerId: string;
     rythuPhone?: string;
     dealerPhone?: string;
+    loadType?: string;
   }
