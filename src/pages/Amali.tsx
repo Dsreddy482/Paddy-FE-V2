@@ -7,6 +7,7 @@ import { PaddyEntryDetails } from '../types/paddy';
 import { paddyService } from '../services/Paddy';
 import { Header } from '../components/Header';
 import { EditLoadingModal } from '../components/EditLoadingModal';
+import { EditPaddyModal } from '../components/EditPaddyModal';
 
 export const Amali: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ export const Amali: React.FC = () => {
   const [paddyDetails, setPaddyDetails] = useState<Map<number, PaddyEntryDetails[]>>(new Map());
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedLoadingEntry, setSelectedLoadingEntry] = useState<LoadingEntryDetails | null>(null);
+  const [isEditPaddyModalOpen, setIsEditPaddyModalOpen] = useState(false);
+  const [selectedPaddyEntry, setSelectedPaddyEntry] = useState<PaddyEntryDetails | null>(null);
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -78,23 +81,25 @@ export const Amali: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleLoadTypeChange = async (paddyId: string, newLoadType: string) => {
-    try {
-      await paddyService.updatePaddyEntry(paddyId, { loadType: newLoadType });
+  const handleEditPaddyClick = (paddy: PaddyEntryDetails) => {
+    setSelectedPaddyEntry(paddy);
+    setIsEditPaddyModalOpen(true);
+  };
 
-      setPaddyDetails(prev => {
-        const updated = new Map(prev);
-        updated.forEach((paddies, loadingId) => {
-          const updatedPaddies = paddies.map(p =>
-            p.id === paddyId ? { ...p, loadType: newLoadType } : p
-          );
-          updated.set(loadingId, updatedPaddies);
-        });
-        return updated;
-      });
-    } catch (err) {
-      console.error('Failed to update load type:', err);
+  const handlePaddySuccess = async () => {
+    const expandedIds = Array.from(expandedRows);
+    const newPaddyDetailsMap = new Map<number, PaddyEntryDetails[]>();
+
+    for (const id of expandedIds) {
+      try {
+        const paddy = await paddyService.getPaddyByLoadingId(id.toString());
+        newPaddyDetailsMap.set(id, paddy);
+      } catch (err) {
+        console.error('Failed to refresh paddy details:', err);
+      }
     }
+
+    setPaddyDetails(newPaddyDetailsMap);
   };
 
   const handleSuccess = async () => {
@@ -281,6 +286,9 @@ export const Amali: React.FC = () => {
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                         Status
                                       </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Actions
+                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody className="bg-white divide-y divide-gray-200">
@@ -305,15 +313,9 @@ export const Amali: React.FC = () => {
                                           ₹{paddy.dealerBagAmount}
                                         </td>
                                         <td className="px-4 py-2 text-sm">
-                                          <select
-                                            value={paddy.loadType || 'potha'}
-                                            onChange={(e) => handleLoadTypeChange(paddy.id!, e.target.value)}
-                                            className="text-xs rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                                          >
-                                            <option value="potha">Potha</option>
-                                            <option value="potha+loading">Potha+Loading</option>
-                                            <option value="potha+kata+loading">Potha+Kata+Loading</option>
-                                          </select>
+                                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            {paddy.loadType || 'potha'}
+                                          </span>
                                         </td>
                                         <td className="px-4 py-2 text-sm">
                                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -323,6 +325,15 @@ export const Amali: React.FC = () => {
                                           }`}>
                                             {paddy.status || 'pending'}
                                           </span>
+                                        </td>
+                                        <td className="px-4 py-2 text-sm font-medium">
+                                          <button
+                                            onClick={() => handleEditPaddyClick(paddy)}
+                                            className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                                          >
+                                            <Edit className="h-4 w-4 mr-1" />
+                                            Edit
+                                          </button>
                                         </td>
                                       </tr>
                                     ))}
@@ -354,6 +365,26 @@ export const Amali: React.FC = () => {
         loadingEntry={selectedLoadingEntry ? {
           ...selectedLoadingEntry,
           loadingId: selectedLoadingEntry.id
+        } : null}
+      />
+
+      <EditPaddyModal
+        isOpen={isEditPaddyModalOpen}
+        onClose={() => {
+          setIsEditPaddyModalOpen(false);
+          setSelectedPaddyEntry(null);
+        }}
+        onSuccess={handlePaddySuccess}
+        paddyEntry={selectedPaddyEntry ? {
+          id: selectedPaddyEntry.id,
+          lorryNumber: selectedPaddyEntry.lorryNumber,
+          bags: selectedPaddyEntry.bags,
+          kgsPerBag: selectedPaddyEntry.kgperBag,
+          bagAmount: selectedPaddyEntry.bagAmount,
+          dealerBagAmount: selectedPaddyEntry.dealerBagAmount,
+          loadedDate: selectedPaddyEntry.loadedDate,
+          totalWeight: selectedPaddyEntry.totalWeight,
+          loadType: selectedPaddyEntry.loadType
         } : null}
       />
     </div>
