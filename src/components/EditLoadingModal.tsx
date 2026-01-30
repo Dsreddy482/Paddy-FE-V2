@@ -53,7 +53,7 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
   }, [isOpen, loadingEntry]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
 
     if (name === 'dealer') {
       setSelectedDealerId(value);
@@ -71,6 +71,11 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
       setFormData(prev => prev ? {
         ...prev,
         loadedDate: value
+      } : null);
+    } else if (type === 'checkbox') {
+      setFormData(prev => prev ? {
+        ...prev,
+        [name]: (e.target as HTMLInputElement).checked
       } : null);
     } else {
       setFormData(prev => prev ? {
@@ -191,6 +196,21 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Load Type
+                </label>
+                <select
+                  name="loadType"
+                  value={formData.loadType || 'potha'}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                >
+                  <option value="potha">Potha</option>
+                  <option value="potha+loading">Potha+Loading</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Status
                 </label>
                 <select
@@ -204,6 +224,20 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
                   <option value="Loading Completed">Loading Completed</option>
                   <option value="Amount Received">Amount Received</option>
                 </select>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="paymentDone"
+                  id="paymentDone"
+                  checked={formData.paymentDone || false}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                />
+                <label htmlFor="paymentDone" className="ml-2 block text-sm font-medium text-gray-700">
+                  Payment Done
+                </label>
               </div>
 
               <div>

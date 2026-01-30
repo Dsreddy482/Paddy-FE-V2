@@ -172,6 +172,12 @@ export const Amali: React.FC = () => {
                       Total Weight
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Load Type
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -207,6 +213,20 @@ export const Amali: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {entry.totalLoadWeight || 0} kg
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {entry.loadType || 'potha'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            entry.paymentDone
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {entry.paymentDone ? 'Done' : 'Pending'}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
                             onClick={() => handleEditClick(entry)}
@@ -219,7 +239,7 @@ export const Amali: React.FC = () => {
                       </tr>
                       {expandedRows.has(entry.id) && (
                         <tr>
-                          <td colSpan={7} className="px-6 py-4 bg-gray-50">
+                          <td colSpan={9} className="px-6 py-4 bg-gray-50">
                             <div className="overflow-x-auto">
                               <h4 className="text-sm font-semibold text-gray-700 mb-3">Paddy Details</h4>
                               {paddyDetails.get(entry.id)?.length ? (

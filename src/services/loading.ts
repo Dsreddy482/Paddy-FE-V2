@@ -41,7 +41,9 @@ export const loadingService = {
         seasonId: data.seasonId || 0,
         totalLoadWeight: data.totalLoadWeight || 0,
         totalNoOfBags: data.totalNoOfBags || 0,
-        status: data.status || 'loading not started'
+        status: data.status || 'loading not started',
+        loadType: data.loadType || 'potha',
+        paymentDone: data.paymentDone || false
       });
       return response.data;
     } catch (error) {
