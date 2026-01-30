@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight, Share2, PackagePlus, Edit } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Edit } from 'lucide-react';
 import { loadingService } from '../services/loading';
 import { LoadingEntryDetails } from '../types/loading';
 import { PaddyEntryDetails } from '../types/paddy';
 import { paddyService } from '../services/Paddy';
 import { Header } from '../components/Header';
-import { shareOnWhatsApp, formatLoadingDetailsForWhatsApp, formatPaddyEntryForWhatsApp } from '../utils/whatsapp';
-import { AddPaddyModal } from '../components/AddPaddyModal';
 import { EditLoadingModal } from '../components/EditLoadingModal';
-import { PaddyConfirmationModal } from '../components/PaddyConfirmationModal';
 
 export const Amali: React.FC = () => {
   const navigate = useNavigate();
@@ -21,12 +18,8 @@ export const Amali: React.FC = () => {
   const [error, setError] = useState('');
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [paddyDetails, setPaddyDetails] = useState<Map<number, PaddyEntryDetails[]>>(new Map());
-  const [isAddPaddyModalOpen, setIsAddPaddyModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedLoadingEntry, setSelectedLoadingEntry] = useState<LoadingEntryDetails | null>(null);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
-  const [newPaddyEntry, setNewPaddyEntry] = useState<any>(null);
-  const [newRythuData, setNewRythuData] = useState<any>(null);
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -80,17 +73,12 @@ export const Amali: React.FC = () => {
     setExpandedRows(newExpandedRows);
   };
 
-  const handleAddPaddyClick = (entry: LoadingEntryDetails) => {
-    setSelectedLoadingEntry(entry);
-    setIsAddPaddyModalOpen(true);
-  };
-
   const handleEditClick = (entry: LoadingEntryDetails) => {
     setSelectedLoadingEntry(entry);
     setIsEditModalOpen(true);
   };
 
-  const handleSuccess = async (paddyData?: any, rythuData?: any) => {
+  const handleSuccess = async () => {
     await fetchLoadingEntries();
     const expandedIds = Array.from(expandedRows);
     const newPaddyDetailsMap = new Map<number, PaddyEntryDetails[]>();
@@ -105,50 +93,6 @@ export const Amali: React.FC = () => {
     }
 
     setPaddyDetails(newPaddyDetailsMap);
-
-    if (paddyData && rythuData) {
-      setNewPaddyEntry(paddyData);
-      setNewRythuData(rythuData);
-      setIsConfirmationModalOpen(true);
-    }
-  };
-
-  const handleSharePaddyEntry = (paddy: PaddyEntryDetails) => {
-    const message = formatPaddyEntryForWhatsApp(
-      {
-        lorryNumber: paddy.lorryNumber,
-        loadedDate: paddy.loadedDate,
-        totalWeight: paddy.totalWeight || 0,
-        bags: paddy.bags,
-        kgperBag: paddy.kgperBag,
-        bagAmount: paddy.bagAmount,
-        finalAmount: paddy.finalAmount,
-        status: paddy.status,
-      },
-      paddy.rythu
-    );
-
-    const phoneNumber = paddy.rythuPhone || '';
-    shareOnWhatsApp(message, phoneNumber);
-  };
-
-  const handleShareLoading = async (entry: LoadingEntryDetails) => {
-    let paddy = paddyDetails.get(entry.id);
-
-    if (!paddy) {
-      try {
-        paddy = await paddyService.getPaddyByLoadingId(entry.id.toString());
-      } catch (err) {
-        console.error('Failed to fetch paddy details for sharing:', err);
-      }
-    }
-
-    const message = formatLoadingDetailsForWhatsApp({
-      ...entry,
-      paddyDetails: paddy
-    });
-
-    shareOnWhatsApp(message);
   };
 
   if (loading) {
@@ -263,28 +207,13 @@ export const Amali: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {entry.totalLoadWeight || 0} kg
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                          <button
-                            onClick={() => handleAddPaddyClick(entry)}
-                            className="text-green-600 hover:text-green-900 inline-flex items-center"
-                          >
-                            <PackagePlus className="h-4 w-4 mr-1" />
-                            Add Paddy
-                          </button>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
                             onClick={() => handleEditClick(entry)}
                             className="text-blue-600 hover:text-blue-900 inline-flex items-center"
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
-                          </button>
-                          <button
-                            onClick={() => handleShareLoading(entry)}
-                            className="text-emerald-600 hover:text-emerald-900 inline-flex items-center"
-                            title="Share on WhatsApp"
-                          >
-                            <Share2 className="h-4 w-4 mr-1" />
-                            Share
                           </button>
                         </td>
                       </tr>
@@ -318,9 +247,6 @@ export const Amali: React.FC = () => {
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                         Status
                                       </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Actions
-                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody className="bg-white divide-y divide-gray-200">
@@ -353,16 +279,6 @@ export const Amali: React.FC = () => {
                                             {paddy.status || 'pending'}
                                           </span>
                                         </td>
-                                        <td className="px-4 py-2 text-sm">
-                                          <button
-                                            onClick={() => handleSharePaddyEntry(paddy)}
-                                            className="text-emerald-600 hover:text-emerald-900 inline-flex items-center"
-                                            title="Share on WhatsApp"
-                                          >
-                                            <Share2 className="h-4 w-4 mr-1" />
-                                            Share
-                                          </button>
-                                        </td>
                                       </tr>
                                     ))}
                                   </tbody>
@@ -383,18 +299,6 @@ export const Amali: React.FC = () => {
         </div>
       </div>
 
-      <AddPaddyModal
-        isOpen={isAddPaddyModalOpen}
-        onClose={() => {
-          setIsAddPaddyModalOpen(false);
-          setSelectedLoadingEntry(null);
-        }}
-        onSuccess={handleSuccess}
-        userId={selectedLoadingEntry?.id?.toString() || ''}
-        loadingId={selectedLoadingEntry?.id?.toString() || ''}
-        loadingEntry={selectedLoadingEntry}
-      />
-
       <EditLoadingModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -406,17 +310,6 @@ export const Amali: React.FC = () => {
           ...selectedLoadingEntry,
           loadingId: selectedLoadingEntry.id
         } : null}
-      />
-
-      <PaddyConfirmationModal
-        isOpen={isConfirmationModalOpen}
-        onClose={() => {
-          setIsConfirmationModalOpen(false);
-          setNewPaddyEntry(null);
-          setNewRythuData(null);
-        }}
-        paddyEntry={newPaddyEntry}
-        rythu={newRythuData}
       />
     </div>
   );
