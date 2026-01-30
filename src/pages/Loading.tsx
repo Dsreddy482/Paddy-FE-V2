@@ -8,6 +8,7 @@ import { paddyService } from '../services/Paddy';
 import { AddLoadingModal } from '../components/AddLoadingModal';
 import { EditLoadingModal } from '../components/EditLoadingModal';
 import { AddPaddyModal } from '../components/AddPaddyModal';
+import { EditPaddyModal } from '../components/EditPaddyModal';
 import { PaddyConfirmationModal } from '../components/PaddyConfirmationModal';
 import { Header } from '../components/Header';
 import { shareOnWhatsApp, formatLoadingDetailsForWhatsApp, formatPaddyEntryForWhatsApp } from '../utils/whatsapp';
@@ -27,6 +28,8 @@ export const Loading: React.FC = () => {
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [newPaddyEntry, setNewPaddyEntry] = useState<any>(null);
   const [newRythuData, setNewRythuData] = useState<any>(null);
+  const [isEditPaddyModalOpen, setIsEditPaddyModalOpen] = useState(false);
+  const [selectedPaddyEntry, setSelectedPaddyEntry] = useState<PaddyEntryDetails | null>(null);
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -55,6 +58,11 @@ export const Loading: React.FC = () => {
   const handleAddPaddyClick = (entry: LoadingEntryDetails) => {
     setSelectedLoadingEntry(entry);
     setIsAddPaddyModalOpen(true);
+  };
+
+  const handleEditPaddyClick = (paddy: PaddyEntryDetails) => {
+    setSelectedPaddyEntry(paddy);
+    setIsEditPaddyModalOpen(true);
   };
 
   const toggleRowExpansion = async (entryId: number) => {
@@ -98,6 +106,23 @@ export const Loading: React.FC = () => {
       setNewRythuData(rythuData);
       setIsConfirmationModalOpen(true);
     }
+  };
+
+  const handlePaddySuccess = async () => {
+    await fetchLoadingEntries();
+    const expandedIds = Array.from(expandedRows);
+    const newPaddyDetailsMap = new Map<number, PaddyEntryDetails[]>();
+
+    for (const id of expandedIds) {
+      try {
+        const paddy = await paddyService.getPaddyByLoadingId(id.toString());
+        newPaddyDetailsMap.set(id, paddy);
+      } catch (err) {
+        console.error('Failed to refresh paddy details:', err);
+      }
+    }
+
+    setPaddyDetails(newPaddyDetailsMap);
   };
 
   const handleSharePaddyEntry = (paddy: PaddyEntryDetails) => {
@@ -298,6 +323,9 @@ export const Loading: React.FC = () => {
                                         Dealer Amount/Bag
                                       </th>
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Load Type
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                         Status
                                       </th>
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
@@ -327,6 +355,11 @@ export const Loading: React.FC = () => {
                                           ₹{paddy.dealerBagAmount}
                                         </td>
                                         <td className="px-4 py-2 text-sm">
+                                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            {paddy.loadType || 'potha'}
+                                          </span>
+                                        </td>
+                                        <td className="px-4 py-2 text-sm">
                                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                             paddy.status === 'completed'
                                               ? 'bg-green-100 text-green-800'
@@ -335,7 +368,14 @@ export const Loading: React.FC = () => {
                                             {paddy.status || 'pending'}
                                           </span>
                                         </td>
-                                        <td className="px-4 py-2 text-sm">
+                                        <td className="px-4 py-2 text-sm font-medium space-x-2">
+                                          <button
+                                            onClick={() => handleEditPaddyClick(paddy)}
+                                            className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                                          >
+                                            <Edit className="h-4 w-4 mr-1" />
+                                            Edit
+                                          </button>
                                           <button
                                             onClick={() => handleSharePaddyEntry(paddy)}
                                             className="text-emerald-600 hover:text-emerald-900 inline-flex items-center"
@@ -402,6 +442,26 @@ export const Loading: React.FC = () => {
         }}
         paddyEntry={newPaddyEntry}
         rythu={newRythuData}
+      />
+
+      <EditPaddyModal
+        isOpen={isEditPaddyModalOpen}
+        onClose={() => {
+          setIsEditPaddyModalOpen(false);
+          setSelectedPaddyEntry(null);
+        }}
+        onSuccess={handlePaddySuccess}
+        paddyEntry={selectedPaddyEntry ? {
+          id: selectedPaddyEntry.id,
+          lorryNumber: selectedPaddyEntry.lorryNumber,
+          bags: selectedPaddyEntry.bags,
+          kgsPerBag: selectedPaddyEntry.kgperBag,
+          bagAmount: selectedPaddyEntry.bagAmount,
+          dealerBagAmount: selectedPaddyEntry.dealerBagAmount,
+          loadedDate: selectedPaddyEntry.loadedDate,
+          totalWeight: selectedPaddyEntry.totalWeight,
+          loadType: selectedPaddyEntry.loadType
+        } : null}
       />
     </div>
   );
