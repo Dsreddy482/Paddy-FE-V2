@@ -30,8 +30,6 @@ export const Loading: React.FC = () => {
   const [newRythuData, setNewRythuData] = useState<any>(null);
   const [isEditPaddyModalOpen, setIsEditPaddyModalOpen] = useState(false);
   const [selectedPaddyEntry, setSelectedPaddyEntry] = useState<PaddyEntryDetails | null>(null);
-  const [selectedPaddyLoadingId, setSelectedPaddyLoadingId] = useState<string>('');
-  const [selectedPaddyLoadingEntry, setSelectedPaddyLoadingEntry] = useState<LoadingEntryDetails | null>(null);
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -62,10 +60,8 @@ export const Loading: React.FC = () => {
     setIsAddPaddyModalOpen(true);
   };
 
-  const handleEditPaddyClick = (paddy: PaddyEntryDetails, loadingEntry: LoadingEntryDetails) => {
+  const handleEditPaddyClick = (paddy: PaddyEntryDetails) => {
     setSelectedPaddyEntry(paddy);
-    setSelectedPaddyLoadingId(loadingEntry.id.toString());
-    setSelectedPaddyLoadingEntry(loadingEntry);
     setIsEditPaddyModalOpen(true);
   };
 
@@ -374,7 +370,7 @@ export const Loading: React.FC = () => {
                                         </td>
                                         <td className="px-4 py-2 text-sm font-medium space-x-2">
                                           <button
-                                            onClick={() => handleEditPaddyClick(paddy, entry)}
+                                            onClick={() => handleEditPaddyClick(paddy)}
                                             className="text-blue-600 hover:text-blue-900 inline-flex items-center"
                                           >
                                             <Edit className="h-4 w-4 mr-1" />
@@ -453,11 +449,9 @@ export const Loading: React.FC = () => {
         onClose={() => {
           setIsEditPaddyModalOpen(false);
           setSelectedPaddyEntry(null);
-          setSelectedPaddyLoadingId('');
-          setSelectedPaddyLoadingEntry(null);
         }}
         onSuccess={handlePaddySuccess}
-        paddyEntry={selectedPaddyEntry && selectedPaddyLoadingEntry ? {
+        paddyEntry={selectedPaddyEntry ? {
           id: selectedPaddyEntry.id,
           lorryNumber: selectedPaddyEntry.lorryNumber,
           bags: selectedPaddyEntry.bags,
@@ -467,9 +461,9 @@ export const Loading: React.FC = () => {
           loadedDate: selectedPaddyEntry.loadedDate,
           totalWeight: selectedPaddyEntry.totalWeight,
           loadType: selectedPaddyEntry.loadType,
-          userId: selectedPaddyLoadingEntry.userId,
-          dealerId: selectedPaddyLoadingEntry.dealerId,
-          loadingId: selectedPaddyLoadingId
+          userId: selectedPaddyEntry.userId,
+          dealerId: selectedPaddyEntry.dealerId,
+          loadingId: selectedPaddyEntry.loadingId
         } : null}
       />
     </div>

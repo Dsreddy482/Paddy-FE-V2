@@ -34,4 +34,5 @@ export interface PaddyEntry {
     rythuPhone?: string;
     dealerPhone?: string;
     loadType?: string;
+    loadingId?: string;
   }
