@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, FileDown } from 'lucide-react';
 import { LoadingEntryDetails } from '../types/loading';
 import { PaddyEntryDetails } from '../types/paddy';
 import { paddyService } from '../services/Paddy';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface LoadingWithPaddy {
   loading: LoadingEntryDetails;
@@ -58,7 +60,7 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
       loadingsData.forEach(({ paddyEntries }) => {
         paddyEntries.forEach((paddy) => {
           if (paddy.id) {
-            initialAmounts.set(paddy.id, paddy.bagAmount || 0);
+            initialAmounts.set(paddy.id, 0);
           }
         });
       });
@@ -120,6 +122,110 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleGeneratePDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    let yPosition = 20;
+
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Amali Payment Details', pageWidth / 2, yPosition, { align: 'center' });
+
+    yPosition += 10;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, yPosition, { align: 'center' });
+
+    yPosition += 15;
+
+    loadingsWithPaddy.forEach(({ loading, paddyEntries }, index) => {
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Loading #${loading.id}`, 14, yPosition);
+      yPosition += 7;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Lorry Number: ${loading.lorryNumber}`, 14, yPosition);
+      yPosition += 5;
+      doc.text(`Dealer: ${loading.delaerName}`, 14, yPosition);
+      yPosition += 5;
+      doc.text(`Date: ${new Date(loading.loadedDate).toLocaleDateString()}`, 14, yPosition);
+      yPosition += 5;
+      doc.text(`Amali: ${loading.amaliName}`, 14, yPosition);
+      yPosition += 8;
+
+      if (paddyEntries.length > 0) {
+        const tableData = paddyEntries.map((paddy) => {
+          const amountPerBag = amounts.get(paddy.id || '') || 0;
+          const total = paddy.bags * amountPerBag;
+          return [
+            paddy.loadType || 'potha',
+            paddy.rythu,
+            paddy.bags.toString(),
+            `₹${amountPerBag.toFixed(2)}`,
+            `₹${total.toFixed(2)}`
+          ];
+        });
+
+        autoTable(doc, {
+          startY: yPosition,
+          head: [['Load Type', 'Rythu', 'Bags', 'Amount/Bag', 'Total']],
+          body: tableData,
+          theme: 'grid',
+          headStyles: { fillColor: [34, 197, 94], textColor: 255, fontStyle: 'bold' },
+          styles: { fontSize: 9 },
+          columnStyles: {
+            0: { cellWidth: 25 },
+            1: { cellWidth: 50 },
+            2: { cellWidth: 20, halign: 'center' },
+            3: { cellWidth: 30, halign: 'right' },
+            4: { cellWidth: 35, halign: 'right' }
+          },
+          foot: [[
+            '', '', '', 'Subtotal:',
+            `₹${calculateLoadingTotal(paddyEntries).toFixed(2)}`
+          ]],
+          footStyles: { fillColor: [243, 244, 246], textColor: 0, fontStyle: 'bold' }
+        });
+
+        yPosition = (doc as any).lastAutoTable.finalY + 10;
+      } else {
+        doc.setFontSize(9);
+        doc.setTextColor(128);
+        doc.text('No paddy entries found', 14, yPosition);
+        yPosition += 10;
+      }
+    });
+
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 20;
+    }
+
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.5);
+    doc.line(14, yPosition, pageWidth - 14, yPosition);
+    yPosition += 8;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0);
+    doc.text('Grand Total:', pageWidth - 80, yPosition);
+    doc.setFontSize(16);
+    doc.setTextColor(34, 197, 94);
+    doc.text(`₹${calculateGrandTotal().toFixed(2)}`, pageWidth - 14, yPosition, { align: 'right' });
+
+    const amaliName = selectedLoadings[0]?.amaliName || 'Amali';
+    const fileName = `${amaliName}_Payment_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
   };
 
   if (!isOpen) return null;
@@ -254,21 +360,31 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
           )}
         </div>
 
-        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
           <button
-            onClick={onClose}
-            className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-            disabled={saving}
+            onClick={handleGeneratePDF}
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-2 border border-green-600 text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Cancel
+            <FileDown className="h-4 w-4" />
+            Generate PDF
           </button>
-          <button
-            onClick={handleSave}
-            disabled={saving || loading}
-            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            {saving ? 'Saving...' : 'Save Payment'}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+              disabled={saving}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || loading}
+              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Saving...' : 'Save Payment'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
