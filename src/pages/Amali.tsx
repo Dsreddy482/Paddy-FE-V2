@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight, Edit } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Edit, Calculator } from 'lucide-react';
 import { loadingService } from '../services/loading';
 import { LoadingEntryDetails } from '../types/loading';
 import { PaddyEntryDetails } from '../types/paddy';
@@ -8,6 +8,7 @@ import { paddyService } from '../services/Paddy';
 import { Header } from '../components/Header';
 import { EditLoadingModal } from '../components/EditLoadingModal';
 import { EditPaddyModal } from '../components/EditPaddyModal';
+import { AmaliPaymentModal } from '../components/AmaliPaymentModal';
 
 export const Amali: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ export const Amali: React.FC = () => {
   const [selectedLoadingEntry, setSelectedLoadingEntry] = useState<LoadingEntryDetails | null>(null);
   const [isEditPaddyModalOpen, setIsEditPaddyModalOpen] = useState(false);
   const [selectedPaddyEntry, setSelectedPaddyEntry] = useState<PaddyEntryDetails | null>(null);
+  const [selectedLoadingIds, setSelectedLoadingIds] = useState<Set<number>>(new Set());
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -102,6 +105,50 @@ export const Amali: React.FC = () => {
     setPaddyDetails(newPaddyDetailsMap);
   };
 
+  const handleSelectAll = () => {
+    if (selectedLoadingIds.size === filteredEntries.length) {
+      setSelectedLoadingIds(new Set());
+    } else {
+      setSelectedLoadingIds(new Set(filteredEntries.map(entry => entry.id)));
+    }
+  };
+
+  const handleSelectLoading = (loadingId: number) => {
+    const newSelection = new Set(selectedLoadingIds);
+    if (newSelection.has(loadingId)) {
+      newSelection.delete(loadingId);
+    } else {
+      newSelection.add(loadingId);
+    }
+    setSelectedLoadingIds(newSelection);
+  };
+
+  const handleCalculateAmount = () => {
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    setSelectedLoadingIds(new Set());
+    await fetchLoadingEntries();
+    const expandedIds = Array.from(expandedRows);
+    const newPaddyDetailsMap = new Map<number, PaddyEntryDetails[]>();
+
+    for (const id of expandedIds) {
+      try {
+        const paddy = await paddyService.getPaddyByLoadingId(id.toString());
+        newPaddyDetailsMap.set(id, paddy);
+      } catch (err) {
+        console.error('Failed to refresh paddy details:', err);
+      }
+    }
+
+    setPaddyDetails(newPaddyDetailsMap);
+  };
+
+  const getSelectedLoadings = (): LoadingEntryDetails[] => {
+    return filteredEntries.filter(entry => selectedLoadingIds.has(entry.id));
+  };
+
   const handleSuccess = async () => {
     await fetchLoadingEntries();
     const expandedIds = Array.from(expandedRows);
@@ -142,6 +189,15 @@ export const Amali: React.FC = () => {
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Amali Details</h1>
           </div>
+          {selectedLoadingIds.size > 0 && (
+            <button
+              onClick={handleCalculateAmount}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              <Calculator className="h-5 w-5" />
+              Calculate Amount ({selectedLoadingIds.size})
+            </button>
+          )}
         </div>
 
         {error && (
@@ -178,6 +234,14 @@ export const Amali: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                      <input
+                        type="checkbox"
+                        checked={selectedLoadingIds.size === filteredEntries.length && filteredEntries.length > 0}
+                        onChange={handleSelectAll}
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer"
+                      />
+                    </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -207,6 +271,14 @@ export const Amali: React.FC = () => {
                   {filteredEntries.map((entry) => (
                     <React.Fragment key={entry.id}>
                       <tr className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedLoadingIds.has(entry.id)}
+                            onChange={() => handleSelectLoading(entry.id)}
+                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer"
+                          />
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <button
                             onClick={() => toggleRowExpansion(entry.id)}
@@ -255,7 +327,7 @@ export const Amali: React.FC = () => {
                       </tr>
                       {expandedRows.has(entry.id) && (
                         <tr>
-                          <td colSpan={8} className="px-6 py-4 bg-gray-50">
+                          <td colSpan={9} className="px-6 py-4 bg-gray-50">
                             <div className="overflow-x-auto">
                               <h4 className="text-sm font-semibold text-gray-700 mb-3">Paddy Details</h4>
                               {paddyDetails.get(entry.id)?.length ? (
@@ -389,6 +461,13 @@ export const Amali: React.FC = () => {
           dealerId: selectedPaddyEntry?.dealerId,
           loadingId: selectedPaddyEntry?.loadingId
         } : null}
+      />
+
+      <AmaliPaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onSuccess={handlePaymentSuccess}
+        selectedLoadings={getSelectedLoadings()}
       />
     </div>
   );
