@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, PackagePlus, ChevronDown, ChevronRight, Share2 } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, PackagePlus, ChevronDown, ChevronRight, Share2, X } from 'lucide-react';
 import { loadingService } from '../services/loading';
 import { LoadingEntryDetails, LoadingEntry } from '../types/loading';
 import { PaddyEntryDetails } from '../types/paddy';
@@ -16,6 +16,7 @@ import { shareOnWhatsApp, formatLoadingDetailsForWhatsApp, formatPaddyEntryForWh
 export const Loading: React.FC = () => {
   const navigate = useNavigate();
   const [loadingEntries, setLoadingEntries] = useState<LoadingEntryDetails[]>([]);
+  const [filteredEntries, setFilteredEntries] = useState<LoadingEntryDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -31,21 +32,81 @@ export const Loading: React.FC = () => {
   const [isEditPaddyModalOpen, setIsEditPaddyModalOpen] = useState(false);
   const [selectedPaddyEntry, setSelectedPaddyEntry] = useState<PaddyEntryDetails | null>(null);
 
+  const [dealerList, setDealerList] = useState<string[]>([]);
+  const [amaliList, setAmaliList] = useState<string[]>([]);
+  const [selectedDealer, setSelectedDealer] = useState<string>('');
+  const [selectedAmali, setSelectedAmali] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+
   useEffect(() => {
     fetchLoadingEntries();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [loadingEntries, selectedDealer, selectedAmali, startDate, endDate]);
 
   const fetchLoadingEntries = async () => {
     try {
       setLoading(true);
       const entries = await loadingService.getLoadingEntries();
       setLoadingEntries(entries);
+
+      const uniqueDealers = Array.from(new Set(entries.map(entry => entry.delaerName).filter(Boolean)));
+      setDealerList(uniqueDealers.sort());
+
+      const uniqueAmali = Array.from(new Set(entries.map(entry => entry.amaliName).filter(Boolean)));
+      setAmaliList(uniqueAmali.sort());
     } catch (err) {
       setError('Failed to load loading entries');
     } finally {
       setLoading(false);
     }
   };
+
+  const applyFilters = () => {
+    let filtered = [...loadingEntries];
+
+    if (selectedDealer) {
+      filtered = filtered.filter(entry => entry.delaerName === selectedDealer);
+    }
+
+    if (selectedAmali) {
+      filtered = filtered.filter(entry => entry.amaliName === selectedAmali);
+    }
+
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(entry => {
+        const entryDate = new Date(entry.loadedDate);
+        entryDate.setHours(0, 0, 0, 0);
+        return entryDate >= start;
+      });
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(entry => {
+        const entryDate = new Date(entry.loadedDate);
+        return entryDate <= end;
+      });
+    }
+
+    filtered.sort((a, b) => a.id - b.id);
+    setFilteredEntries(filtered);
+  };
+
+  const clearFilters = () => {
+    setSelectedDealer('');
+    setSelectedAmali('');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  const hasActiveFilters = selectedDealer || selectedAmali || startDate || endDate;
 
   const handleEditClick = (entry: LoadingEntryDetails) => {
     setSelectedEntry({
@@ -201,10 +262,86 @@ export const Loading: React.FC = () => {
           </div>
         )}
 
+        <div className="mb-6 bg-white p-4 rounded-lg shadow-md">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-sm font-medium text-gray-700">Filters</h3>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700"
+              >
+                <X className="h-4 w-4" />
+                Clear All
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Dealer
+              </label>
+              <select
+                value={selectedDealer}
+                onChange={(e) => setSelectedDealer(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="">All Dealers</option>
+                {dealerList.map((dealer) => (
+                  <option key={dealer} value={dealer}>
+                    {dealer}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Amali
+              </label>
+              <select
+                value={selectedAmali}
+                onChange={(e) => setSelectedAmali(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="">All Amali</option>
+                {amaliList.map((amali) => (
+                  <option key={amali} value={amali}>
+                    {amali}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {loadingEntries.length === 0 ? (
+          {filteredEntries.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              <p>No loading entries found. Create one to get started.</p>
+              <p>{loadingEntries.length === 0 ? 'No loading entries found. Create one to get started.' : 'No loading entries match the selected filters.'}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -237,7 +374,7 @@ export const Loading: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {loadingEntries.map((entry) => (
+                  {filteredEntries.map((entry) => (
                     <React.Fragment key={entry.id}>
                       <tr className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
