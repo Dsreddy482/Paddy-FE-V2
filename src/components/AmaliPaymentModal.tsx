@@ -170,8 +170,8 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
             paddy.loadType || 'potha',
             paddy.rythu,
             paddy.bags.toString(),
-            `₹${amountPerBag.toFixed(2)}`,
-            `₹${total.toFixed(2)}`
+            amountPerBag.toFixed(2),
+            total.toFixed(2)
           ];
         });
 
@@ -191,7 +191,7 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
           },
           foot: [[
             '', '', '', 'Subtotal:',
-            `₹${calculateLoadingTotal(paddyEntries).toFixed(2)}`
+            calculateLoadingTotal(paddyEntries).toFixed(2)
           ]],
           footStyles: { fillColor: [243, 244, 246], textColor: 0, fontStyle: 'bold' }
         });
@@ -221,7 +221,7 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
     doc.text('Grand Total:', pageWidth - 80, yPosition);
     doc.setFontSize(16);
     doc.setTextColor(34, 197, 94);
-    doc.text(`₹${calculateGrandTotal().toFixed(2)}`, pageWidth - 14, yPosition, { align: 'right' });
+    doc.text(calculateGrandTotal().toFixed(2), pageWidth - 14, yPosition, { align: 'right' });
 
     const amaliName = selectedLoadings[0]?.amaliName || 'Amali';
     const fileName = `${amaliName}_Payment_${new Date().toISOString().split('T')[0]}.pdf`;
