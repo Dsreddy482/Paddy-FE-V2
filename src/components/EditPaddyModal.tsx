@@ -42,11 +42,11 @@ export const EditPaddyModal: React.FC<EditPaddyModalProps> = ({
     e.preventDefault();
     if (!formData) return;
 
-    if (!formData.userId || !formData.dealerId || !formData.loadingId) {
-      setError('Missing required fields: userId, dealerId, or loadingId');
-      setLoading(false);
-      return;
-    }
+    // if (!formData.userId || !formData.dealerId || !formData.loadingId) {
+    //   setError('Missing required fields: userId, dealerId, or loadingId');
+    //   setLoading(false);
+    //   return;
+    // }
 
     setError('');
     setSuccess('');
@@ -55,9 +55,9 @@ export const EditPaddyModal: React.FC<EditPaddyModalProps> = ({
     try {
       await paddyService.updatePaddyEntry(formData.id!, {
         ...formData,
-        userId: formData.userId,
-        dealerId: formData.dealerId,
-        loadingId: formData.loadingId,
+        userId: paddyEntry?.userId,
+        dealerId: paddyEntry?.dealerId,
+        loadingId: paddyEntry?.loadingId,
         totalWeight: parseFloat(formData.totalWeight?.toString() || '0'),
         bags: parseInt(formData.bags.toString()),
         kgsPerBag: Number(formData.kgsPerBag),

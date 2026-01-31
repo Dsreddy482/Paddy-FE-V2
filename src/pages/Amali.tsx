@@ -384,7 +384,10 @@ export const Amali: React.FC = () => {
           dealerBagAmount: selectedPaddyEntry.dealerBagAmount,
           loadedDate: selectedPaddyEntry.loadedDate,
           totalWeight: selectedPaddyEntry.totalWeight,
-          loadType: selectedPaddyEntry.loadType
+          loadType: selectedPaddyEntry.loadType,
+          userId: selectedPaddyEntry.userId,
+          dealerId: selectedPaddyEntry?.dealerId,
+          loadingId: selectedPaddyEntry?.loadingId
         } : null}
       />
     </div>
