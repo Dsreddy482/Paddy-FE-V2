@@ -39,17 +39,22 @@ export const paddyService = {
   },
   async updatePaddyEntry(id: string, data: Partial<PaddyEntry>) {
     try {
+      if (!data.userId || !data.dealerId || !data.loadingId) {
+        console.error('Missing required fields:', { userId: data.userId, dealerId: data.dealerId, loadingId: data.loadingId });
+        throw new Error('Missing required fields: userId, dealerId, or loadingId');
+      }
+
       const datass =  {
-        "userId": data.userId,
+        "userId": data.userId.toString(),
         "lorryNumber": data.lorryNumber,
         "bags": data.bags,
         "kgperBag": data.kgsPerBag,
         "bagAmount": data.bagAmount,
         "loadedDate": data.loadedDate ? formatDate(data.loadedDate) : undefined,
         "totalWeight": data.totalWeight,
-        "dealerId": data.dealerId?.toString(),
+        "dealerId": data.dealerId.toString(),
         "dealerBagAmount": data.dealerBagAmount,
-        "loadingId": data.loadingId,
+        "loadingId": data.loadingId.toString(),
         "id": id,
         "loadType": data.loadType || "potha"
       }
