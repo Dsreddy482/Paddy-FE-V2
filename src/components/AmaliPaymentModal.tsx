@@ -54,6 +54,8 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
         });
       }
 
+      loadingsData.sort((a, b) => a.loading.id - b.loading.id);
+
       setLoadingsWithPaddy(loadingsData);
 
       const initialAmounts = new Map<string, number>();
@@ -154,8 +156,6 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(`Lorry Number: ${loading.lorryNumber}`, 14, yPosition);
-      yPosition += 5;
-      doc.text(`Dealer: ${loading.delaerName}`, 14, yPosition);
       yPosition += 5;
       doc.text(`Date: ${new Date(loading.loadedDate).toLocaleDateString()}`, 14, yPosition);
       yPosition += 5;
@@ -270,8 +270,7 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
                       </div>
                     </div>
                     <div className="text-sm text-gray-600">
-                      <span className="font-medium">Dealer:</span> {loading.delaerName} |
-                      <span className="font-medium ml-2">Date:</span> {new Date(loading.loadedDate).toLocaleDateString()}
+                      <span className="font-medium">Date:</span> {new Date(loading.loadedDate).toLocaleDateString()}
                     </div>
                   </div>
 

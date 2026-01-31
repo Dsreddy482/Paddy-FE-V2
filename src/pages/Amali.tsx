@@ -34,9 +34,11 @@ export const Amali: React.FC = () => {
   useEffect(() => {
     if (selectedAmali) {
       const filtered = loadingEntries.filter(entry => entry.amaliName === selectedAmali);
+      filtered.sort((a, b) => a.id - b.id);
       setFilteredEntries(filtered);
     } else {
-      setFilteredEntries(loadingEntries);
+      const sorted = [...loadingEntries].sort((a, b) => a.id - b.id);
+      setFilteredEntries(sorted);
     }
   }, [selectedAmali, loadingEntries]);
 
@@ -251,9 +253,6 @@ export const Amali: React.FC = () => {
                       Lorry Number
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dealer
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Total Bags
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -297,9 +296,6 @@ export const Amali: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {entry.lorryNumber}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {entry.delaerName}
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {entry.totalNoOfBags || 0}
                         </td>
@@ -327,7 +323,7 @@ export const Amali: React.FC = () => {
                       </tr>
                       {expandedRows.has(entry.id) && (
                         <tr>
-                          <td colSpan={9} className="px-6 py-4 bg-gray-50">
+                          <td colSpan={8} className="px-6 py-4 bg-gray-50">
                             <div className="overflow-x-auto">
                               <h4 className="text-sm font-semibold text-gray-700 mb-3">Paddy Details</h4>
                               {paddyDetails.get(entry.id)?.length ? (
