@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileDown } from 'lucide-react';
+import { X, FileDown, Printer } from 'lucide-react';
 import { LoadingEntryDetails } from '../types/loading';
 import { PaddyEntryDetails } from '../types/paddy';
 import { paddyService } from '../services/Paddy';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { generateAmaliPOSReceipt } from '../utils/pdfReceipt';
 
 interface LoadingWithPaddy {
   loading: LoadingEntryDetails;
@@ -228,6 +229,11 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
     doc.save(fileName);
   };
 
+  const handleGeneratePOSReceipt = () => {
+    const amaliName = selectedLoadings[0]?.amaliName || 'Amali';
+    generateAmaliPOSReceipt(loadingsWithPaddy, amounts, amaliName);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -360,14 +366,24 @@ export const AmaliPaymentModal: React.FC<AmaliPaymentModalProps> = ({
         </div>
 
         <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
-          <button
-            onClick={handleGeneratePDF}
-            disabled={loading}
-            className="flex items-center gap-2 px-6 py-2 border border-green-600 text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileDown className="h-4 w-4" />
-            Generate PDF
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleGeneratePDF}
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-2 border border-green-600 text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FileDown className="h-4 w-4" />
+              Generate PDF
+            </button>
+            <button
+              onClick={handleGeneratePOSReceipt}
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Printer className="h-4 w-4" />
+              POS Receipt
+            </button>
+          </div>
           <div className="flex gap-3">
             <button
               onClick={onClose}

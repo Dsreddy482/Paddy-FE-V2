@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { PaddyEntryDetails } from '../types/paddy';
+import { LoadingEntryDetails } from '../types/loading';
 
 export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string, userRole: string) => {
   const pdf = new jsPDF({
@@ -288,4 +289,163 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
   pdf.setTextColor(0, 0, 0);
 
   pdf.save(`paddy_receipts_bulk_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}.pdf`);
+};
+
+interface LoadingWithPaddy {
+  loading: LoadingEntryDetails;
+  paddyEntries: PaddyEntryDetails[];
+}
+
+interface AmaliPaymentData {
+  amounts: Map<string, number>;
+}
+
+export const generateAmaliPOSReceipt = (
+  loadingsWithPaddy: LoadingWithPaddy[],
+  amounts: Map<string, number>,
+  amaliName: string
+) => {
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: [80, 297]
+  });
+
+  const pageWidth = 80;
+  const margin = 4;
+  let yPosition = 8;
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(14);
+  const title = 'AMALI PAYMENT RECEIPT';
+  const titleWidth = pdf.getTextWidth(title);
+  pdf.text(title, (pageWidth - titleWidth) / 2, yPosition);
+  yPosition += 6;
+
+  pdf.setLineWidth(0.3);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 4;
+
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'normal');
+  const dateTime = new Date().toLocaleString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  pdf.text(`Date: ${dateTime}`, margin, yPosition);
+  yPosition += 4;
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.text(`Amali: ${amaliName}`, margin, yPosition);
+  yPosition += 5;
+
+  pdf.setLineWidth(0.3);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 4;
+
+  let grandTotal = 0;
+
+  loadingsWithPaddy.forEach(({ loading, paddyEntries }, index) => {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.text(`Loading #${loading.id}`, margin, yPosition);
+    yPosition += 4;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7);
+    pdf.text(`Lorry: ${loading.lorryNumber}`, margin, yPosition);
+    yPosition += 3;
+    pdf.text(`Date: ${new Date(loading.loadedDate).toLocaleDateString('en-IN')}`, margin, yPosition);
+    yPosition += 4;
+
+    let loadingSubtotal = 0;
+
+    if (paddyEntries.length > 0) {
+      paddyEntries.forEach((paddy) => {
+        const amountPerBag = amounts.get(paddy.id || '') || 0;
+        const total = paddy.bags * amountPerBag;
+        loadingSubtotal += total;
+
+        pdf.setFontSize(7);
+        pdf.setFont('helvetica', 'normal');
+
+        const loadType = paddy.loadType || 'potha';
+        pdf.text(`${loadType.toUpperCase()}`, margin + 1, yPosition);
+        yPosition += 3;
+
+        const rythuName = paddy.rythu.length > 18 ? paddy.rythu.substring(0, 18) + '...' : paddy.rythu;
+        pdf.text(`  ${rythuName}`, margin + 1, yPosition);
+        yPosition += 3;
+
+        pdf.text(`  ${paddy.bags} bags x ${amountPerBag.toFixed(2)}`, margin + 1, yPosition);
+
+        const totalText = `${total.toFixed(2)}`;
+        const totalWidth = pdf.getTextWidth(totalText);
+        pdf.text(totalText, pageWidth - margin - totalWidth, yPosition);
+        yPosition += 4;
+      });
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8);
+      pdf.text('Subtotal:', margin + 1, yPosition);
+      const subtotalText = `${loadingSubtotal.toFixed(2)}`;
+      const subtotalWidth = pdf.getTextWidth(subtotalText);
+      pdf.text(subtotalText, pageWidth - margin - subtotalWidth, yPosition);
+      yPosition += 5;
+
+      pdf.setLineWidth(0.2);
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 4;
+    }
+
+    grandTotal += loadingSubtotal;
+
+    if (yPosition > 280 && index < loadingsWithPaddy.length - 1) {
+      pdf.addPage();
+      yPosition = 8;
+    }
+  });
+
+  if (yPosition > 270) {
+    pdf.addPage();
+    yPosition = 8;
+  }
+
+  pdf.setLineWidth(0.5);
+  pdf.setDrawColor(0, 0, 0);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 5;
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(11);
+  pdf.text('GRAND TOTAL:', margin, yPosition);
+  const grandTotalText = `₹${grandTotal.toFixed(2)}`;
+  const grandTotalWidth = pdf.getTextWidth(grandTotalText);
+  pdf.text(grandTotalText, pageWidth - margin - grandTotalWidth, yPosition);
+  yPosition += 4;
+
+  pdf.setLineWidth(0.5);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 6;
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7);
+  const thankYou = 'Thank you!';
+  const thankYouWidth = pdf.getTextWidth(thankYou);
+  pdf.text(thankYou, (pageWidth - thankYouWidth) / 2, yPosition);
+  yPosition += 4;
+
+  pdf.setFontSize(6);
+  pdf.setTextColor(100, 100, 100);
+  const footer = 'Computer-generated receipt';
+  const footerWidth = pdf.getTextWidth(footer);
+  pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
+
+  const fileName = `${amaliName}_POS_Receipt_${new Date().toISOString().split('T')[0]}.pdf`;
+  pdf.save(fileName);
 };
