@@ -25,7 +25,7 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += 10;
 
-  pdf.setFontSize(11);
+  pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   const currentDate = new Date().toLocaleString('en-IN', {
     day: '2-digit',
@@ -35,14 +35,13 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
     minute: '2-digit'
   });
 
-  pdf.text(`Date: ${currentDate}`, margin, yPosition);
-  yPosition += 6;
-
   const receiptId = entry.id ? `#${String(entry.id).substring(0, 8).toUpperCase()}` : '#N/A';
-  pdf.text(`Receipt No: ${receiptId}`, margin, yPosition);
-  yPosition += 6;
-
   const loadedDate = entry.loadedDate.split('T')[0];
+
+  pdf.text(`Date: ${currentDate}`, margin, yPosition);
+  const midPoint = pageWidth / 2;
+  pdf.text(`Receipt No: ${receiptId}`, midPoint, yPosition);
+  yPosition += 5;
   pdf.text(`Loaded: ${loadedDate}`, margin, yPosition);
   yPosition += 10;
 
@@ -58,13 +57,9 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(11);
 
-  pdf.text(`Rythu: ${entry.rythu}`, margin, yPosition);
-  yPosition += 6;
-
-  pdf.text(`Dealer: ${entry.dealer}`, margin, yPosition);
-  yPosition += 6;
-
-  pdf.text(`Lorry No: ${entry.lorryNumber}`, margin, yPosition);
+  const rythuName = entry.rythu || 'N/A';
+  pdf.text(`Rythu: ${rythuName}`, margin, yPosition);
+  pdf.text(`Lorry No: ${entry.lorryNumber}`, pageWidth / 2, yPosition);
   yPosition += 10;
 
   pdf.setLineWidth(0.3);
