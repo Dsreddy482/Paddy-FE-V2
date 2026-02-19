@@ -172,27 +172,32 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
   });
 
   const pageWidth = pdf.internal.pageSize.getWidth();
-  const margin = 20;
+  const pageHeight = pdf.internal.pageSize.height;
+  const margin = 15;
+  const receiptHeight = (pageHeight - margin * 3) / 2;
 
   entries.forEach((entry, index) => {
-    if (index > 0) {
+    const positionOnPage = index % 2;
+
+    if (index > 0 && positionOnPage === 0) {
       pdf.addPage();
     }
 
-    let yPosition = 20;
+    const startY = positionOnPage === 0 ? margin : margin * 2 + receiptHeight;
+    let yPosition = startY + 8;
 
-    pdf.setFontSize(20);
+    pdf.setFontSize(16);
     pdf.setFont('helvetica', 'bold');
     const title = 'PADDY RECEIPT';
     const titleWidth = pdf.getTextWidth(title);
     pdf.text(title, (pageWidth - titleWidth) / 2, yPosition);
-    yPosition += 8;
+    yPosition += 5;
 
     pdf.setLineWidth(0.5);
     pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 8;
+    yPosition += 5;
 
-    pdf.setFontSize(10);
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
     const currentDate = new Date().toLocaleDateString('en-IN', {
       day: '2-digit',
@@ -205,38 +210,38 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
 
     pdf.text(`Date: ${currentDate}`, margin, yPosition);
     const midPoint = pageWidth / 2;
-    pdf.text(`Receipt No: ${receiptId}`, midPoint, yPosition);
+    pdf.text(`Receipt: ${receiptId}`, midPoint - 10, yPosition);
     pdf.text(`Loaded: ${loadedDate}`, pageWidth - margin - pdf.getTextWidth(`Loaded: ${loadedDate}`), yPosition);
-    yPosition += 8;
+    yPosition += 5;
 
     pdf.setLineWidth(0.3);
     pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 6;
+    yPosition += 4;
 
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(14);
+    pdf.setFontSize(11);
     pdf.text('PARTY DETAILS', margin, yPosition);
-    yPosition += 6;
+    yPosition += 4;
 
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(11);
+    pdf.setFontSize(9);
 
     const rythuName = entry.rythu || 'N/A';
     pdf.text(`Rythu: ${rythuName}`, margin, yPosition);
-    pdf.text(`Lorry No: ${entry.lorryNumber}`, pageWidth / 2, yPosition);
-    yPosition += 8;
+    pdf.text(`Lorry: ${entry.lorryNumber}`, pageWidth / 2, yPosition);
+    yPosition += 5;
 
     pdf.setLineWidth(0.3);
     pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 6;
+    yPosition += 4;
 
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(14);
+    pdf.setFontSize(11);
     pdf.text('ITEM DETAILS', margin, yPosition);
-    yPosition += 6;
+    yPosition += 4;
 
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(11);
+    pdf.setFontSize(9);
 
     const items = [
       { label: 'No. of Bags', value: String(entry.bags || 0) },
@@ -248,21 +253,21 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
       pdf.text(item.label, margin, yPosition);
       const valueWidth = pdf.getTextWidth(item.value);
       pdf.text(item.value, pageWidth - margin - valueWidth, yPosition);
-      yPosition += 5;
+      yPosition += 4;
     });
 
-    yPosition += 3;
+    yPosition += 2;
     pdf.setLineWidth(0.3);
     pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 6;
+    yPosition += 4;
 
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(14);
+    pdf.setFontSize(11);
     pdf.text('AMOUNT DETAILS', margin, yPosition);
-    yPosition += 6;
+    yPosition += 4;
 
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(11);
+    pdf.setFontSize(9);
 
     const bagAmount = userRole === 'vendor' ? entry.dealerBagAmount : entry.bagAmount;
     const finalAmount = userRole === 'vendor' ? entry.dealerFinalAmount : entry.finalAmount;
@@ -272,32 +277,32 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     const rateText = `${(bagAmount || 0).toLocaleString()}`;
     const rateWidth = pdf.getTextWidth(rateText);
     pdf.text(rateText, pageWidth - margin - rateWidth, yPosition);
-    yPosition += 5;
+    yPosition += 4;
 
     pdf.text(`Bags x Rate`, margin, yPosition);
     const calcText = `${entry.bags || 0} x ${(bagAmount || 0).toLocaleString()}`;
     const calcWidth = pdf.getTextWidth(calcText);
     pdf.text(calcText, pageWidth - margin - calcWidth, yPosition);
-    yPosition += 8;
+    yPosition += 5;
+
+    pdf.setLineWidth(0.5);
+    pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 4;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(13);
+    pdf.text('TOTAL AMOUNT', margin, yPosition);
+    const totalText = `${(finalAmount || 0).toLocaleString()}`;
+    const totalWidth = pdf.getTextWidth(totalText);
+    pdf.text(totalText, pageWidth - margin - totalWidth, yPosition);
+    yPosition += 3;
 
     pdf.setLineWidth(0.5);
     pdf.line(margin, yPosition, pageWidth - margin, yPosition);
     yPosition += 6;
 
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(16);
-    pdf.text('TOTAL AMOUNT', margin, yPosition);
-    const totalText = `${(finalAmount || 0).toLocaleString()}`;
-    const totalWidth = pdf.getTextWidth(totalText);
-    pdf.text(totalText, pageWidth - margin - totalWidth, yPosition);
-    yPosition += 4;
-
-    pdf.setLineWidth(0.5);
-    pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 10;
-
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(12);
+    pdf.setFontSize(10);
 
     const statusLabel = status === 'paid' ? 'PAID ✓' :
                         status === 'pending' ? 'PENDING' :
@@ -312,15 +317,25 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     pdf.text(`Status: ${statusLabel}`, (pageWidth - statusWidth) / 2, yPosition);
     pdf.setTextColor(0, 0, 0);
 
-    yPosition += 10;
+    yPosition += 5;
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(9);
+    pdf.setFontSize(7);
     pdf.setTextColor(100, 100, 100);
 
-    const footerText = 'This is a computer-generated receipt';
+    const footerText = 'Computer-generated receipt';
     const footerWidth = pdf.getTextWidth(footerText);
     pdf.text(footerText, (pageWidth - footerWidth) / 2, yPosition);
     pdf.setTextColor(0, 0, 0);
+
+    if (positionOnPage === 0 && index < entries.length - 1) {
+      pdf.setLineWidth(0.1);
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineDash([2, 2]);
+      const separatorY = startY + receiptHeight;
+      pdf.line(margin, separatorY, pageWidth - margin, separatorY);
+      pdf.setLineDash([]);
+      pdf.setDrawColor(0, 0, 0);
+    }
   });
 
   pdf.save(`paddy_receipts_bulk_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}.pdf`);
