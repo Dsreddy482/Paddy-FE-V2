@@ -27,12 +27,10 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
 
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  const currentDate = new Date().toLocaleString('en-IN', {
+  const currentDate = new Date().toLocaleDateString('en-IN', {
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: 'numeric'
   });
 
   const receiptId = entry.id ? `#${String(entry.id).substring(0, 8).toUpperCase()}` : '#N/A';
@@ -41,35 +39,34 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   pdf.text(`Date: ${currentDate}`, margin, yPosition);
   const midPoint = pageWidth / 2;
   pdf.text(`Receipt No: ${receiptId}`, midPoint, yPosition);
-  yPosition += 5;
-  pdf.text(`Loaded: ${loadedDate}`, margin, yPosition);
-  yPosition += 10;
+  pdf.text(`Loaded: ${loadedDate}`, pageWidth - margin - pdf.getTextWidth(`Loaded: ${loadedDate}`), yPosition);
+  yPosition += 8;
 
   pdf.setLineWidth(0.3);
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(14);
   pdf.text('PARTY DETAILS', margin, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(11);
 
-  const rythuName = entry.rythu || 'N/A';
+  const rythuName = userName || entry.rythu || 'N/A';
   pdf.text(`Rythu: ${rythuName}`, margin, yPosition);
   pdf.text(`Lorry No: ${entry.lorryNumber}`, pageWidth / 2, yPosition);
-  yPosition += 10;
+  yPosition += 8;
 
   pdf.setLineWidth(0.3);
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(14);
   pdf.text('ITEM DETAILS', margin, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(11);
@@ -84,18 +81,18 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
     pdf.text(item.label, margin, yPosition);
     const valueWidth = pdf.getTextWidth(item.value);
     pdf.text(item.value, pageWidth - margin - valueWidth, yPosition);
-    yPosition += 6;
+    yPosition += 5;
   });
 
-  yPosition += 4;
+  yPosition += 3;
   pdf.setLineWidth(0.3);
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(14);
   pdf.text('AMOUNT DETAILS', margin, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(11);
@@ -108,17 +105,17 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   const rateText = `${(bagAmount || 0).toLocaleString()}`;
   const rateWidth = pdf.getTextWidth(rateText);
   pdf.text(rateText, pageWidth - margin - rateWidth, yPosition);
-  yPosition += 6;
+  yPosition += 5;
 
   pdf.text(`Bags x Rate`, margin, yPosition);
   const calcText = `${entry.bags || 0} x ${(bagAmount || 0).toLocaleString()}`;
   const calcWidth = pdf.getTextWidth(calcText);
   pdf.text(calcText, pageWidth - margin - calcWidth, yPosition);
-  yPosition += 10;
+  yPosition += 8;
 
   pdf.setLineWidth(0.5);
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(16);
@@ -126,11 +123,11 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   const totalText = `${(finalAmount || 0).toLocaleString()}`;
   const totalWidth = pdf.getTextWidth(totalText);
   pdf.text(totalText, pageWidth - margin - totalWidth, yPosition);
-  yPosition += 5;
+  yPosition += 4;
 
   pdf.setLineWidth(0.5);
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-  yPosition += 12;
+  yPosition += 10;
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(12);
@@ -148,7 +145,7 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   pdf.text(`Status: ${statusLabel}`, (pageWidth - statusWidth) / 2, yPosition);
   pdf.setTextColor(0, 0, 0);
 
-  yPosition += 12;
+  yPosition += 10;
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(11);
   const thankYou = 'Thank you for your business!';
@@ -280,7 +277,7 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
   const pageHeight = pdf.internal.pageSize.height;
   pdf.setFontSize(10);
   pdf.setTextColor(128, 128, 128);
-  pdf.text(`Generated on: ${new Date().toLocaleString('en-IN')} | Computer-generated report`, 14, pageHeight - 10);
+  pdf.text(`Generated on: ${new Date().toLocaleDateString('en-IN')} | Computer-generated report`, 14, pageHeight - 10);
   pdf.setTextColor(0, 0, 0);
 
   pdf.save(`paddy_receipts_bulk_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}.pdf`);
@@ -323,12 +320,10 @@ export const generateAmaliPOSReceipt = (
 
   pdf.setFontSize(8);
   pdf.setFont('helvetica', 'normal');
-  const dateTime = new Date().toLocaleString('en-IN', {
+  const dateTime = new Date().toLocaleDateString('en-IN', {
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: 'numeric'
   });
   pdf.text(`Date: ${dateTime}`, margin, yPosition);
   yPosition += 4;
