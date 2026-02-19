@@ -14,6 +14,7 @@ interface AddPaddyModalProps {
   userId: string;
   loadingId?: string;
   loadingEntry?: LoadingEntryDetails | null;
+  isRythuPage?: boolean;
 }
 
 export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
@@ -23,21 +24,28 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
   userId,
   loadingId,
   loadingEntry,
+  isRythuPage = false,
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [rythus, setRythus] = useState<Dealer[]>([]);
   const [rythuSearch, setRythuSearch] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const rythusList = await authService.searchUsers('');
-        setRythus(rythusList.filter(u => u.role?.toLowerCase() === 'rythu'));
+        if (isRythuPage) {
+          const user = await authService.getUserById(userId);
+          setCurrentUser(user);
+        } else {
+          const rythusList = await authService.searchUsers('');
+          setRythus(rythusList.filter(u => u.role?.toLowerCase() === 'rythu'));
+        }
       } catch (err) {
         console.error('Failed to fetch data:', err);
-        setError('Failed to load rythus');
+        setError('Failed to load data');
       }
     };
 
@@ -45,7 +53,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       fetchData();
       setRythuSearch('');
     }
-  }, [isOpen]);
+  }, [isOpen, userId, isRythuPage]);
 
   const filteredRythus = useMemo(() => {
     if (!rythuSearch.trim()) {
@@ -73,7 +81,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const rythuId = formData.get('rythuId') as string;
+    const rythuId = isRythuPage ? userId : (formData.get('rythuId') as string);
 
     if (!rythuId) {
       setError('Please select a rythu');
@@ -100,7 +108,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       await paddyService.createPaddyEntry(paddyData);
       setSuccess('Paddy entry saved successfully!');
 
-      const selectedRythu = rythus.find(r => r.id === rythuId);
+      const selectedRythu = isRythuPage ? currentUser : rythus.find(r => r.id === rythuId);
 
       setTimeout(() => {
         setSuccess('');
@@ -178,30 +186,45 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Rythu
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Search rythu by name or phone..."
-                    value={rythuSearch}
-                    onChange={(e) => setRythuSearch(e.target.value)}
-                    className="mt-1 mb-2 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                  />
-                  <select
-                    name="rythuId"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-12 focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                  >
-                    <option value="">Select a rythu</option>
-                    {filteredRythus.map((rythu) => (
-                      <option key={rythu.id} value={rythu.id}>
-                        {rythu.name} {rythu.phoneNumber ? `- ${rythu.phoneNumber}` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {!isRythuPage && (
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Rythu
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Search rythu by name or phone..."
+                      value={rythuSearch}
+                      onChange={(e) => setRythuSearch(e.target.value)}
+                      className="mt-1 mb-2 block w-full rounded-md border-gray-300 shadow-sm h-10 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                    />
+                    <select
+                      name="rythuId"
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-12 focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                    >
+                      <option value="">Select a rythu</option>
+                      {filteredRythus.map((rythu) => (
+                        <option key={rythu.id} value={rythu.id}>
+                          {rythu.name} {rythu.phoneNumber ? `- ${rythu.phoneNumber}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {isRythuPage && currentUser && (
+                  <div className="sm:col-span-2">
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Rythu
+                      </label>
+                      <p className="text-base font-semibold text-gray-900">{currentUser.name}</p>
+                      {currentUser.phoneNumber && (
+                        <p className="text-sm text-gray-600">{currentUser.phoneNumber}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <Input
                     label="Weight (KGs)"

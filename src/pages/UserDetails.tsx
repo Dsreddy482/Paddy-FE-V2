@@ -1124,6 +1124,7 @@ export const UserDetails: React.FC = () => {
         onClose={() => setIsAddPaddyModalOpen(false)}
         onSuccess={handlePaddySuccess}
         userId={userId}
+        isRythuPage={selectedUser?.role === 'rythu'}
       />
 
       <EditPaddyModal
