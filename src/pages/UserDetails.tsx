@@ -203,7 +203,7 @@ export const UserDetails: React.FC = () => {
     const details = {
       "id": entry.id,
       "lorryNumber": entry.lorryNumber,
-      "bags": entry.bagAmount,
+      "bags": entry.bags,
       "kgsPerBag": entry.kgperBag,
       "bagAmount": entry.bagAmount,
       "loadedDate": entry.loadedDate,
@@ -211,6 +211,8 @@ export const UserDetails: React.FC = () => {
       "userId": entry.userId,
       "dealerId": entry.dealerId,
       "dealerBagAmount": entry.dealerBagAmount,
+      "loadType": entry.loadType,
+      "loadingId": entry.loadingId,
     } as unknown as PaddyEntry;
     setSelectedPaddyEntry(details);
     setIsEditPaddyModalOpen(true);
