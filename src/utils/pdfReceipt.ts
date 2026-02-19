@@ -105,13 +105,13 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   const status = userRole === 'vendor' ? entry.dealerPaddyStatus : entry.status;
 
   pdf.text('Rate per Bag', margin, yPosition);
-  const rateText = `₹${(bagAmount || 0).toLocaleString()}`;
+  const rateText = `${(bagAmount || 0).toLocaleString()}`;
   const rateWidth = pdf.getTextWidth(rateText);
   pdf.text(rateText, pageWidth - margin - rateWidth, yPosition);
   yPosition += 6;
 
   pdf.text(`Bags x Rate`, margin, yPosition);
-  const calcText = `${entry.bags || 0} x ₹${(bagAmount || 0).toLocaleString()}`;
+  const calcText = `${entry.bags || 0} x ${(bagAmount || 0).toLocaleString()}`;
   const calcWidth = pdf.getTextWidth(calcText);
   pdf.text(calcText, pageWidth - margin - calcWidth, yPosition);
   yPosition += 10;
@@ -123,7 +123,7 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(16);
   pdf.text('TOTAL AMOUNT', margin, yPosition);
-  const totalText = `₹${(finalAmount || 0).toLocaleString()}`;
+  const totalText = `${(finalAmount || 0).toLocaleString()}`;
   const totalWidth = pdf.getTextWidth(totalText);
   pdf.text(totalText, pageWidth - margin - totalWidth, yPosition);
   yPosition += 5;
@@ -419,7 +419,7 @@ export const generateAmaliPOSReceipt = (
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(11);
   pdf.text('GRAND TOTAL:', margin, yPosition);
-  const grandTotalText = `₹${grandTotal.toFixed(2)}`;
+  const grandTotalText = `${grandTotal.toFixed(2)}`;
   const grandTotalWidth = pdf.getTextWidth(grandTotalText);
   pdf.text(grandTotalText, pageWidth - margin - grandTotalWidth, yPosition);
   yPosition += 4;
