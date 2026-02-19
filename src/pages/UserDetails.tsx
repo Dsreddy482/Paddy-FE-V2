@@ -666,7 +666,7 @@ export const UserDetails: React.FC = () => {
             <span className="hidden sm:inline">Back</span>
           </button>
           <div className="flex space-x-2">
-            {selectedUser?.role !== 'vendor' && (
+            {selectedUser?.role !== 'vendor' && selectedUser?.role !== 'rythu' && (
               <button
                 onClick={() => setIsAddPaddyModalOpen(true)}
                 className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
