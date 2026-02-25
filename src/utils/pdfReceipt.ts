@@ -135,11 +135,11 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   const statusLabel = status === 'paid' ? 'PAID ✓' :
                       status === 'pending' ? 'PENDING' :
                       'PARTIAL';
-  const statusColor = status === 'paid' ? [34, 197, 94] :
-                      status === 'pending' ? [239, 68, 68] :
-                      [251, 191, 36];
+  const statusColor = status === 'paid' ? [34, 197, 94] as const :
+                      status === 'pending' ? [239, 68, 68] as const :
+                      [251, 191, 36] as const;
 
-  pdf.setTextColor(...statusColor);
+  pdf.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
   pdf.setFont('helvetica', 'bold');
   const statusWidth = pdf.getTextWidth(`Status: ${statusLabel}`);
   pdf.text(`Status: ${statusLabel}`, (pageWidth - statusWidth) / 2, yPosition);
@@ -307,11 +307,11 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     const statusLabel = status === 'paid' ? 'PAID ✓' :
                         status === 'pending' ? 'PENDING' :
                         'PARTIAL';
-    const statusColor = status === 'paid' ? [34, 197, 94] :
-                        status === 'pending' ? [239, 68, 68] :
-                        [251, 191, 36];
+    const statusColor = status === 'paid' ? [34, 197, 94] as const :
+                        status === 'pending' ? [239, 68, 68] as const :
+                        [251, 191, 36] as const;
 
-    pdf.setTextColor(...statusColor);
+    pdf.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
     pdf.setFont('helvetica', 'bold');
     const statusWidth = pdf.getTextWidth(`Status: ${statusLabel}`);
     pdf.text(`Status: ${statusLabel}`, (pageWidth - statusWidth) / 2, yPosition);
@@ -495,5 +495,271 @@ export const generateAmaliPOSReceipt = (
   pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
 
   const fileName = `${amaliName}_POS_Receipt_${new Date().toISOString().split('T')[0]}.pdf`;
+  pdf.save(fileName);
+};
+
+export const generateRythuComprehensiveReceipt = (
+  userName: string,
+  paddyEntries: PaddyEntryDetails[],
+  payables: Array<{ date: string; amount: number; reason: string }>,
+  receivables: Array<{ date: string; amount: number; reason: string }>,
+  paddyAmount: number,
+  pendingPayables: number,
+  pendingReceivables: number,
+  netBalance: number
+) => {
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.height;
+  const margin = 20;
+  let yPosition = 20;
+
+  // Header Info
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+  const currentDate = new Date().toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+
+  pdf.text(`Rythu: ${userName}`, margin, yPosition);
+  pdf.text(`Date: ${currentDate}`, pageWidth - margin - pdf.getTextWidth(`Date: ${currentDate}`), yPosition);
+  yPosition += 10;
+
+  pdf.setLineWidth(0.3);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 8;
+
+  // Summary Section
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(16);
+  pdf.text('FINANCIAL SUMMARY', margin, yPosition);
+  yPosition += 8;
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(11);
+
+  const summaryItems = [
+    { label: 'Total Paddy Amount', value: `${paddyAmount.toLocaleString()}`, color: [34, 197, 94] },
+    { label: 'Pending Payables', value: `${pendingPayables.toLocaleString()}`, color: [239, 68, 68] },
+    { label: 'Pending Receivables', value: `${pendingReceivables.toLocaleString()}`, color: [34, 197, 94] },
+  ];
+
+  summaryItems.forEach(item => {
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(item.label, margin, yPosition);
+    pdf.setTextColor(item.color[0], item.color[1], item.color[2]);
+    const valueWidth = pdf.getTextWidth(item.value);
+    pdf.text(item.value, pageWidth - margin - valueWidth, yPosition);
+    yPosition += 6;
+  });
+
+  yPosition += 2;
+  pdf.setLineWidth(0.5);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 6;
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(14);
+  pdf.setTextColor(0, 0, 0);
+  pdf.text('NET BALANCE', margin, yPosition);
+  const netBalanceColor = netBalance >= 0 ? [34, 197, 94] : [239, 68, 68];
+  pdf.setTextColor(netBalanceColor[0], netBalanceColor[1], netBalanceColor[2]);
+  const netBalanceText = `${netBalance.toLocaleString()}`;
+  const netBalanceWidth = pdf.getTextWidth(netBalanceText);
+  pdf.text(netBalanceText, pageWidth - margin - netBalanceWidth, yPosition);
+  yPosition += 4;
+
+  pdf.setTextColor(0, 0, 0);
+  pdf.setLineWidth(0.5);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 10;
+
+  // Check if we need a new page
+  if (yPosition > pageHeight - 80) {
+    pdf.addPage();
+    yPosition = 20;
+  }
+
+  // Paddy Entries Section
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(14);
+  pdf.text(`PADDY ENTRIES (${paddyEntries.length})`, margin, yPosition);
+  yPosition += 6;
+
+  if (paddyEntries.length > 0) {
+    const paddyTableHead = [['Date', 'Lorry', 'Bags', 'KG/Bag', 'Rate', 'Amount']];
+    const paddyTableBody = paddyEntries.map(entry => [
+      entry.loadedDate.split('T')[0],
+      entry.lorryNumber,
+      entry.bags.toString(),
+      entry.kgperBag.toString(),
+      entry.bagAmount.toLocaleString(),
+      entry.finalAmount.toLocaleString()
+    ]);
+
+    autoTable(pdf, {
+      startY: yPosition,
+      head: paddyTableHead,
+      body: paddyTableBody,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [34, 197, 94],
+        textColor: 255,
+        fontSize: 9,
+      },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 25 },
+        5: { cellWidth: 25 },
+      },
+    });
+
+    yPosition = (pdf as any).lastAutoTable.finalY + 10;
+  } else {
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(128, 128, 128);
+    pdf.text('No paddy entries found', margin, yPosition);
+    yPosition += 10;
+    pdf.setTextColor(0, 0, 0);
+  }
+
+  // Check if we need a new page
+  if (yPosition > pageHeight - 80) {
+    pdf.addPage();
+    yPosition = 20;
+  }
+
+  // Payables Section
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(14);
+  pdf.text(`PAYABLES (${payables.length})`, margin, yPosition);
+  yPosition += 6;
+
+  if (payables.length > 0) {
+    const payablesTableHead = [['Date', 'Reason', 'Amount']];
+    const payablesTableBody = payables.map(txn => [
+      new Date(txn.date).toLocaleDateString('en-IN'),
+      txn.reason,
+      txn.amount.toLocaleString()
+    ]);
+
+    autoTable(pdf, {
+      startY: yPosition,
+      head: payablesTableHead,
+      body: payablesTableBody,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [239, 68, 68],
+        textColor: 255,
+        fontSize: 9,
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { cellWidth: 30 },
+        1: { cellWidth: 90 },
+        2: { cellWidth: 30 },
+      },
+    });
+
+    yPosition = (pdf as any).lastAutoTable.finalY + 10;
+  } else {
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(128, 128, 128);
+    pdf.text('No payables', margin, yPosition);
+    yPosition += 10;
+    pdf.setTextColor(0, 0, 0);
+  }
+
+  // Check if we need a new page
+  if (yPosition > pageHeight - 80) {
+    pdf.addPage();
+    yPosition = 20;
+  }
+
+  // Receivables Section
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(14);
+  pdf.text(`RECEIVABLES (${receivables.length})`, margin, yPosition);
+  yPosition += 6;
+
+  if (receivables.length > 0) {
+    const receivablesTableHead = [['Date', 'Reason', 'Amount']];
+    const receivablesTableBody = receivables.map(txn => [
+      new Date(txn.date).toLocaleDateString('en-IN'),
+      txn.reason,
+      txn.amount.toLocaleString()
+    ]);
+
+    autoTable(pdf, {
+      startY: yPosition,
+      head: receivablesTableHead,
+      body: receivablesTableBody,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [34, 197, 94],
+        textColor: 255,
+        fontSize: 9,
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { cellWidth: 30 },
+        1: { cellWidth: 90 },
+        2: { cellWidth: 30 },
+      },
+    });
+
+    yPosition = (pdf as any).lastAutoTable.finalY + 10;
+  } else {
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(128, 128, 128);
+    pdf.text('No receivables', margin, yPosition);
+    yPosition += 10;
+    pdf.setTextColor(0, 0, 0);
+  }
+
+  // Footer
+  if (yPosition > pageHeight - 30) {
+    pdf.addPage();
+    yPosition = 20;
+  }
+
+  yPosition += 5;
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
+  const thankYou = 'Thank you for your business!';
+  const thankYouWidth = pdf.getTextWidth(thankYou);
+  pdf.text(thankYou, (pageWidth - thankYouWidth) / 2, yPosition);
+
+  yPosition += 6;
+  pdf.setFontSize(8);
+  pdf.setTextColor(128, 128, 128);
+  const footer = 'Computer-generated comprehensive receipt';
+  const footerWidth = pdf.getTextWidth(footer);
+  pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
+
+  const fileName = `comprehensive-receipt-${userName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
   pdf.save(fileName);
 };

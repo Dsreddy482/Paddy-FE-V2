@@ -1,5 +1,5 @@
 import { api } from './api';
-import { Transaction } from '../types/transaction';
+import { Transaction } from '../types/transaction.ts';
 
 // Mock data for development
 let transactions: Transaction[] = [];

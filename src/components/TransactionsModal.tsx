@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, IndianRupee, Clock, CheckCircle } from 'lucide-react';
 import { transactionService } from '../services/transaction';
-import { Transaction } from '../types/transaction';
+import { Transaction } from '../types/transaction.ts';
 import Alert from './Alert';
 
 interface TransactionsModalProps {

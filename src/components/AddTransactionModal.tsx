@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { Input } from './Input';
 import { transactionService } from '../services/transaction';
 import Alert from './Alert';
-import { Transaction } from '../types/transaction';
+import { Transaction } from '../types/transaction.ts';
 
 interface AddTransactionModalProps {
   isOpen: boolean;

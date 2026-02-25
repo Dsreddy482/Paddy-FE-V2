@@ -11,12 +11,12 @@ import { TransactionsModal } from '../components/TransactionsModal';
 import { PaddyConfirmationModal } from '../components/PaddyConfirmationModal';
 import { useAuthStore } from '../store/authStore';
 import { PaddyEntry, PaddyEntryDetails } from '../types/paddy';
-import { Transaction } from '../types/transaction';
+import { Transaction } from '../types/transaction.ts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Header } from '../components/Header';
 import { shareOnWhatsApp, formatPaddyEntryForWhatsApp, formatUserSummaryForWhatsApp } from '../utils/whatsapp';
-import { generatePaddyReceipt, generateBulkPaddyReceipts } from '../utils/pdfReceipt';
+import { generatePaddyReceipt, generateBulkPaddyReceipts, generateRythuComprehensiveReceipt } from '../utils/pdfReceipt';
 
 interface FilterState {
   lorryNumber: string;
@@ -596,7 +596,7 @@ export const UserDetails: React.FC = () => {
       {
         lorryNumber: entry.lorryNumber,
         loadedDate: entry.loadedDate,
-        totalWeight: entry.totalWeight,
+        totalWeight: entry.totalWeight || 0,
         bags: entry.bags,
         kgperBag: entry.kgperBag,
         bagAmount: selectedUser.role === 'vendor' ? entry.dealerBagAmount : entry.bagAmount,
@@ -626,6 +626,39 @@ export const UserDetails: React.FC = () => {
       netBalance
     );
     shareOnWhatsApp(message);
+  };
+
+  const downloadComprehensiveReceipt = () => {
+    const { payables: pendingPayables, receivables: pendingReceivables } = calculateTransactionTotals();
+    const paddyAmount = calculateGrandTotal();
+    const netBalance = paddyAmount - pendingReceivables - pendingPayables;
+
+    const payablesData = transactions
+      .filter(t => t.type === 'payable' && t.status.toLowerCase() === 'pending')
+      .map(t => ({
+        date: t.date,
+        amount: t.amount,
+        reason: t.reason
+      }));
+
+    const receivablesData = transactions
+      .filter(t => t.type === 'receivable' && t.status.toLowerCase() === 'pending')
+      .map(t => ({
+        date: t.date,
+        amount: t.amount,
+        reason: t.reason
+      }));
+
+    generateRythuComprehensiveReceipt(
+      selectedUser.name,
+      paddyEntries,
+      payablesData,
+      receivablesData,
+      paddyAmount,
+      pendingPayables,
+      pendingReceivables,
+      netBalance
+    );
   };
 
   if (loading) {
@@ -776,13 +809,24 @@ export const UserDetails: React.FC = () => {
                       ₹{(calculateGrandTotal() - calculateTransactionTotals().receivables - calculateTransactionTotals().payables).toLocaleString()}
                     </span>
                   </div>
-                  <button
-                    onClick={handleShareUserSummary}
-                    className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
-                  >
-                    <Share2 className="h-3 w-3 mr-1" />
-                    Share Summary
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={handleShareUserSummary}
+                      className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
+                    >
+                      <Share2 className="h-3 w-3 mr-1" />
+                      Share Summary
+                    </button>
+                    {selectedUser.role === 'rythu' && (
+                      <button
+                        onClick={downloadComprehensiveReceipt}
+                        className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        Full Receipt
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
