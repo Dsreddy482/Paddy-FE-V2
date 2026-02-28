@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
-import { Plus, Edit2, Trash2, MapPin, Maximize2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, MapPin, Maximize2, Package } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { PaddyField } from '../types/paddyField';
@@ -8,6 +8,8 @@ import { getAllPaddyFields, createPaddyField, updatePaddyField, deletePaddyField
 import { AddPaddyFieldModal } from '../components/AddPaddyFieldModal';
 import { EditPaddyFieldModal } from '../components/EditPaddyFieldModal';
 import Alert from '../components/Alert';
+import { inventoryService } from '../services/inventory';
+import { InventoryAllocation } from '../types/inventory';
 
 export const PaddyFields: React.FC = () => {
   const { user } = useAuthStore();
@@ -18,9 +20,12 @@ export const PaddyFields: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<PaddyField | null>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [allocations, setAllocations] = useState<Map<string, InventoryAllocation[]>>(new Map());
+  const [showAllocations, setShowAllocations] = useState<string | null>(null);
 
   useEffect(() => {
     loadFields();
+    loadAllAllocations();
   }, []);
 
   const loadFields = async () => {
@@ -33,6 +38,42 @@ export const PaddyFields: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadAllAllocations = async () => {
+    try {
+      const allAllocations = await inventoryService.getAllAllocations();
+      const fieldAllocationsMap = new Map<string, InventoryAllocation[]>();
+
+      allAllocations.forEach(allocation => {
+        if (allocation.allocated_to_type === 'paddy_field') {
+          const fieldId = allocation.allocated_to_id;
+          if (!fieldAllocationsMap.has(fieldId)) {
+            fieldAllocationsMap.set(fieldId, []);
+          }
+          fieldAllocationsMap.get(fieldId)!.push(allocation);
+        }
+      });
+
+      setAllocations(fieldAllocationsMap);
+    } catch (error: any) {
+      console.error('Failed to load allocations:', error);
+    }
+  };
+
+  const getFieldAllocations = (fieldId: string) => {
+    return allocations.get(fieldId) || [];
+  };
+
+  const getTotalAllocationValue = (fieldId: string) => {
+    const fieldAllocations = getFieldAllocations(fieldId);
+    return fieldAllocations.reduce((total, allocation) => {
+      return total + (allocation.quantity * 0);
+    }, 0);
+  };
+
+  const toggleAllocations = (fieldId: string) => {
+    setShowAllocations(showAllocations === fieldId ? null : fieldId);
   };
 
   const handleAddField = async (fieldData: any) => {
@@ -142,10 +183,38 @@ export const PaddyFields: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="flex items-center text-gray-700 mb-4">
+                  <div className="flex items-center text-gray-700 mb-2">
                     <Maximize2 className="h-5 w-5 mr-2 text-gray-400" />
                     <span className="text-lg font-medium">{field.area} {field.unit}</span>
                   </div>
+
+                  {getFieldAllocations(field.id).length > 0 && (
+                    <div className="mb-4">
+                      <button
+                        onClick={() => toggleAllocations(field.id)}
+                        className="flex items-center text-sm text-green-600 hover:text-green-700"
+                      >
+                        <Package className="h-4 w-4 mr-1" />
+                        {getFieldAllocations(field.id).length} Inventory Items
+                      </button>
+
+                      {showAllocations === field.id && (
+                        <div className="mt-2 space-y-1">
+                          {getFieldAllocations(field.id).map((allocation) => (
+                            <div key={allocation.id} className="text-xs bg-gray-50 p-2 rounded">
+                              <div className="flex justify-between">
+                                <span className="font-medium">{allocation.item_name}</span>
+                                <span className="text-gray-600">{allocation.quantity} {allocation.item_code}</span>
+                              </div>
+                              {allocation.purpose && (
+                                <div className="text-gray-500 mt-1">{allocation.purpose}</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex gap-2 pt-4 border-t border-gray-100">
                     <button

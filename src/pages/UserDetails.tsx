@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Plus, Download, CheckCircle, Clock, Edit, Filter, IndianRupee, Share2 } from 'lucide-react';
+import { ArrowLeft, Phone, Plus, Download, CheckCircle, Clock, Edit, Filter, IndianRupee, Share2, Package } from 'lucide-react';
 import { authService } from '../services/auth';
 import { paddyService } from '../services/Paddy';
 import { transactionService } from '../services/transaction';
@@ -16,7 +16,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Header } from '../components/Header';
 import { shareOnWhatsApp, formatPaddyEntryForWhatsApp, formatUserSummaryForWhatsApp } from '../utils/whatsapp';
-import { generatePaddyReceipt, generateBulkPaddyReceipts, generateRythuComprehensiveReceipt } from '../utils/pdfReceipt';
+import { generatePaddyReceipt, generateBulkPaddyReceipts, generateRythuComprehensiveReceipt, generateUserReceiptWithInventory } from '../utils/pdfReceipt';
+import { inventoryService } from '../services/inventory';
+import { InventoryAllocation } from '../types/inventory';
 
 interface FilterState {
   lorryNumber: string;
@@ -59,22 +61,27 @@ export const UserDetails: React.FC = () => {
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [newPaddyEntry, setNewPaddyEntry] = useState<any>(null);
   const [newRythuData, setNewRythuData] = useState<any>(null);
+  const [userAllocations, setUserAllocations] = useState<InventoryAllocation[]>([]);
+  const [showInventory, setShowInventory] = useState(false);
+  const [selectedAllocations, setSelectedAllocations] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
 
       try {
-        const [userData, paddyData, payables, receivables] = await Promise.all([
+        const [userData, paddyData, payables, receivables, allocations] = await Promise.all([
           authService.getUserById(userId),
           paddyService.getUserPaddyEntries(userId),
           transactionService.getUserTransactions(userId, 'payable'),
-          transactionService.getUserTransactions(userId, 'receivable')
+          transactionService.getUserTransactions(userId, 'receivable'),
+          inventoryService.getAllocationsByUser(userId)
         ]);
-        
+
         setSelectedUser(userData);
         setPaddyEntries(paddyData);
         setTransactions([...payables, ...receivables]);
+        setUserAllocations(allocations);
 
         if (paddyData.length > 10 && tableRef.current) {
           setTimeout(() => {
@@ -649,16 +656,37 @@ export const UserDetails: React.FC = () => {
         reason: t.reason
       }));
 
-    generateRythuComprehensiveReceipt(
+    const selectedAllocationsList = userAllocations.filter(a => selectedAllocations.has(a.id));
+
+    generateUserReceiptWithInventory(
       selectedUser.name,
       paddyEntries,
       payablesData,
       receivablesData,
+      selectedAllocationsList,
       paddyAmount,
       pendingPayables,
       pendingReceivables,
       netBalance
     );
+  };
+
+  const toggleAllocationSelection = (allocationId: string) => {
+    const newSelected = new Set(selectedAllocations);
+    if (newSelected.has(allocationId)) {
+      newSelected.delete(allocationId);
+    } else {
+      newSelected.add(allocationId);
+    }
+    setSelectedAllocations(newSelected);
+  };
+
+  const toggleAllAllocations = () => {
+    if (selectedAllocations.size === userAllocations.length) {
+      setSelectedAllocations(new Set());
+    } else {
+      setSelectedAllocations(new Set(userAllocations.map(a => a.id)));
+    }
   };
 
   if (loading) {
@@ -900,7 +928,100 @@ export const UserDetails: React.FC = () => {
             </div>
           </div>
         )}
-        
+
+        {userAllocations.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={() => setShowInventory(!showInventory)}
+                  className="flex items-center text-lg font-medium text-gray-900 hover:text-green-600"
+                >
+                  <Package className="h-5 w-5 mr-2" />
+                  Inventory Allocations ({userAllocations.length})
+                  <span className="ml-2 text-sm text-gray-500">
+                    {showInventory ? '▼' : '▶'}
+                  </span>
+                </button>
+                {showInventory && (
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={toggleAllAllocations}
+                      className="text-sm text-green-600 hover:text-green-700"
+                    >
+                      {selectedAllocations.size === userAllocations.length ? 'Deselect All' : 'Select All'}
+                    </button>
+                    <span className="text-sm text-gray-500">
+                      ({selectedAllocations.size} selected)
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {showInventory && (
+              <div className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {userAllocations.map((allocation) => (
+                    <div
+                      key={allocation.id}
+                      className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                        selectedAllocations.has(allocation.id)
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:border-green-300'
+                      }`}
+                      onClick={() => toggleAllocationSelection(allocation.id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedAllocations.has(allocation.id)}
+                              onChange={() => toggleAllocationSelection(allocation.id)}
+                              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-3"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <h4 className="font-semibold text-gray-900">{allocation.item_name}</h4>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">Code: {allocation.item_code}</p>
+                          <div className="mt-2 flex items-center justify-between">
+                            <span className="text-lg font-bold text-green-600">
+                              {allocation.quantity} units
+                            </span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              allocation.status === 'allocated'
+                                ? 'bg-blue-100 text-blue-800'
+                                : allocation.status === 'consumed'
+                                ? 'bg-gray-100 text-gray-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {allocation.status}
+                            </span>
+                          </div>
+                          {allocation.purpose && (
+                            <p className="text-sm text-gray-600 mt-2">
+                              Purpose: {allocation.purpose}
+                            </p>
+                          )}
+                          {allocation.notes && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Note: {allocation.notes}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-2">
+                            {new Date(allocation.allocation_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="border-b border-gray-200 overflow-x-auto">
           <nav className="flex -mb-px space-x-4 sm:space-x-8">
             <button
