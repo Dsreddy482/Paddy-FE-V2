@@ -35,12 +35,32 @@ export const inventoryService = {
   },
 
   async createItem(itemData: CreateInventoryItemData): Promise<InventoryItem> {
-    const { data } = await api.post('/Inventory/createItem', itemData);
+    const payload = {
+      itemName: itemData.item_name,
+      itemCode: itemData.item_code,
+      category: itemData.category.toLowerCase(),
+      unit: itemData.unit,
+      description: itemData.description || '',
+      minimumStock: itemData.minimum_stock,
+      currentStock: itemData.current_stock,
+      unitPrice: itemData.unit_price,
+      status: itemData.status
+    };
+    const { data } = await api.post('/Inventory/createItem', payload);
     return data;
   },
 
   async updateItem(id: string, updates: UpdateInventoryItemData): Promise<InventoryItem> {
-    const { data } = await api.put(`/Inventory/updateItem/${id}`, updates);
+    const payload: any = {};
+    if (updates.item_name !== undefined) payload.itemName = updates.item_name;
+    if (updates.category !== undefined) payload.category = updates.category.toLowerCase();
+    if (updates.unit !== undefined) payload.unit = updates.unit;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.minimum_stock !== undefined) payload.minimumStock = updates.minimum_stock;
+    if (updates.unit_price !== undefined) payload.unitPrice = updates.unit_price;
+    if (updates.status !== undefined) payload.status = updates.status;
+
+    const { data } = await api.put(`/Inventory/updateItem/${id}`, payload);
     return data;
   },
 
@@ -54,18 +74,42 @@ export const inventoryService = {
   },
 
   async addStock(transactionData: CreateStockTransactionData): Promise<void> {
-    await api.post('/Inventory/addStock', transactionData);
+    const payload = {
+      inventoryItemId: transactionData.inventory_item_id,
+      transactionType: 'in',
+      quantity: Math.abs(transactionData.quantity),
+      referenceNumber: transactionData.reference_number,
+      notes: transactionData.notes,
+      transactionDate: transactionData.transaction_date
+    };
+    await api.post('/Inventory/addStock', payload);
   },
 
   async removeStock(transactionData: CreateStockTransactionData): Promise<void> {
-    await api.post('/Inventory/removeStock', transactionData);
+    const payload = {
+      inventoryItemId: transactionData.inventory_item_id,
+      transactionType: 'out',
+      quantity: Math.abs(transactionData.quantity),
+      referenceNumber: transactionData.reference_number,
+      notes: transactionData.notes,
+      transactionDate: transactionData.transaction_date
+    };
+    await api.post('/Inventory/removeStock', payload);
   },
 
   async adjustStock(transactionData: CreateStockTransactionData, newStock: number): Promise<void> {
-    await api.post('/Inventory/adjustStock', {
-      ...transactionData,
-      new_stock: newStock
-    });
+    const payload = {
+      transaction: {
+        inventoryItemId: transactionData.inventory_item_id,
+        transactionType: 'adjustment',
+        quantity: transactionData.quantity,
+        referenceNumber: transactionData.reference_number,
+        notes: transactionData.notes,
+        transactionDate: transactionData.transaction_date
+      },
+      newStock: newStock
+    };
+    await api.post('/Inventory/adjustStock', payload);
   },
 
   async getTransactionsByItem(itemId: string): Promise<StockTransactionWithItem[]> {
