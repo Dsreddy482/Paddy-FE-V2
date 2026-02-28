@@ -126,7 +126,24 @@ public class InventoryAllocationResponseDto
 
 Allocates inventory to a user or paddy field and reduces the current stock.
 
+**IMPORTANT**: The request body expects a DTO wrapper object with a `dto` property containing the allocation data.
+
 **Request Body:**
+```json
+{
+  "dto": {
+    "inventoryItemId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "quantity": 50.5,
+    "allocatedToType": "user",
+    "allocatedToId": "3fa85f64-5717-4562-b3fc-2c963f66afa7",
+    "purpose": "Fertilizer for paddy cultivation",
+    "notes": "Allocated for Plot A cultivation",
+    "allocationDate": "2024-02-28T10:30:00Z"
+  }
+}
+```
+
+**Alternative Request Body Format (Direct DTO - Recommended):**
 ```json
 {
   "inventoryItemId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -138,6 +155,8 @@ Allocates inventory to a user or paddy field and reduces the current stock.
   "allocationDate": "2024-02-28T10:30:00Z"
 }
 ```
+
+**Note**: If the current implementation requires the `dto` wrapper, update the controller to accept the DTO directly using `[FromBody] CreateInventoryAllocationDto dto` without an additional wrapper object.
 
 **Response:** `200 OK`
 
@@ -155,6 +174,7 @@ Allocates inventory to a user or paddy field and reduces the current stock.
 
 **Example Implementation:**
 ```csharp
+// RECOMMENDED: Accept DTO directly without wrapper
 [HttpPost("allocateInventory")]
 public async Task<IActionResult> AllocateInventory([FromBody] CreateInventoryAllocationDto dto)
 {
@@ -544,6 +564,74 @@ Implement proper error handling for:
 3. **SQL Injection**: Use parameterized queries (handled by Entity Framework)
 4. **Audit Logging**: Log all allocation operations for security audit
 
+## Troubleshooting Common Issues
+
+### Error: "The dto field is required"
+
+**Cause**: The controller is expecting a wrapper object with a `dto` property instead of the DTO directly.
+
+**Solution**: Update your controller method signature to accept the DTO directly:
+
+```csharp
+// CORRECT - Direct DTO binding
+[HttpPost("allocateInventory")]
+public async Task<IActionResult> AllocateInventory([FromBody] CreateInventoryAllocationDto dto)
+
+// INCORRECT - Wrapper object binding
+[HttpPost("allocateInventory")]
+public async Task<IActionResult> AllocateInventory([FromBody] AllocationWrapper wrapper)
+public class AllocationWrapper { public CreateInventoryAllocationDto dto { get; set; } }
+```
+
+### Error: "The JSON value could not be converted to System.Guid"
+
+**Cause**: The frontend is sending string IDs that cannot be parsed as GUIDs, or the JSON property names don't match.
+
+**Solution**:
+1. Ensure all GUID fields use proper JSON property naming (camelCase in JSON, PascalCase in C#)
+2. Use `[JsonPropertyName]` attributes if needed:
+```csharp
+[JsonPropertyName("inventoryItemId")]
+public Guid InventoryItemId { get; set; }
+```
+3. Ensure the frontend sends valid GUID strings (format: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+
+### Error: "Insufficient stock"
+
+**Cause**: Attempting to allocate more than the available current stock.
+
+**Solution**:
+1. Frontend should validate quantity against `current_stock` before submission
+2. Backend should return a clear error message with available stock amount
+3. Consider implementing a warning threshold (e.g., warn if allocating >80% of stock)
+
+### Performance Issues with Large Datasets
+
+**Solution**:
+1. Implement pagination on the `getAllAllocations` endpoint:
+```csharp
+[HttpGet("getAllAllocations")]
+public async Task<IActionResult> GetAllAllocations(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 50,
+    [FromQuery] string status = null)
+{
+    var query = _context.InventoryAllocations.AsQueryable();
+    // ... apply filters ...
+
+    var total = await query.CountAsync();
+    var items = await query
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync();
+
+    return Ok(new { total, page, pageSize, items });
+}
+```
+
+2. Add database indexes (already included in schema)
+3. Consider caching frequently accessed data
+
 ## Future Enhancements
 
 1. Add ability to partially return inventory
@@ -552,3 +640,7 @@ Implement proper error handling for:
 4. Generate allocation reports and analytics
 5. Send notifications on allocation/consumption
 6. Track allocation costs based on unit price
+7. Add bulk allocation support
+8. Implement allocation templates for common scenarios
+9. Add allocation forecasting based on historical data
+10. Support for allocation transfers between users/fields
