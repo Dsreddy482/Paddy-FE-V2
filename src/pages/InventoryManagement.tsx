@@ -268,7 +268,7 @@ export default function InventoryManagement() {
                             <span className="text-sm text-gray-600">{item.minimum_stock} {item.unit}</span>
                           </td>
                           <td className="py-3 px-4 text-right">
-                            <span className="text-sm">₹{item.unit_price.toFixed(2)}</span>
+                            <span className="text-sm">₹{(item.unit_price ?? 0).toFixed(2)}</span>
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${getStockStatusColor(stockStatus)}`}>
