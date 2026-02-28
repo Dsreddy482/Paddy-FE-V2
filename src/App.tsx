@@ -10,6 +10,7 @@ import UserManagement from './pages/UserManagement';
 import AllPaddyDetails from './components/AllPaddyDetails';
 import Loading from './pages/Loading';
 import Amali from './pages/Amali';
+import PaddyFields from './pages/PaddyFields';
 
 function App() {
   const token = useAuthStore((state) => state.token);
@@ -64,6 +65,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Amali />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fields"
+          element={
+            <ProtectedRoute>
+              <PaddyFields />
             </ProtectedRoute>
           }
         />

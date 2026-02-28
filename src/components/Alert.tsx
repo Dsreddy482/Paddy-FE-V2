@@ -6,9 +6,10 @@ type AlertType = 'success' | 'error' | 'info' | 'warning';
 interface AlertProps {
   type: AlertType;
   message: string;
+  onClose?: () => void;
 }
 
-const Alert: React.FC<AlertProps> = ({ type, message }) => {
+const Alert: React.FC<AlertProps> = ({ type, message, onClose }) => {
   const styles = {
     success: 'bg-green-100 border-green-500 text-green-700',
     error: 'bg-red-100 border-red-500 text-red-700',
@@ -24,11 +25,21 @@ const Alert: React.FC<AlertProps> = ({ type, message }) => {
   };
 
   return (
-    <div className={`border-l-4 p-4 flex items-center gap-3 rounded-r ${styles[type]}`}>
+    <div className={`border-l-4 p-4 flex items-center gap-3 rounded-r ${styles[type]} relative`}>
       {icons[type]}
-      <span className="font-medium">{message}</span>
+      <span className="font-medium flex-1">{message}</span>
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="ml-auto text-current hover:opacity-70"
+          aria-label="Close"
+        >
+          <XCircle className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };
 
+export { Alert };
 export default Alert;

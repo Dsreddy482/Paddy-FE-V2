@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LogOut, User, Sprout, Users, Mail, Calendar, Search, Menu, FileText, Truck, UserCog } from 'lucide-react';
+import { LogOut, User, Sprout, Users, Mail, Calendar, Search, Menu, FileText, Truck, UserCog, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { UserSearch } from './UserSearch';
@@ -87,6 +87,15 @@ export const Header: React.FC = () => {
                   <UserCog className="h-4 w-4 mr-2" />
                   Amali
                 </button>
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={() => navigate('/fields')}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Fields
+                  </button>
+                )}
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -193,6 +202,18 @@ export const Header: React.FC = () => {
                 <UserCog className="h-4 w-4 inline mr-2" />
                 Amali
               </button>
+              {user?.role === 'admin' && (
+                <button
+                  onClick={() => {
+                    navigate('/fields');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                >
+                  <MapPin className="h-4 w-4 inline mr-2" />
+                  Fields
+                </button>
+              )}
               <button
                 onClick={handleLogout}
                 className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
