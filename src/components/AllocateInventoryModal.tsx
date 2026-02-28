@@ -58,10 +58,15 @@ export default function AllocateInventoryModal({ item, onClose, onSubmit }: Allo
 
   const loadPaddyFields = async () => {
     try {
+      console.log('🔄 Loading paddy fields...');
       const fields = await paddyFieldService.getAllPaddyFields();
-      setPaddyFields(fields.filter(f => f.status === 'active'));
+      console.log('✅ Paddy fields loaded:', fields);
+      const activeFields = fields.filter(f => f.status === 'active');
+      console.log('✅ Active paddy fields:', activeFields);
+      setPaddyFields(activeFields);
     } catch (error) {
-      console.error('Failed to load paddy fields:', error);
+      console.error('❌ Failed to load paddy fields:', error);
+      setError('Failed to load paddy fields. Please try again.');
     }
   };
 
