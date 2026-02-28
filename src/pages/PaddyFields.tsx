@@ -68,7 +68,7 @@ export const PaddyFields: React.FC = () => {
   const getTotalAllocationValue = (fieldId: string) => {
     const fieldAllocations = getFieldAllocations(fieldId);
     return fieldAllocations.reduce((total, allocation) => {
-      return total + (allocation.quantity * 0);
+      return total + ((allocation.unit_price || 0) * allocation.quantity);
     }, 0);
   };
 
@@ -199,18 +199,139 @@ export const PaddyFields: React.FC = () => {
                       </button>
 
                       {showAllocations === field.id && (
-                        <div className="mt-2 space-y-1">
-                          {getFieldAllocations(field.id).map((allocation) => (
-                            <div key={allocation.id} className="text-xs bg-gray-50 p-2 rounded">
-                              <div className="flex justify-between">
-                                <span className="font-medium">{allocation.item_name}</span>
-                                <span className="text-gray-600">{allocation.quantity} {allocation.item_code}</span>
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                            <div className="bg-green-600 text-white p-6">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h2 className="text-2xl font-bold mb-2">{field.fieldName}</h2>
+                                  <div className="flex items-center text-green-100">
+                                    <MapPin className="h-4 w-4 mr-2" />
+                                    {field.location}
+                                  </div>
+                                  <div className="flex items-center text-green-100 mt-1">
+                                    <Maximize2 className="h-4 w-4 mr-2" />
+                                    {field.area} {field.unit}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => setShowAllocations(null)}
+                                  className="text-white hover:text-gray-200 text-2xl font-bold"
+                                >
+                                  ×
+                                </button>
                               </div>
-                              {allocation.purpose && (
-                                <div className="text-gray-500 mt-1">{allocation.purpose}</div>
-                              )}
                             </div>
-                          ))}
+
+                            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                Inventory Allocations ({getFieldAllocations(field.id).length})
+                              </h3>
+
+                              <div className="space-y-3">
+                                {getFieldAllocations(field.id).map((allocation) => {
+                                  const totalAmount = (allocation.unit_price || 0) * allocation.quantity;
+                                  return (
+                                    <div key={allocation.id} className="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
+                                      <div className="flex justify-between items-start mb-3">
+                                        <div className="flex-1">
+                                          <h4 className="font-semibold text-gray-900 text-base">
+                                            {allocation.item_name}
+                                          </h4>
+                                          <p className="text-sm text-gray-500 mt-1">
+                                            Code: {allocation.item_code}
+                                          </p>
+                                        </div>
+                                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                                          allocation.status === 'allocated'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : allocation.status === 'consumed'
+                                            ? 'bg-gray-100 text-gray-800'
+                                            : 'bg-yellow-100 text-yellow-800'
+                                        }`}>
+                                          {allocation.status}
+                                        </span>
+                                      </div>
+
+                                      <div className="grid grid-cols-2 gap-4 mb-3">
+                                        <div className="bg-gray-50 p-3 rounded">
+                                          <p className="text-xs text-gray-600 mb-1">Quantity</p>
+                                          <p className="text-lg font-semibold text-gray-900">
+                                            {allocation.quantity} units
+                                          </p>
+                                        </div>
+                                        <div className="bg-gray-50 p-3 rounded">
+                                          <p className="text-xs text-gray-600 mb-1">Price per Unit</p>
+                                          <p className="text-lg font-semibold text-gray-900">
+                                            ₹{(allocation.unit_price || 0).toLocaleString()}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      <div className="bg-green-50 p-3 rounded mb-3">
+                                        <div className="flex justify-between items-center">
+                                          <p className="text-sm font-medium text-gray-700">Total Amount</p>
+                                          <p className="text-xl font-bold text-green-600">
+                                            ₹{totalAmount.toLocaleString()}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      {allocation.purpose && (
+                                        <div className="mb-2">
+                                          <p className="text-xs font-medium text-gray-700 mb-1">Purpose</p>
+                                          <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                                            {allocation.purpose}
+                                          </p>
+                                        </div>
+                                      )}
+
+                                      {allocation.notes && (
+                                        <div className="mb-2">
+                                          <p className="text-xs font-medium text-gray-700 mb-1">Notes</p>
+                                          <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                                            {allocation.notes}
+                                          </p>
+                                        </div>
+                                      )}
+
+                                      <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-200">
+                                        Allocated on {new Date(allocation.allocation_date).toLocaleDateString('en-IN', {
+                                          day: 'numeric',
+                                          month: 'long',
+                                          year: 'numeric'
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="mt-6 pt-4 border-t-2 border-gray-300">
+                                <div className="bg-green-50 p-4 rounded-lg">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-lg font-semibold text-gray-900">
+                                      Total Inventory Value:
+                                    </span>
+                                    <span className="text-2xl font-bold text-green-600">
+                                      ₹{getFieldAllocations(field.id)
+                                        .reduce((sum, a) => sum + ((a.unit_price || 0) * a.quantity), 0)
+                                        .toLocaleString()}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                              <button
+                                onClick={() => setShowAllocations(null)}
+                                className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                              >
+                                Close
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
