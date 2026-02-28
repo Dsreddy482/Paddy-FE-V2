@@ -39,3 +39,5 @@ export const Input: React.FC<InputProps> = ({ label, error, multiline, rows = 3,
     </div>
   );
 };
+
+export default Input;
