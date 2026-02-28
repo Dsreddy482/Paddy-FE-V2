@@ -10,27 +10,27 @@ import type {
 
 export const inventoryService = {
   async getAllItems(): Promise<InventoryItem[]> {
-    const { data } = await api.get('/Inventory/getAllItems');
+    const { data } = await api.get('/api/Inventory/getAllItems');
     return data || [];
   },
 
   async getItemById(id: string): Promise<InventoryItem | null> {
-    const { data } = await api.get(`/Inventory/getItem/${id}`);
+    const { data } = await api.get(`/api/Inventory/getItem/${id}`);
     return data;
   },
 
   async getItemsByCategory(category: string): Promise<InventoryItem[]> {
-    const { data } = await api.get(`/Inventory/getItemsByCategory/${category}`);
+    const { data } = await api.get(`/api/Inventory/getItemsByCategory/${category}`);
     return data || [];
   },
 
   async getActiveItems(): Promise<InventoryItem[]> {
-    const { data } = await api.get('/Inventory/getActiveItems');
+    const { data } = await api.get('/api/Inventory/getActiveItems');
     return data || [];
   },
 
   async getLowStockItems(): Promise<InventoryItem[]> {
-    const { data } = await api.get('/Inventory/getLowStockItems');
+    const { data } = await api.get('/api/Inventory/getLowStockItems');
     return data || [];
   },
 
@@ -46,7 +46,7 @@ export const inventoryService = {
       unitPrice: itemData.unit_price,
       status: itemData.status
     };
-    const { data } = await api.post('/Inventory/createItem', payload);
+    const { data } = await api.post('/api/Inventory/createItem', payload);
     return data;
   },
 
@@ -60,16 +60,16 @@ export const inventoryService = {
     if (updates.unit_price !== undefined) payload.unitPrice = updates.unit_price;
     if (updates.status !== undefined) payload.status = updates.status;
 
-    const { data } = await api.put(`/Inventory/updateItem/${id}`, payload);
+    const { data } = await api.put(`/api/Inventory/updateItem/${id}`, payload);
     return data;
   },
 
   async deleteItem(id: string): Promise<void> {
-    await api.delete(`/Inventory/deleteItem/${id}`);
+    await api.delete(`/api/Inventory/deleteItem/${id}`);
   },
 
   async searchItems(searchTerm: string): Promise<InventoryItem[]> {
-    const { data } = await api.post('/Inventory/searchItems', { search: searchTerm });
+    const { data } = await api.post('/api/Inventory/searchItems', { search: searchTerm });
     return data || [];
   },
 
@@ -82,7 +82,7 @@ export const inventoryService = {
       notes: transactionData.notes,
       transactionDate: transactionData.transaction_date
     };
-    await api.post('/Inventory/addStock', payload);
+    await api.post('/api/Inventory/addStock', payload);
   },
 
   async removeStock(transactionData: CreateStockTransactionData): Promise<void> {
@@ -94,7 +94,7 @@ export const inventoryService = {
       notes: transactionData.notes,
       transactionDate: transactionData.transaction_date
     };
-    await api.post('/Inventory/removeStock', payload);
+    await api.post('/api/Inventory/removeStock', payload);
   },
 
   async adjustStock(transactionData: CreateStockTransactionData, newStock: number): Promise<void> {
@@ -109,16 +109,16 @@ export const inventoryService = {
       },
       newStock: newStock
     };
-    await api.post('/Inventory/adjustStock', payload);
+    await api.post('/api/Inventory/adjustStock', payload);
   },
 
   async getTransactionsByItem(itemId: string): Promise<StockTransactionWithItem[]> {
-    const { data } = await api.get(`/Inventory/getTransactionsByItem/${itemId}`);
+    const { data } = await api.get(`/api/Inventory/getTransactionsByItem/${itemId}`);
     return data || [];
   },
 
   async getAllTransactions(): Promise<StockTransactionWithItem[]> {
-    const { data } = await api.get('/Inventory/getAllTransactions');
+    const { data } = await api.get('/api../Inventory/getAllTransactions');
     return data || [];
   }
 };
