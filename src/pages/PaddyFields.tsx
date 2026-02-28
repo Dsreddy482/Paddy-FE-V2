@@ -20,12 +20,8 @@ export const PaddyFields: React.FC = () => {
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    if (user?.role !== 'admin') {
-      navigate('/dashboard');
-      return;
-    }
     loadFields();
-  }, [user, navigate]);
+  }, []);
 
   const loadFields = async () => {
     try {
@@ -79,10 +75,6 @@ export const PaddyFields: React.FC = () => {
     setSelectedField(field);
     setIsEditModalOpen(true);
   };
-
-  if (user?.role !== 'admin') {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
