@@ -962,60 +962,96 @@ export const UserDetails: React.FC = () => {
             {showInventory && (
               <div className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {userAllocations.map((allocation) => (
-                    <div
-                      key={allocation.id}
-                      className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                        selectedAllocations.has(allocation.id)
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-200 hover:border-green-300'
-                      }`}
-                      onClick={() => toggleAllocationSelection(allocation.id)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedAllocations.has(allocation.id)}
-                              onChange={() => toggleAllocationSelection(allocation.id)}
-                              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-3"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <h4 className="font-semibold text-gray-900">{allocation.item_name}</h4>
-                          </div>
-                          <p className="text-sm text-gray-500 mt-1">Code: {allocation.item_code}</p>
-                          <div className="mt-2 flex items-center justify-between">
-                            <span className="text-lg font-bold text-green-600">
-                              {allocation.quantity} units
-                            </span>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              allocation.status === 'allocated'
-                                ? 'bg-blue-100 text-blue-800'
-                                : allocation.status === 'consumed'
-                                ? 'bg-gray-100 text-gray-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {allocation.status}
-                            </span>
-                          </div>
-                          {allocation.purpose && (
-                            <p className="text-sm text-gray-600 mt-2">
-                              Purpose: {allocation.purpose}
+                  {userAllocations.map((allocation) => {
+                    const totalAmount = (allocation.unit_price || 0) * allocation.quantity;
+                    return (
+                      <div
+                        key={allocation.id}
+                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                          selectedAllocations.has(allocation.id)
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 hover:border-green-300'
+                        }`}
+                        onClick={() => toggleAllocationSelection(allocation.id)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedAllocations.has(allocation.id)}
+                                onChange={() => toggleAllocationSelection(allocation.id)}
+                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-3"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <h4 className="font-semibold text-gray-900">{allocation.item_name}</h4>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">Code: {allocation.item_code}</p>
+                            <div className="mt-2 space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">Quantity:</span>
+                                <span className="text-sm font-medium text-gray-900">
+                                  {allocation.quantity} units
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">Price/unit:</span>
+                                <span className="text-sm font-medium text-gray-900">
+                                  ₹{(allocation.unit_price || 0).toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between border-t pt-1">
+                                <span className="text-sm font-semibold text-gray-700">Total:</span>
+                                <span className="text-lg font-bold text-green-600">
+                                  ₹{totalAmount.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="mt-2">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                allocation.status === 'allocated'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : allocation.status === 'consumed'
+                                  ? 'bg-gray-100 text-gray-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {allocation.status}
+                              </span>
+                            </div>
+                            {allocation.purpose && (
+                              <p className="text-sm text-gray-600 mt-2">
+                                Purpose: {allocation.purpose}
+                              </p>
+                            )}
+                            {allocation.notes && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Note: {allocation.notes}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-400 mt-2">
+                              {new Date(allocation.allocation_date).toLocaleDateString()}
                             </p>
-                          )}
-                          {allocation.notes && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              Note: {allocation.notes}
-                            </p>
-                          )}
-                          <p className="text-xs text-gray-400 mt-2">
-                            {new Date(allocation.allocation_date).toLocaleDateString()}
-                          </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-gray-900">
+                      Total Inventory Value ({selectedAllocations.size > 0 ? 'Selected' : 'All'}):
+                    </span>
+                    <span className="text-2xl font-bold text-green-600">
+                      ₹{(selectedAllocations.size > 0
+                        ? userAllocations
+                            .filter(a => selectedAllocations.has(a.id))
+                            .reduce((sum, a) => sum + ((a.unit_price || 0) * a.quantity), 0)
+                        : userAllocations.reduce((sum, a) => sum + ((a.unit_price || 0) * a.quantity), 0)
+                      ).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}

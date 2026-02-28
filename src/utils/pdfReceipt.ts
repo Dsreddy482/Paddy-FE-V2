@@ -774,6 +774,7 @@ export const generateUserReceiptWithInventory = (
     item_name?: string;
     item_code?: string;
     quantity: number;
+    unit_price?: number;
     allocation_date: string;
     purpose?: string;
     status: string;
@@ -872,15 +873,19 @@ export const generateUserReceiptWithInventory = (
     pdf.text(`INVENTORY ALLOCATIONS (${inventoryAllocations.length})`, margin, yPosition);
     yPosition += 6;
 
-    const inventoryTableHead = [['Date', 'Item Name', 'Code', 'Quantity', 'Purpose', 'Status']];
-    const inventoryTableBody = inventoryAllocations.map(allocation => [
-      new Date(allocation.allocation_date).toLocaleDateString('en-IN'),
-      allocation.item_name || 'N/A',
-      allocation.item_code || 'N/A',
-      allocation.quantity.toString(),
-      allocation.purpose || '-',
-      allocation.status
-    ]);
+    const inventoryTableHead = [['Date', 'Item Name', 'Code', 'Qty', 'Price', 'Amount', 'Status']];
+    const inventoryTableBody = inventoryAllocations.map(allocation => {
+      const totalAmount = (allocation.unit_price || 0) * allocation.quantity;
+      return [
+        new Date(allocation.allocation_date).toLocaleDateString('en-IN'),
+        allocation.item_name || 'N/A',
+        allocation.item_code || 'N/A',
+        allocation.quantity.toString(),
+        `₹${(allocation.unit_price || 0).toLocaleString()}`,
+        `₹${totalAmount.toLocaleString()}`,
+        allocation.status
+      ];
+    });
 
     autoTable(pdf, {
       startY: yPosition,
@@ -898,15 +903,28 @@ export const generateUserReceiptWithInventory = (
       },
       columnStyles: {
         0: { cellWidth: 25 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 25 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 35 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 15 },
+        4: { cellWidth: 22 },
         5: { cellWidth: 25 },
+        6: { cellWidth: 20 },
       },
     });
 
-    yPosition = (pdf as any).lastAutoTable.finalY + 10;
+    yPosition = (pdf as any).lastAutoTable.finalY + 6;
+
+    const inventoryTotal = inventoryAllocations.reduce((sum, a) => sum + ((a.unit_price || 0) * a.quantity), 0);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.text('Inventory Total:', margin, yPosition);
+    const inventoryTotalText = `₹${inventoryTotal.toLocaleString()}`;
+    const inventoryTotalWidth = pdf.getTextWidth(inventoryTotalText);
+    pdf.setTextColor(99, 102, 241);
+    pdf.text(inventoryTotalText, pageWidth - margin - inventoryTotalWidth, yPosition);
+    pdf.setTextColor(0, 0, 0);
+    yPosition += 10;
 
     if (yPosition > pageHeight - 80) {
       pdf.addPage();

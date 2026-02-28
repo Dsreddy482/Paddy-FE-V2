@@ -69,6 +69,7 @@ export interface InventoryAllocation {
   item_name?: string;
   item_code?: string;
   quantity: number;
+  unit_price?: number;
   allocated_to_type: 'user' | 'paddy_field';
   allocated_to_id: string;
   allocated_to_name?: string;

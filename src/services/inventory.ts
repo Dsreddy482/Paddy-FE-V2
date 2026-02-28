@@ -63,6 +63,7 @@ function transformInventoryAllocation(apiAllocation: any): InventoryAllocation {
     item_name: apiAllocation.itemName || apiAllocation.ItemName || apiAllocation.item_name || '',
     item_code: apiAllocation.itemCode || apiAllocation.ItemCode || apiAllocation.item_code || '',
     quantity: Number(apiAllocation.quantity || apiAllocation.Quantity || 0),
+    unit_price: Number(apiAllocation.unitPrice || apiAllocation.UnitPrice || apiAllocation.unit_price || 0),
     allocated_to_type: (apiAllocation.allocatedToType || apiAllocation.AllocatedToType || apiAllocation.allocated_to_type || 'user') as 'user' | 'paddy_field',
     allocated_to_id: apiAllocation.allocatedToId || apiAllocation.AllocatedToId || apiAllocation.allocated_to_id || '',
     allocated_to_name: apiAllocation.allocatedToName || apiAllocation.AllocatedToName || apiAllocation.allocated_to_name || '',
