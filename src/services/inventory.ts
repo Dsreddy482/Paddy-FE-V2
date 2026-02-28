@@ -197,7 +197,7 @@ export const inventoryService = {
       inventoryItemId: allocationData.inventory_item_id,
       quantity: allocationData.quantity,
       allocatedToType: allocationData.allocated_to_type,
-      allocatedToId: allocationData.allocated_to_id,
+      allocatedToId: String(allocationData.allocated_to_id),
       purpose: allocationData.purpose,
       notes: allocationData.notes,
       allocationDate: new Date().toISOString()
