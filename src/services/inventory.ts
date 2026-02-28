@@ -31,6 +31,26 @@ function transformInventoryItem(apiItem: any): InventoryItem {
   return transformed;
 }
 
+// Transform API response to match our StockTransactionWithItem type
+function transformStockTransaction(apiTransaction: any): StockTransactionWithItem {
+  console.log('🔍 Raw API Transaction:', apiTransaction);
+
+  const transformed = {
+    id: apiTransaction.id || apiTransaction.Id || '',
+    inventory_item_id: apiTransaction.inventoryItemId || apiTransaction.InventoryItemId || apiTransaction.inventory_item_id || '',
+    transaction_type: (apiTransaction.transactionType || apiTransaction.TransactionType || apiTransaction.transaction_type || 'adjustment') as 'addition' | 'removal' | 'adjustment',
+    quantity: Number(apiTransaction.quantity || apiTransaction.Quantity || 0),
+    transaction_date: apiTransaction.transactionDate || apiTransaction.TransactionDate || apiTransaction.transaction_date || new Date().toISOString(),
+    reference_number: apiTransaction.referenceNumber || apiTransaction.ReferenceNumber || apiTransaction.reference_number || '',
+    notes: apiTransaction.notes || apiTransaction.Notes || '',
+    item_name: apiTransaction.itemName || apiTransaction.ItemName || apiTransaction.item_name || '',
+    item_code: apiTransaction.itemCode || apiTransaction.ItemCode || apiTransaction.item_code || ''
+  };
+
+  console.log('✅ Transformed Transaction:', transformed);
+  return transformed;
+}
+
 export const inventoryService = {
   async getAllItems(): Promise<InventoryItem[]> {
     const { data } = await api.get('/api/Inventory/getAllItems');
@@ -138,11 +158,11 @@ export const inventoryService = {
 
   async getTransactionsByItem(itemId: string): Promise<StockTransactionWithItem[]> {
     const { data } = await api.get(`/api/Inventory/getTransactionsByItem/${itemId}`);
-    return data || [];
+    return (data || []).map(transformStockTransaction);
   },
 
   async getAllTransactions(): Promise<StockTransactionWithItem[]> {
-    const { data } = await api.get('/api../Inventory/getAllTransactions');
-    return data || [];
+    const { data } = await api.get('/api/Inventory/getAllTransactions');
+    return (data || []).map(transformStockTransaction);
   }
 };

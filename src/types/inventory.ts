@@ -27,6 +27,8 @@ export interface StockTransaction {
 
 export interface StockTransactionWithItem extends StockTransaction {
   inventory_item?: InventoryItem;
+  item_name?: string;
+  item_code?: string;
 }
 
 export interface CreateInventoryItemData {

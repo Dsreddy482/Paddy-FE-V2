@@ -54,7 +54,17 @@ export default function StockHistoryModal({ item, onClose }: StockHistoryModalPr
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-IN', {
+    if (!dateString) return 'N/A';
+
+    const date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date:', dateString);
+      return 'Invalid Date';
+    }
+
+    return date.toLocaleString('en-IN', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

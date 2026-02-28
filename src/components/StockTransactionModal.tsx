@@ -45,7 +45,8 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
         transaction_type: transactionType,
         quantity: transactionType === 'adjustment' ? (newStock - item.current_stock) : quantity,
         reference_number: referenceNumber || undefined,
-        notes: notes || undefined
+        notes: notes || undefined,
+        transaction_date: new Date().toISOString()
       };
 
       await onSubmit(transactionData, transactionType === 'adjustment' ? newStock : undefined);
