@@ -10,46 +10,51 @@ import type {
 
 // Transform API response to match our InventoryItem type
 function transformInventoryItem(apiItem: any): InventoryItem {
-  return {
-    id: apiItem.id || apiItem.Id,
+  console.log('🔍 Raw API Item:', apiItem);
+
+  const transformed = {
+    id: apiItem.id || apiItem.Id || '',
     item_name: apiItem.itemName || apiItem.ItemName || apiItem.item_name || '',
     item_code: apiItem.itemCode || apiItem.ItemCode || apiItem.item_code || '',
     category: apiItem.category || apiItem.Category || '',
     unit: apiItem.unit || apiItem.Unit || '',
     description: apiItem.description || apiItem.Description || '',
-    minimum_stock: apiItem.minimumStock || apiItem.MinimumStock || apiItem.minimum_stock || 0,
-    current_stock: apiItem.currentStock || apiItem.CurrentStock || apiItem.current_stock || 0,
-    unit_price: apiItem.unitPrice || apiItem.UnitPrice || apiItem.unit_price || 0,
+    minimum_stock: Number(apiItem.minimumStock || apiItem.MinimumStock || apiItem.minimum_stock || 0),
+    current_stock: Number(apiItem.currentStock || apiItem.CurrentStock || apiItem.current_stock || 0),
+    unit_price: Number(apiItem.unitPrice || apiItem.UnitPrice || apiItem.unit_price || 0),
     status: (apiItem.status || apiItem.Status || 'active') as 'active' | 'inactive',
     created_at: apiItem.createdAt || apiItem.CreatedAt || apiItem.created_at || new Date().toISOString(),
     updated_at: apiItem.updatedAt || apiItem.UpdatedAt || apiItem.updated_at || new Date().toISOString()
   };
+
+  console.log('✅ Transformed Item:', transformed);
+  return transformed;
 }
 
 export const inventoryService = {
   async getAllItems(): Promise<InventoryItem[]> {
     const { data } = await api.get('/api/Inventory/getAllItems');
-    return data || [];
+    return (data || []).map(transformInventoryItem);
   },
 
   async getItemById(id: string): Promise<InventoryItem | null> {
     const { data } = await api.get(`/api/Inventory/getItem/${id}`);
-    return data;
+    return data ? transformInventoryItem(data) : null;
   },
 
   async getItemsByCategory(category: string): Promise<InventoryItem[]> {
     const { data } = await api.get(`/api/Inventory/getItemsByCategory/${category}`);
-    return data || [];
+    return (data || []).map(transformInventoryItem);
   },
 
   async getActiveItems(): Promise<InventoryItem[]> {
     const { data } = await api.get('/api/Inventory/getActiveItems');
-    return data || [];
+    return (data || []).map(transformInventoryItem);
   },
 
   async getLowStockItems(): Promise<InventoryItem[]> {
     const { data } = await api.get('/api/Inventory/getLowStockItems');
-    return data || [];
+    return (data || []).map(transformInventoryItem);
   },
 
   async createItem(itemData: CreateInventoryItemData): Promise<InventoryItem> {
@@ -65,7 +70,7 @@ export const inventoryService = {
       status: itemData.status
     };
     const { data } = await api.post('/api/Inventory/createItem', payload);
-    return data;
+    return transformInventoryItem(data);
   },
 
   async updateItem(id: string, updates: UpdateInventoryItemData): Promise<InventoryItem> {
@@ -80,7 +85,7 @@ export const inventoryService = {
     if (updates.status !== undefined) payload.status = updates.status;
 
     const { data } = await api.put(`/api/Inventory/updateItem/${id}`, payload);
-    return data;
+    return transformInventoryItem(data);
   },
 
   async deleteItem(id: string): Promise<void> {
@@ -89,7 +94,7 @@ export const inventoryService = {
 
   async searchItems(searchTerm: string): Promise<InventoryItem[]> {
     const { data } = await api.post('/api/Inventory/searchItems', { search: searchTerm });
-    return data || [];
+    return (data || []).map(transformInventoryItem);
   },
 
   async addStock(transactionData: CreateStockTransactionData): Promise<void> {

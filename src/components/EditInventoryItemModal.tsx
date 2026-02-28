@@ -11,18 +11,22 @@ interface EditInventoryItemModalProps {
 }
 
 export default function EditInventoryItemModal({ item, onClose, onSubmit }: EditInventoryItemModalProps) {
+  console.log('📝 Edit Modal - Received Item:', item);
+
   const [formData, setFormData] = useState<UpdateInventoryItemData>({
-    item_name: item.item_name,
-    item_code: item.item_code,
-    category: item.category,
-    unit: item.unit,
-    description: item.description,
-    minimum_stock: item.minimum_stock,
-    unit_price: item.unit_price,
-    status: item.status
+    item_name: item.item_name || '',
+    item_code: item.item_code || '',
+    category: item.category || '',
+    unit: item.unit || '',
+    description: item.description || '',
+    minimum_stock: item.minimum_stock || 0,
+    unit_price: item.unit_price || 0,
+    status: item.status || 'active'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  console.log('📝 Edit Modal - Form Data:', formData);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,14 +83,14 @@ export default function EditInventoryItemModal({ item, onClose, onSubmit }: Edit
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Item Name"
-              value={formData.item_name}
+              value={formData.item_name || ''}
               onChange={(e) => setFormData({ ...formData, item_name: e.target.value })}
               required
             />
 
             <Input
               label="Item Code"
-              value={formData.item_code}
+              value={formData.item_code || ''}
               onChange={(e) => setFormData({ ...formData, item_code: e.target.value })}
               required
             />
@@ -126,7 +130,7 @@ export default function EditInventoryItemModal({ item, onClose, onSubmit }: Edit
             <Input
               label="Minimum Stock"
               type="number"
-              value={formData.minimum_stock}
+              value={formData.minimum_stock ?? 0}
               onChange={(e) => setFormData({ ...formData, minimum_stock: parseFloat(e.target.value) || 0 })}
               min="0"
               step="0.01"
@@ -136,7 +140,7 @@ export default function EditInventoryItemModal({ item, onClose, onSubmit }: Edit
             <Input
               label="Unit Price (₹)"
               type="number"
-              value={formData.unit_price}
+              value={formData.unit_price ?? 0}
               onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) || 0 })}
               min="0"
               step="0.01"
