@@ -8,6 +8,24 @@ import type {
   CreateStockTransactionData
 } from '../types/inventory';
 
+// Transform API response to match our InventoryItem type
+function transformInventoryItem(apiItem: any): InventoryItem {
+  return {
+    id: apiItem.id || apiItem.Id,
+    item_name: apiItem.itemName || apiItem.ItemName || apiItem.item_name || '',
+    item_code: apiItem.itemCode || apiItem.ItemCode || apiItem.item_code || '',
+    category: apiItem.category || apiItem.Category || '',
+    unit: apiItem.unit || apiItem.Unit || '',
+    description: apiItem.description || apiItem.Description || '',
+    minimum_stock: apiItem.minimumStock || apiItem.MinimumStock || apiItem.minimum_stock || 0,
+    current_stock: apiItem.currentStock || apiItem.CurrentStock || apiItem.current_stock || 0,
+    unit_price: apiItem.unitPrice || apiItem.UnitPrice || apiItem.unit_price || 0,
+    status: (apiItem.status || apiItem.Status || 'active') as 'active' | 'inactive',
+    created_at: apiItem.createdAt || apiItem.CreatedAt || apiItem.created_at || new Date().toISOString(),
+    updated_at: apiItem.updatedAt || apiItem.UpdatedAt || apiItem.updated_at || new Date().toISOString()
+  };
+}
+
 export const inventoryService = {
   async getAllItems(): Promise<InventoryItem[]> {
     const { data } = await api.get('/api/Inventory/getAllItems');
@@ -53,6 +71,7 @@ export const inventoryService = {
   async updateItem(id: string, updates: UpdateInventoryItemData): Promise<InventoryItem> {
     const payload: any = {};
     if (updates.item_name !== undefined) payload.itemName = updates.item_name;
+    if (updates.item_code !== undefined) payload.itemCode = updates.item_code;
     if (updates.category !== undefined) payload.category = updates.category.toLowerCase();
     if (updates.unit !== undefined) payload.unit = updates.unit;
     if (updates.description !== undefined) payload.description = updates.description;
