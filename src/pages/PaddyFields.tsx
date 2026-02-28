@@ -9,7 +9,7 @@ import { AddPaddyFieldModal } from '../components/AddPaddyFieldModal';
 import { EditPaddyFieldModal } from '../components/EditPaddyFieldModal';
 import Alert from '../components/Alert';
 import { inventoryService } from '../services/inventory';
-import { InventoryAllocation } from '../types/inventory';
+import { InventoryAllocation, InventoryItem } from '../types/inventory';
 
 export const PaddyFields: React.FC = () => {
   const { user } = useAuthStore();
@@ -22,10 +22,12 @@ export const PaddyFields: React.FC = () => {
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [allocations, setAllocations] = useState<Map<string, InventoryAllocation[]>>(new Map());
   const [showAllocations, setShowAllocations] = useState<string | null>(null);
+  const [inventoryItems, setInventoryItems] = useState<Map<string, InventoryItem>>(new Map());
 
   useEffect(() => {
     loadFields();
     loadAllAllocations();
+    loadInventoryItems();
   }, []);
 
   const loadFields = async () => {
@@ -37,6 +39,19 @@ export const PaddyFields: React.FC = () => {
       setAlert({ type: 'error', message: error.message || 'Failed to load fields' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadInventoryItems = async () => {
+    try {
+      const items = await inventoryService.getAllItems();
+      const itemsMap = new Map<string, InventoryItem>();
+      items.forEach(item => {
+        itemsMap.set(item.id, item);
+      });
+      setInventoryItems(itemsMap);
+    } catch (error: any) {
+      console.error('Failed to load inventory items:', error);
     }
   };
 
@@ -230,7 +245,9 @@ export const PaddyFields: React.FC = () => {
 
                               <div className="space-y-3">
                                 {getFieldAllocations(field.id).map((allocation) => {
-                                  const totalAmount = (allocation.unit_price || 0) * allocation.quantity;
+                                  const inventoryItem = inventoryItems.get(allocation.inventory_item_id);
+                                  const unitPrice = allocation.unit_price || inventoryItem?.unit_price || 0;
+                                  const totalAmount = unitPrice * allocation.quantity;
                                   return (
                                     <div key={allocation.id} className="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
                                       <div className="flex justify-between items-start mb-3">
@@ -263,7 +280,7 @@ export const PaddyFields: React.FC = () => {
                                         <div className="bg-gray-50 p-3 rounded">
                                           <p className="text-xs text-gray-600 mb-1">Price per Unit</p>
                                           <p className="text-lg font-semibold text-gray-900">
-                                            ₹{(allocation.unit_price || 0).toLocaleString()}
+                                            ₹{unitPrice.toLocaleString()}
                                           </p>
                                         </div>
                                       </div>
@@ -315,7 +332,11 @@ export const PaddyFields: React.FC = () => {
                                     </span>
                                     <span className="text-2xl font-bold text-green-600">
                                       ₹{getFieldAllocations(field.id)
-                                        .reduce((sum, a) => sum + ((a.unit_price || 0) * a.quantity), 0)
+                                        .reduce((sum, a) => {
+                                          const item = inventoryItems.get(a.inventory_item_id);
+                                          const price = a.unit_price || item?.unit_price || 0;
+                                          return sum + (price * a.quantity);
+                                        }, 0)
                                         .toLocaleString()}
                                     </span>
                                   </div>
