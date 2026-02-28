@@ -18,7 +18,7 @@ import { Header } from '../components/Header';
 import { shareOnWhatsApp, formatPaddyEntryForWhatsApp, formatUserSummaryForWhatsApp } from '../utils/whatsapp';
 import { generatePaddyReceipt, generateBulkPaddyReceipts, generateRythuComprehensiveReceipt, generateUserReceiptWithInventory } from '../utils/pdfReceipt';
 import { inventoryService } from '../services/inventory';
-import { InventoryAllocation } from '../types/inventory';
+import { InventoryAllocation, InventoryItem } from '../types/inventory';
 
 interface FilterState {
   lorryNumber: string;
@@ -64,24 +64,32 @@ export const UserDetails: React.FC = () => {
   const [userAllocations, setUserAllocations] = useState<InventoryAllocation[]>([]);
   const [showInventory, setShowInventory] = useState(false);
   const [selectedAllocations, setSelectedAllocations] = useState<Set<string>>(new Set());
+  const [inventoryItems, setInventoryItems] = useState<Map<string, InventoryItem>>(new Map());
 
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
 
       try {
-        const [userData, paddyData, payables, receivables, allocations] = await Promise.all([
+        const [userData, paddyData, payables, receivables, allocations, items] = await Promise.all([
           authService.getUserById(userId),
           paddyService.getUserPaddyEntries(userId),
           transactionService.getUserTransactions(userId, 'payable'),
           transactionService.getUserTransactions(userId, 'receivable'),
-          inventoryService.getAllocationsByUser(userId)
+          inventoryService.getAllocationsByUser(userId),
+          inventoryService.getAllItems()
         ]);
 
         setSelectedUser(userData);
         setPaddyEntries(paddyData);
         setTransactions([...payables, ...receivables]);
         setUserAllocations(allocations);
+
+        const itemsMap = new Map<string, InventoryItem>();
+        items.forEach(item => {
+          itemsMap.set(item.id, item);
+        });
+        setInventoryItems(itemsMap);
 
         if (paddyData.length > 10 && tableRef.current) {
           setTimeout(() => {
@@ -656,7 +664,15 @@ export const UserDetails: React.FC = () => {
         reason: t.reason
       }));
 
-    const selectedAllocationsList = userAllocations.filter(a => selectedAllocations.has(a.id));
+    const selectedAllocationsList = userAllocations
+      .filter(a => selectedAllocations.has(a.id))
+      .map(a => {
+        const inventoryItem = inventoryItems.get(a.inventory_item_id);
+        return {
+          ...a,
+          unit_price: a.unit_price || inventoryItem?.unit_price || 0
+        };
+      });
 
     generateUserReceiptWithInventory(
       selectedUser.name,
@@ -963,7 +979,9 @@ export const UserDetails: React.FC = () => {
               <div className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {userAllocations.map((allocation) => {
-                    const totalAmount = (allocation.unit_price || 0) * allocation.quantity;
+                    const inventoryItem = inventoryItems.get(allocation.inventory_item_id);
+                    const unitPrice = allocation.unit_price || inventoryItem?.unit_price || 0;
+                    const totalAmount = unitPrice * allocation.quantity;
                     return (
                       <div
                         key={allocation.id}
@@ -997,7 +1015,7 @@ export const UserDetails: React.FC = () => {
                               <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-600">Price/unit:</span>
                                 <span className="text-sm font-medium text-gray-900">
-                                  ₹{(allocation.unit_price || 0).toLocaleString()}
+                                  {unitPrice.toLocaleString()}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between border-t pt-1">
@@ -1047,8 +1065,16 @@ export const UserDetails: React.FC = () => {
                       ₹{(selectedAllocations.size > 0
                         ? userAllocations
                             .filter(a => selectedAllocations.has(a.id))
-                            .reduce((sum, a) => sum + ((a.unit_price || 0) * a.quantity), 0)
-                        : userAllocations.reduce((sum, a) => sum + ((a.unit_price || 0) * a.quantity), 0)
+                            .reduce((sum, a) => {
+                              const item = inventoryItems.get(a.inventory_item_id);
+                              const price = a.unit_price || item?.unit_price || 0;
+                              return sum + (price * a.quantity);
+                            }, 0)
+                        : userAllocations.reduce((sum, a) => {
+                            const item = inventoryItems.get(a.inventory_item_id);
+                            const price = a.unit_price || item?.unit_price || 0;
+                            return sum + (price * a.quantity);
+                          }, 0)
                       ).toLocaleString()}
                     </span>
                   </div>

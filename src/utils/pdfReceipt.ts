@@ -881,8 +881,8 @@ export const generateUserReceiptWithInventory = (
         allocation.item_name || 'N/A',
         allocation.item_code || 'N/A',
         allocation.quantity.toString(),
-        `₹${(allocation.unit_price || 0).toLocaleString()}`,
-        `₹${totalAmount.toLocaleString()}`,
+        (allocation.unit_price || 0).toLocaleString(),
+        totalAmount.toLocaleString(),
         allocation.status
       ];
     });
@@ -919,7 +919,7 @@ export const generateUserReceiptWithInventory = (
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(11);
     pdf.text('Inventory Total:', margin, yPosition);
-    const inventoryTotalText = `₹${inventoryTotal.toLocaleString()}`;
+    const inventoryTotalText = inventoryTotal.toLocaleString();
     const inventoryTotalWidth = pdf.getTextWidth(inventoryTotalText);
     pdf.setTextColor(99, 102, 241);
     pdf.text(inventoryTotalText, pageWidth - margin - inventoryTotalWidth, yPosition);
