@@ -63,6 +63,31 @@ export interface CreateStockTransactionData {
   transaction_date?: string;
 }
 
+export interface InventoryAllocation {
+  id: string;
+  inventory_item_id: string;
+  item_name?: string;
+  item_code?: string;
+  quantity: number;
+  allocated_to_type: 'user' | 'paddy_field';
+  allocated_to_id: string;
+  allocated_to_name?: string;
+  allocation_date: string;
+  purpose?: string;
+  notes?: string;
+  status: 'allocated' | 'returned' | 'consumed';
+  created_at: string;
+}
+
+export interface CreateInventoryAllocationData {
+  inventory_item_id: string;
+  quantity: number;
+  allocated_to_type: 'user' | 'paddy_field';
+  allocated_to_id: string;
+  purpose?: string;
+  notes?: string;
+}
+
 export const INVENTORY_CATEGORIES = [
   'Seeds',
   'Fertilizers',

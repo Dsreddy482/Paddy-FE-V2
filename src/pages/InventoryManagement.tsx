@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Package, Plus, Edit, Trash2, TrendingUp, TrendingDown, History, Search, AlertTriangle } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, TrendingUp, TrendingDown, History, Search, AlertTriangle, UserPlus } from 'lucide-react';
 import Header from '../components/Header';
 import Alert from '../components/Alert';
 import AddInventoryItemModal from '../components/AddInventoryItemModal';
 import EditInventoryItemModal from '../components/EditInventoryItemModal';
 import StockTransactionModal from '../components/StockTransactionModal';
 import StockHistoryModal from '../components/StockHistoryModal';
+import AllocateInventoryModal from '../components/AllocateInventoryModal';
+import AllocationHistoryModal from '../components/AllocationHistoryModal';
 import { inventoryService } from '../services/inventory';
-import type { InventoryItem, CreateInventoryItemData, UpdateInventoryItemData, CreateStockTransactionData } from '../types/inventory';
+import type { InventoryItem, CreateInventoryItemData, UpdateInventoryItemData, CreateStockTransactionData, CreateInventoryAllocationData } from '../types/inventory';
 import { INVENTORY_CATEGORIES } from '../types/inventory';
 
 export default function InventoryManagement() {
@@ -19,6 +21,8 @@ export default function InventoryManagement() {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [transactionItem, setTransactionItem] = useState<InventoryItem | null>(null);
   const [historyItem, setHistoryItem] = useState<InventoryItem | null>(null);
+  const [allocateItem, setAllocateItem] = useState<InventoryItem | null>(null);
+  const [allocationHistoryItem, setAllocationHistoryItem] = useState<InventoryItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -105,6 +109,16 @@ export default function InventoryManagement() {
       await loadItems();
     } catch (error) {
       throw new Error('Failed to update stock');
+    }
+  };
+
+  const handleAllocateInventory = async (data: CreateInventoryAllocationData) => {
+    try {
+      await inventoryService.allocateInventory(data);
+      setAlert({ type: 'success', message: 'Inventory allocated successfully' });
+      await loadItems();
+    } catch (error) {
+      throw new Error('Failed to allocate inventory');
     }
   };
 
@@ -237,9 +251,7 @@ export default function InventoryManagement() {
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Item Code</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Item Name</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Current Stock</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Min Stock</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Unit Price</th>
+                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Stock</th>
                       <th className="text-center py-3 px-4 font-semibold text-gray-700">Status</th>
                       <th className="text-center py-3 px-4 font-semibold text-gray-700">Actions</th>
                     </tr>
@@ -263,12 +275,7 @@ export default function InventoryManagement() {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="font-semibold">{item.current_stock} {item.unit}</div>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="text-sm text-gray-600">{item.minimum_stock} {item.unit}</span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="text-sm">₹{(item.unit_price ?? 0).toFixed(2)}</span>
+                            <div className="text-xs text-gray-500">Min: {item.minimum_stock}</div>
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${getStockStatusColor(stockStatus)}`}>
@@ -276,38 +283,38 @@ export default function InventoryManagement() {
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-center gap-1">
                               <button
                                 onClick={() => setTransactionItem(item)}
-                                className="text-green-600 hover:text-green-700"
-                                title="Add Stock"
+                                className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+                                title="Manage Stock"
                               >
-                                <TrendingUp className="w-5 h-5" />
+                                <Package className="w-5 h-5" />
                               </button>
                               <button
-                                onClick={() => setTransactionItem(item)}
-                                className="text-red-600 hover:text-red-700"
-                                title="Remove Stock"
+                                onClick={() => setAllocateItem(item)}
+                                className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded"
+                                title="Allocate to User/Field"
                               >
-                                <TrendingDown className="w-5 h-5" />
+                                <UserPlus className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={() => setHistoryItem(item)}
-                                className="text-blue-600 hover:text-blue-700"
-                                title="View History"
+                                className="p-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded"
+                                title="Stock History"
                               >
                                 <History className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={() => setEditingItem(item)}
-                                className="text-gray-600 hover:text-gray-700"
+                                className="p-1 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded"
                                 title="Edit Item"
                               >
                                 <Edit className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={() => handleDeleteItem(item.id)}
-                                className="text-red-600 hover:text-red-700"
+                                className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
                                 title="Delete Item"
                               >
                                 <Trash2 className="w-5 h-5" />
@@ -352,6 +359,21 @@ export default function InventoryManagement() {
         <StockHistoryModal
           item={historyItem}
           onClose={() => setHistoryItem(null)}
+        />
+      )}
+
+      {allocateItem && (
+        <AllocateInventoryModal
+          item={allocateItem}
+          onClose={() => setAllocateItem(null)}
+          onSubmit={handleAllocateInventory}
+        />
+      )}
+
+      {allocationHistoryItem && (
+        <AllocationHistoryModal
+          item={allocationHistoryItem}
+          onClose={() => setAllocationHistoryItem(null)}
         />
       )}
     </div>

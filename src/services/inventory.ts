@@ -5,7 +5,9 @@ import type {
   StockTransactionWithItem,
   CreateInventoryItemData,
   UpdateInventoryItemData,
-  CreateStockTransactionData
+  CreateStockTransactionData,
+  InventoryAllocation,
+  CreateInventoryAllocationData
 } from '../types/inventory';
 
 // Transform API response to match our InventoryItem type
@@ -48,6 +50,30 @@ function transformStockTransaction(apiTransaction: any): StockTransactionWithIte
   };
 
   console.log('✅ Transformed Transaction:', transformed);
+  return transformed;
+}
+
+// Transform API response to match our InventoryAllocation type
+function transformInventoryAllocation(apiAllocation: any): InventoryAllocation {
+  console.log('🔍 Raw API Allocation:', apiAllocation);
+
+  const transformed = {
+    id: apiAllocation.id || apiAllocation.Id || '',
+    inventory_item_id: apiAllocation.inventoryItemId || apiAllocation.InventoryItemId || apiAllocation.inventory_item_id || '',
+    item_name: apiAllocation.itemName || apiAllocation.ItemName || apiAllocation.item_name || '',
+    item_code: apiAllocation.itemCode || apiAllocation.ItemCode || apiAllocation.item_code || '',
+    quantity: Number(apiAllocation.quantity || apiAllocation.Quantity || 0),
+    allocated_to_type: (apiAllocation.allocatedToType || apiAllocation.AllocatedToType || apiAllocation.allocated_to_type || 'user') as 'user' | 'paddy_field',
+    allocated_to_id: apiAllocation.allocatedToId || apiAllocation.AllocatedToId || apiAllocation.allocated_to_id || '',
+    allocated_to_name: apiAllocation.allocatedToName || apiAllocation.AllocatedToName || apiAllocation.allocated_to_name || '',
+    allocation_date: apiAllocation.allocationDate || apiAllocation.AllocationDate || apiAllocation.allocation_date || new Date().toISOString(),
+    purpose: apiAllocation.purpose || apiAllocation.Purpose || '',
+    notes: apiAllocation.notes || apiAllocation.Notes || '',
+    status: (apiAllocation.status || apiAllocation.Status || 'allocated') as 'allocated' | 'returned' | 'consumed',
+    created_at: apiAllocation.createdAt || apiAllocation.CreatedAt || apiAllocation.created_at || new Date().toISOString()
+  };
+
+  console.log('✅ Transformed Allocation:', transformed);
   return transformed;
 }
 
@@ -164,5 +190,38 @@ export const inventoryService = {
   async getAllTransactions(): Promise<StockTransactionWithItem[]> {
     const { data } = await api.get('/api/Inventory/getAllTransactions');
     return (data || []).map(transformStockTransaction);
+  },
+
+  async allocateInventory(allocationData: CreateInventoryAllocationData): Promise<void> {
+    const payload = {
+      inventoryItemId: allocationData.inventory_item_id,
+      quantity: allocationData.quantity,
+      allocatedToType: allocationData.allocated_to_type,
+      allocatedToId: allocationData.allocated_to_id,
+      purpose: allocationData.purpose,
+      notes: allocationData.notes,
+      allocationDate: new Date().toISOString()
+    };
+    await api.post('/api/Inventory/allocateInventory', payload);
+  },
+
+  async getAllocationsByItem(itemId: string): Promise<InventoryAllocation[]> {
+    const { data } = await api.get(`/api/Inventory/getAllocationsByItem/${itemId}`);
+    return (data || []).map(transformInventoryAllocation);
+  },
+
+  async getAllAllocations(): Promise<InventoryAllocation[]> {
+    const { data } = await api.get('/api/Inventory/getAllAllocations');
+    return (data || []).map(transformInventoryAllocation);
+  },
+
+  async getAllocationsByUser(userId: string): Promise<InventoryAllocation[]> {
+    const { data } = await api.get(`/api/Inventory/getAllocationsByUser/${userId}`);
+    return (data || []).map(transformInventoryAllocation);
+  },
+
+  async getAllocationsByPaddyField(fieldId: string): Promise<InventoryAllocation[]> {
+    const { data } = await api.get(`/api/Inventory/getAllocationsByPaddyField/${fieldId}`);
+    return (data || []).map(transformInventoryAllocation);
   }
 };
