@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
-import type { InventoryItem, StockTransactionWithItem } from '../types/inventory';
+import { X, TrendingUp, TrendingDown, RefreshCw, DollarSign, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import type { InventoryItem, StockTransactionWithItem, UpdatePaymentStatusData } from '../types/inventory';
 import { inventoryService } from '../services/inventory';
+import CollectPaymentModal from './CollectPaymentModal';
 
 interface StockHistoryModalProps {
   item: InventoryItem;
@@ -11,6 +12,7 @@ interface StockHistoryModalProps {
 export default function StockHistoryModal({ item, onClose }: StockHistoryModalProps) {
   const [transactions, setTransactions] = useState<StockTransactionWithItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTransaction, setSelectedTransaction] = useState<StockTransactionWithItem | null>(null);
 
   useEffect(() => {
     loadTransactions();
@@ -58,7 +60,6 @@ export default function StockHistoryModal({ item, onClose }: StockHistoryModalPr
 
     const date = new Date(dateString);
 
-    // Check if date is valid
     if (isNaN(date.getTime())) {
       console.error('Invalid date:', dateString);
       return 'Invalid Date';
@@ -71,6 +72,40 @@ export default function StockHistoryModal({ item, onClose }: StockHistoryModalPr
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    switch (status) {
+      case 'collected':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+            <CheckCircle className="w-3 h-3" />
+            Collected
+          </span>
+        );
+      case 'pending':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
+            <Clock className="w-3 h-3" />
+            Pending
+          </span>
+        );
+      case 'partial':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+            <AlertCircle className="w-3 h-3" />
+            Partial
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const handleCollectPayment = async (paymentData: UpdatePaymentStatusData) => {
+    await inventoryService.updatePaymentStatus(paymentData);
+    await loadTransactions();
+    setSelectedTransaction(null);
   };
 
   return (
@@ -129,6 +164,37 @@ export default function StockHistoryModal({ item, onClose }: StockHistoryModalPr
                           {transaction.notes}
                         </div>
                       )}
+
+                      {transaction.transaction_type === 'removal' && transaction.total_amount > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-700">Amount:</span>
+                                <span className="text-sm font-semibold text-gray-900">
+                                  ₹{transaction.total_amount.toFixed(2)}
+                                </span>
+                                {getPaymentStatusBadge(transaction.payment_status)}
+                              </div>
+                              {transaction.payment_status === 'partial' && (
+                                <div className="text-xs text-gray-600">
+                                  Collected: ₹{transaction.amount_collected.toFixed(2)} |
+                                  Remaining: ₹{(transaction.total_amount - transaction.amount_collected).toFixed(2)}
+                                </div>
+                              )}
+                            </div>
+                            {(transaction.payment_status === 'pending' || transaction.payment_status === 'partial') && (
+                              <button
+                                onClick={() => setSelectedTransaction(transaction)}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                              >
+                                <DollarSign className="w-4 h-4" />
+                                Collect
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -146,6 +212,14 @@ export default function StockHistoryModal({ item, onClose }: StockHistoryModalPr
           </button>
         </div>
       </div>
+
+      {selectedTransaction && (
+        <CollectPaymentModal
+          transaction={selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
+          onSubmit={handleCollectPayment}
+        />
+      )}
     </div>
   );
 }

@@ -71,6 +71,8 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
         amount_per_unit: currentPrice,
         total_amount: totalAmount,
         collection_from_user_id: transactionType === 'removal' ? selectedUser?.id : undefined,
+        payment_status: transactionType === 'removal' ? 'pending' : 'not_applicable',
+        amount_collected: 0,
         reference_number: referenceNumber || undefined,
         notes: notes || undefined,
         transaction_date: new Date().toISOString()

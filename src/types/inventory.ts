@@ -25,6 +25,10 @@ export interface StockTransaction {
   total_amount: number;
   is_investment?: boolean;
   collection_from_user_id?: string;
+  payment_status: 'pending' | 'partial' | 'collected' | 'not_applicable';
+  amount_collected: number;
+  payment_date?: string;
+  payment_notes?: string;
   reference_number?: string;
   notes?: string;
   transaction_date: string;
@@ -70,9 +74,19 @@ export interface CreateStockTransactionData {
   amount_per_unit?: number;
   total_amount?: number;
   collection_from_user_id?: string;
+  payment_status?: 'pending' | 'partial' | 'collected' | 'not_applicable';
+  amount_collected?: number;
   reference_number?: string;
   notes?: string;
   transaction_date?: string;
+}
+
+export interface UpdatePaymentStatusData {
+  transaction_id: string;
+  payment_status: 'partial' | 'collected';
+  amount_collected: number;
+  payment_date: string;
+  payment_notes?: string;
 }
 
 export interface InventoryAllocation {

@@ -6,6 +6,7 @@ import type {
   CreateInventoryItemData,
   UpdateInventoryItemData,
   CreateStockTransactionData,
+  UpdatePaymentStatusData,
   InventoryAllocation,
   CreateInventoryAllocationData
 } from '../types/inventory';
@@ -48,6 +49,10 @@ function transformStockTransaction(apiTransaction: any): StockTransactionWithIte
     amount_per_unit: Number(apiTransaction.amountPerUnit || apiTransaction.AmountPerUnit || apiTransaction.amount_per_unit || 0),
     total_amount: Number(apiTransaction.totalAmount || apiTransaction.TotalAmount || apiTransaction.total_amount || 0),
     collection_from_user_id: apiTransaction.collectionFromUserId || apiTransaction.CollectionFromUserId || apiTransaction.collection_from_user_id,
+    payment_status: (apiTransaction.paymentStatus || apiTransaction.PaymentStatus || apiTransaction.payment_status || 'not_applicable') as 'pending' | 'partial' | 'collected' | 'not_applicable',
+    amount_collected: Number(apiTransaction.amountCollected || apiTransaction.AmountCollected || apiTransaction.amount_collected || 0),
+    payment_date: apiTransaction.paymentDate || apiTransaction.PaymentDate || apiTransaction.payment_date,
+    payment_notes: apiTransaction.paymentNotes || apiTransaction.PaymentNotes || apiTransaction.payment_notes,
     transaction_date: apiTransaction.transactionDate || apiTransaction.TransactionDate || apiTransaction.transaction_date || new Date().toISOString(),
     reference_number: apiTransaction.referenceNumber || apiTransaction.ReferenceNumber || apiTransaction.reference_number || '',
     notes: apiTransaction.notes || apiTransaction.Notes || '',
@@ -174,6 +179,8 @@ export const inventoryService = {
       amountPerUnit: transactionData.amount_per_unit || 0,
       totalAmount: transactionData.total_amount || 0,
       collectionFromUserId: transactionData.collection_from_user_id,
+      paymentStatus: transactionData.payment_status || 'pending',
+      amountCollected: transactionData.amount_collected || 0,
       referenceNumber: transactionData.reference_number,
       notes: transactionData.notes,
       transactionDate: transactionData.transaction_date
@@ -237,5 +244,26 @@ export const inventoryService = {
   async getAllocationsByPaddyField(fieldId: string): Promise<InventoryAllocation[]> {
     const { data } = await api.get(`/api/Inventory/getAllocationsByPaddyField/${fieldId}`);
     return (data || []).map(transformInventoryAllocation);
+  },
+
+  async updatePaymentStatus(paymentData: UpdatePaymentStatusData): Promise<void> {
+    const payload = {
+      transactionId: paymentData.transaction_id,
+      paymentStatus: paymentData.payment_status,
+      amountCollected: paymentData.amount_collected,
+      paymentDate: paymentData.payment_date,
+      paymentNotes: paymentData.payment_notes
+    };
+    await api.put('/api/Inventory/updatePaymentStatus', payload);
+  },
+
+  async getPendingCollections(): Promise<StockTransactionWithItem[]> {
+    const { data } = await api.get('/api/Inventory/getPendingCollections');
+    return (data || []).map(transformStockTransaction);
+  },
+
+  async getCollectionsByUser(userId: string): Promise<StockTransactionWithItem[]> {
+    const { data } = await api.get(`/api/Inventory/getCollectionsByUser/${userId}`);
+    return (data || []).map(transformStockTransaction);
   }
 };
