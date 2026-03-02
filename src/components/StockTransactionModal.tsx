@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { X, Plus, Minus, RefreshCw } from 'lucide-react';
+import { X, Plus, Minus, RefreshCw, User } from 'lucide-react';
 import Input from './Input';
+import { UserSearch } from './UserSearch';
 import type { InventoryItem, CreateStockTransactionData } from '../types/inventory';
+import type { User as UserType } from '../types/auth';
 
 interface StockTransactionModalProps {
   item: InventoryItem;
@@ -13,6 +15,9 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
   const [transactionType, setTransactionType] = useState<'addition' | 'removal' | 'adjustment'>('addition');
   const [quantity, setQuantity] = useState<number>(0);
   const [newStock, setNewStock] = useState<number>(item.current_stock);
+  const [amountPerUnit, setAmountPerUnit] = useState<number>(item.unit_price);
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const [showUserSearch, setShowUserSearch] = useState(false);
   const [referenceNumber, setReferenceNumber] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,6 +28,8 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
     : transactionType === 'removal'
     ? Math.max(0, item.current_stock - quantity)
     : newStock;
+
+  const totalAmount = quantity * amountPerUnit;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,12 +45,25 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
       return;
     }
 
+    if (transactionType === 'removal' && !selectedUser) {
+      setError('Please select a user for collection tracking');
+      return;
+    }
+
+    if (amountPerUnit < 0) {
+      setError('Amount per unit cannot be negative');
+      return;
+    }
+
     setLoading(true);
     try {
       const transactionData: CreateStockTransactionData = {
         inventory_item_id: item.id,
         transaction_type: transactionType,
         quantity: transactionType === 'adjustment' ? (newStock - item.current_stock) : quantity,
+        amount_per_unit: amountPerUnit,
+        total_amount: totalAmount,
+        collection_from_user_id: transactionType === 'removal' ? selectedUser?.id : undefined,
         reference_number: referenceNumber || undefined,
         notes: notes || undefined,
         transaction_date: new Date().toISOString()
@@ -136,15 +156,72 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
               required
             />
           ) : (
-            <Input
-              label={`Quantity (${item.unit})`}
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
-              min="0"
-              step="0.01"
-              required
-            />
+            <>
+              <Input
+                label={`Quantity (${item.unit})`}
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
+                min="0"
+                step="0.01"
+                required
+              />
+              <Input
+                label={transactionType === 'addition' ? 'Investment per Unit (₹)' : 'Collection per Unit (₹)'}
+                type="number"
+                value={amountPerUnit}
+                onChange={(e) => setAmountPerUnit(parseFloat(e.target.value) || 0)}
+                min="0"
+                step="0.01"
+                required
+              />
+            </>
+          )}
+
+          {transactionType === 'removal' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Collect From User
+              </label>
+              {selectedUser ? (
+                <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <User className="w-5 h-5 text-green-600" />
+                    <div>
+                      <div className="font-medium text-gray-900">{selectedUser.name}</div>
+                      <div className="text-sm text-gray-600">{selectedUser.phone}</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUser(null)}
+                    className="text-red-600 hover:text-red-700 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowUserSearch(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors"
+                >
+                  <User className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-600">Select User</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {transactionType !== 'adjustment' && quantity > 0 && (
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="text-sm text-gray-600 mb-1">
+                {transactionType === 'addition' ? 'Total Investment' : 'Total Collection'}
+              </div>
+              <div className="text-2xl font-bold text-blue-600">
+                ₹{totalAmount.toFixed(2)}
+              </div>
+            </div>
           )}
 
           <div className="bg-gray-50 p-4 rounded-lg">
@@ -197,6 +274,16 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
           </div>
         </form>
       </div>
+
+      {showUserSearch && (
+        <UserSearch
+          onSelectUser={(user) => {
+            setSelectedUser(user);
+            setShowUserSearch(false);
+          }}
+          onClose={() => setShowUserSearch(false)}
+        />
+      )}
     </div>
   );
 }

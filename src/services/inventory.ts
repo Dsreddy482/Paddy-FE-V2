@@ -24,6 +24,8 @@ function transformInventoryItem(apiItem: any): InventoryItem {
     minimum_stock: Number(apiItem.minimumStock || apiItem.MinimumStock || apiItem.minimum_stock || 0),
     current_stock: Number(apiItem.currentStock || apiItem.CurrentStock || apiItem.current_stock || 0),
     unit_price: Number(apiItem.unitPrice || apiItem.UnitPrice || apiItem.unit_price || 0),
+    total_investment: Number(apiItem.totalInvestment || apiItem.TotalInvestment || apiItem.total_investment || 0),
+    total_collected: Number(apiItem.totalCollected || apiItem.TotalCollected || apiItem.total_collected || 0),
     status: (apiItem.status || apiItem.Status || 'active') as 'active' | 'inactive',
     created_at: apiItem.createdAt || apiItem.CreatedAt || apiItem.created_at || new Date().toISOString(),
     updated_at: apiItem.updatedAt || apiItem.UpdatedAt || apiItem.updated_at || new Date().toISOString()
@@ -42,6 +44,9 @@ function transformStockTransaction(apiTransaction: any): StockTransactionWithIte
     inventory_item_id: apiTransaction.inventoryItemId || apiTransaction.InventoryItemId || apiTransaction.inventory_item_id || '',
     transaction_type: (apiTransaction.transactionType || apiTransaction.TransactionType || apiTransaction.transaction_type || 'adjustment') as 'addition' | 'removal' | 'adjustment',
     quantity: Number(apiTransaction.quantity || apiTransaction.Quantity || 0),
+    amount_per_unit: Number(apiTransaction.amountPerUnit || apiTransaction.AmountPerUnit || apiTransaction.amount_per_unit || 0),
+    total_amount: Number(apiTransaction.totalAmount || apiTransaction.TotalAmount || apiTransaction.total_amount || 0),
+    collection_from_user_id: apiTransaction.collectionFromUserId || apiTransaction.CollectionFromUserId || apiTransaction.collection_from_user_id,
     transaction_date: apiTransaction.transactionDate || apiTransaction.TransactionDate || apiTransaction.transaction_date || new Date().toISOString(),
     reference_number: apiTransaction.referenceNumber || apiTransaction.ReferenceNumber || apiTransaction.reference_number || '',
     notes: apiTransaction.notes || apiTransaction.Notes || '',
@@ -149,6 +154,8 @@ export const inventoryService = {
       inventoryItemId: transactionData.inventory_item_id,
       transactionType: 'in',
       quantity: Math.abs(transactionData.quantity),
+      amountPerUnit: transactionData.amount_per_unit || 0,
+      totalAmount: transactionData.total_amount || 0,
       referenceNumber: transactionData.reference_number,
       notes: transactionData.notes,
       transactionDate: transactionData.transaction_date
@@ -161,6 +168,9 @@ export const inventoryService = {
       inventoryItemId: transactionData.inventory_item_id,
       transactionType: 'out',
       quantity: Math.abs(transactionData.quantity),
+      amountPerUnit: transactionData.amount_per_unit || 0,
+      totalAmount: transactionData.total_amount || 0,
+      collectionFromUserId: transactionData.collection_from_user_id,
       referenceNumber: transactionData.reference_number,
       notes: transactionData.notes,
       transactionDate: transactionData.transaction_date

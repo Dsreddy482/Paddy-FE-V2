@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Plus, Edit, Trash2, TrendingUp, TrendingDown, History, Search, AlertTriangle, UserPlus } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, TrendingUp, TrendingDown, History, Search, AlertTriangle, UserPlus, DollarSign, Wallet } from 'lucide-react';
 import Header from '../components/Header';
 import Alert from '../components/Alert';
 import AddInventoryItemModal from '../components/AddInventoryItemModal';
@@ -124,6 +124,10 @@ export default function InventoryManagement() {
 
   const lowStockItems = items.filter(item => item.current_stock <= item.minimum_stock && item.status === 'active');
 
+  const totalInvestment = items.reduce((sum, item) => sum + (item.total_investment || 0), 0);
+  const totalCollected = items.reduce((sum, item) => sum + (item.total_collected || 0), 0);
+  const totalProfit = totalCollected - totalInvestment;
+
   const getStockStatus = (item: InventoryItem) => {
     if (item.current_stock === 0) return 'out-of-stock';
     if (item.current_stock <= item.minimum_stock) return 'low-stock';
@@ -172,6 +176,50 @@ export default function InventoryManagement() {
             onClose={() => setAlert(null)}
           />
         )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <DollarSign className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Investment</p>
+                <p className="text-2xl font-bold text-gray-900">₹{totalInvestment.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Wallet className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Collected</p>
+                <p className="text-2xl font-bold text-gray-900">₹{totalCollected.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`p-2 rounded-lg ${totalProfit >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
+                {totalProfit >= 0 ? (
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                ) : (
+                  <TrendingDown className="w-6 h-6 text-red-600" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Profit/Loss</p>
+                <p className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  ₹{totalProfit.toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {lowStockItems.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -252,6 +300,8 @@ export default function InventoryManagement() {
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Item Name</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700">Stock</th>
+                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Investment</th>
+                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Collected</th>
                       <th className="text-center py-3 px-4 font-semibold text-gray-700">Status</th>
                       <th className="text-center py-3 px-4 font-semibold text-gray-700">Actions</th>
                     </tr>
@@ -259,6 +309,7 @@ export default function InventoryManagement() {
                   <tbody>
                     {filteredItems.map((item) => {
                       const stockStatus = getStockStatus(item);
+                      const itemProfit = (item.total_collected || 0) - (item.total_investment || 0);
                       return (
                         <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4">
@@ -276,6 +327,17 @@ export default function InventoryManagement() {
                           <td className="py-3 px-4 text-right">
                             <div className="font-semibold">{item.current_stock} {item.unit}</div>
                             <div className="text-xs text-gray-500">Min: {item.minimum_stock}</div>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="font-semibold text-blue-600">₹{(item.total_investment || 0).toFixed(2)}</div>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="font-semibold text-green-600">₹{(item.total_collected || 0).toFixed(2)}</div>
+                            {itemProfit !== 0 && (
+                              <div className={`text-xs ${itemProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {itemProfit >= 0 ? '+' : ''}₹{itemProfit.toFixed(2)}
+                              </div>
+                            )}
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${getStockStatusColor(stockStatus)}`}>

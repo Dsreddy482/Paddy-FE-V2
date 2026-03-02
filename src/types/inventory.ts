@@ -8,6 +8,8 @@ export interface InventoryItem {
   minimum_stock: number;
   current_stock: number;
   unit_price: number;
+  total_investment: number;
+  total_collected: number;
   status: 'active' | 'inactive';
   created_at: string;
   updated_at: string;
@@ -18,6 +20,9 @@ export interface StockTransaction {
   inventory_item_id: string;
   transaction_type: 'addition' | 'removal' | 'adjustment';
   quantity: number;
+  amount_per_unit: number;
+  total_amount: number;
+  collection_from_user_id?: string;
   reference_number?: string;
   notes?: string;
   transaction_date: string;
@@ -58,6 +63,9 @@ export interface CreateStockTransactionData {
   inventory_item_id: string;
   transaction_type: 'addition' | 'removal' | 'adjustment';
   quantity: number;
+  amount_per_unit?: number;
+  total_amount?: number;
+  collection_from_user_id?: string;
   reference_number?: string;
   notes?: string;
   transaction_date?: string;
