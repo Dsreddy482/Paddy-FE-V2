@@ -24,6 +24,7 @@ function transformInventoryItem(apiItem: any): InventoryItem {
     minimum_stock: Number(apiItem.minimumStock || apiItem.MinimumStock || apiItem.minimum_stock || 0),
     current_stock: Number(apiItem.currentStock || apiItem.CurrentStock || apiItem.current_stock || 0),
     unit_price: Number(apiItem.unitPrice || apiItem.UnitPrice || apiItem.unit_price || 0),
+    selling_price_per_unit: Number(apiItem.sellingPricePerUnit || apiItem.SellingPricePerUnit || apiItem.selling_price_per_unit || 0),
     total_investment: Number(apiItem.totalInvestment || apiItem.TotalInvestment || apiItem.total_investment || 0),
     total_collected: Number(apiItem.totalCollected || apiItem.TotalCollected || apiItem.total_collected || 0),
     status: (apiItem.status || apiItem.Status || 'active') as 'active' | 'inactive',
@@ -119,6 +120,7 @@ export const inventoryService = {
       minimumStock: itemData.minimum_stock,
       currentStock: itemData.current_stock,
       unitPrice: itemData.unit_price,
+      sellingPricePerUnit: itemData.selling_price_per_unit,
       status: itemData.status
     };
     const { data } = await api.post('/api/Inventory/createItem', payload);
@@ -134,6 +136,7 @@ export const inventoryService = {
     if (updates.description !== undefined) payload.description = updates.description;
     if (updates.minimum_stock !== undefined) payload.minimumStock = updates.minimum_stock;
     if (updates.unit_price !== undefined) payload.unitPrice = updates.unit_price;
+    if (updates.selling_price_per_unit !== undefined) payload.sellingPricePerUnit = updates.selling_price_per_unit;
     if (updates.status !== undefined) payload.status = updates.status;
 
     const { data } = await api.put(`/api/Inventory/updateItem/${id}`, payload);
