@@ -1,7 +1,9 @@
 # .NET Backend Implementation Guide: Inventory Selling Price
 
 ## Overview
-This document outlines the required backend changes to support separate investment and selling price tracking in the inventory management system.
+This document outlines the required .NET backend changes to support separate investment and selling price tracking in the inventory management system.
+
+**IMPORTANT:** This is a backend-only change. The frontend has already been updated and is ready to consume these API changes.
 
 ## Database Schema Changes
 
@@ -302,12 +304,67 @@ public async Task<IActionResult> UpdateItem(Guid id, [FromBody] UpdateInventoryI
 - [ ] Test with edge cases (zero prices, very large numbers)
 - [ ] Verify existing items have default selling price after migration
 
-## Frontend Expectations
+## Frontend Integration (Already Complete)
 
-The frontend expects the following JSON property names (PascalCase):
-- `SellingPricePerUnit` - Standard selling price
-- `UnitPrice` - Investment/purchase price
-- `TotalInvestment` - Sum of all investment amounts
-- `TotalCollected` - Sum of all collection amounts
+The frontend is **already updated** and ready to work with these backend changes. The frontend service layer at `src/services/inventory.ts` handles transformation between frontend snake_case and backend PascalCase naming.
 
-All API responses should use PascalCase property names to match the frontend's transform functions.
+### Expected API Response Format
+
+The backend should return JSON with **PascalCase** property names:
+
+```json
+{
+  "Id": "guid-here",
+  "ItemName": "Urea Fertilizer",
+  "ItemCode": "FERT-001",
+  "Category": "fertilizer",
+  "Unit": "kg",
+  "CurrentStock": 100,
+  "MinimumStock": 50,
+  "UnitPrice": 45.50,
+  "SellingPricePerUnit": 60.00,
+  "TotalInvestment": 4550.00,
+  "TotalCollected": 6000.00,
+  "Status": "active",
+  "CreatedAt": "2026-03-02T10:00:00Z",
+  "UpdatedAt": "2026-03-02T10:00:00Z"
+}
+```
+
+### Frontend Request Format
+
+The frontend sends requests with **PascalCase** (converted from internal snake_case):
+
+**Creating an item:**
+```json
+{
+  "itemName": "Urea Fertilizer",
+  "itemCode": "FERT-001",
+  "category": "fertilizer",
+  "unit": "kg",
+  "description": "Nitrogen-rich fertilizer",
+  "minimumStock": 100,
+  "currentStock": 0,
+  "unitPrice": 45.50,
+  "sellingPricePerUnit": 60.00,
+  "status": "active"
+}
+```
+
+**Updating an item:**
+```json
+{
+  "unitPrice": 47.00,
+  "sellingPricePerUnit": 65.00,
+  "minimumStock": 150
+}
+```
+
+### API Endpoints Already Integrated
+
+The frontend already calls these endpoints:
+- `POST /api/Inventory/createItem` - Create new inventory item
+- `PUT /api/Inventory/updateItem/{id}` - Update existing item
+- `GET /api/Inventory/getAllItems` - Get all items
+- `POST /api/Inventory/addStock` - Add stock (uses investment price)
+- `POST /api/Inventory/removeStock` - Remove stock (uses selling price)
