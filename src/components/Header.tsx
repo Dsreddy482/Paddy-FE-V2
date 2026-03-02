@@ -9,9 +9,11 @@ export const Header: React.FC = () => {
   const location = useLocation();
   const { user, logout } = useAuthStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isOperationsDropdownOpen, setIsOperationsDropdownOpen] = useState(false);
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const operationsDropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     logout();
@@ -23,6 +25,9 @@ export const Header: React.FC = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
+      if (operationsDropdownRef.current && !operationsDropdownRef.current.contains(event.target as Node)) {
+        setIsOperationsDropdownOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -32,14 +37,18 @@ export const Header: React.FC = () => {
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/users', icon: Users, label: 'Users' },
-    { path: '/paddy', icon: FileText, label: 'Paddy' },
-    { path: '/loading', icon: Truck, label: 'Loading' },
-    { path: '/amali', icon: UserCog, label: 'Amali' },
     { path: '/fields', icon: MapPin, label: 'Fields' },
     { path: '/inventory', icon: Package, label: 'Inventory' },
   ];
 
+  const operationsItems = [
+    { path: '/paddy', icon: FileText, label: 'Paddy' },
+    { path: '/loading', icon: Truck, label: 'Loading' },
+    { path: '/amali', icon: UserCog, label: 'Amali' },
+  ];
+
   const isActive = (path: string) => location.pathname === path;
+  const isOperationsActive = operationsItems.some(item => location.pathname === item.path);
 
   return (
     <>
@@ -78,6 +87,42 @@ export const Header: React.FC = () => {
                   {item.label}
                 </button>
               ))}
+
+              <div className="relative" ref={operationsDropdownRef}>
+                <button
+                  onClick={() => setIsOperationsDropdownOpen(!isOperationsDropdownOpen)}
+                  className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isOperationsActive
+                      ? 'bg-white text-green-700 shadow-md'
+                      : 'text-white hover:bg-green-500'
+                  }`}
+                >
+                  Operations
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </button>
+
+                {isOperationsDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-48 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 overflow-hidden z-50">
+                    {operationsItems.map((item) => (
+                      <button
+                        key={item.path}
+                        onClick={() => {
+                          navigate(item.path);
+                          setIsOperationsDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center px-4 py-3 text-sm transition-colors ${
+                          isActive(item.path)
+                            ? 'bg-green-50 text-green-700 font-medium'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4 mr-3" />
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <button
                 onClick={() => setIsUserSearchOpen(true)}
@@ -141,6 +186,29 @@ export const Header: React.FC = () => {
                   {item.label}
                 </button>
               ))}
+
+              <div className="border-t border-green-500 my-2 pt-2">
+                <p className="px-4 py-2 text-xs font-semibold text-green-200 uppercase tracking-wider">
+                  Operations
+                </p>
+                {operationsItems.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => {
+                      navigate(item.path);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full text-left flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                      isActive(item.path)
+                        ? 'bg-white text-green-700 shadow-md'
+                        : 'text-white hover:bg-green-500'
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5 mr-3" />
+                    {item.label}
+                  </button>
+                ))}
+              </div>
 
               <button
                 onClick={() => {
