@@ -19,6 +19,7 @@ export default function AddInventoryItemModal({ onClose, onSubmit }: AddInventor
     minimum_stock: 0,
     current_stock: 0,
     unit_price: 0,
+    selling_price_per_unit: 0,
     status: 'active'
   });
   const [loading, setLoading] = useState(false);
@@ -49,7 +50,12 @@ export default function AddInventoryItemModal({ onClose, onSubmit }: AddInventor
     }
 
     if (formData.unit_price < 0) {
-      setError('Unit price cannot be negative');
+      setError('Investment price cannot be negative');
+      return;
+    }
+
+    if (formData.selling_price_per_unit < 0) {
+      setError('Selling price cannot be negative');
       return;
     }
 
@@ -149,10 +155,20 @@ export default function AddInventoryItemModal({ onClose, onSubmit }: AddInventor
             />
 
             <Input
-              label="Unit Price (₹)"
+              label="Investment Price per Unit (₹)"
               type="number"
               value={formData.unit_price}
               onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) || 0 })}
+              min="0"
+              step="0.01"
+              required
+            />
+
+            <Input
+              label="Selling Price per Unit (₹)"
+              type="number"
+              value={formData.selling_price_per_unit}
+              onChange={(e) => setFormData({ ...formData, selling_price_per_unit: parseFloat(e.target.value) || 0 })}
               min="0"
               step="0.01"
               required

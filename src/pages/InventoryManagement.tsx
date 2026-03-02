@@ -300,6 +300,7 @@ export default function InventoryManagement() {
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Item Name</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700">Stock</th>
+                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Price/Unit</th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700">Investment</th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700">Collected</th>
                       <th className="text-center py-3 px-4 font-semibold text-gray-700">Status</th>
@@ -327,6 +328,10 @@ export default function InventoryManagement() {
                           <td className="py-3 px-4 text-right">
                             <div className="font-semibold">{item.current_stock} {item.unit}</div>
                             <div className="text-xs text-gray-500">Min: {item.minimum_stock}</div>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="text-sm text-gray-500">Inv: ₹{item.unit_price.toFixed(2)}</div>
+                            <div className="font-semibold text-green-600">Sell: ₹{item.selling_price_per_unit.toFixed(2)}</div>
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="font-semibold text-blue-600">₹{(item.total_investment || 0).toFixed(2)}</div>

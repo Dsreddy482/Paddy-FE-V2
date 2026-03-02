@@ -21,6 +21,7 @@ export default function EditInventoryItemModal({ item, onClose, onSubmit }: Edit
     description: item.description || '',
     minimum_stock: item.minimum_stock || 0,
     unit_price: item.unit_price || 0,
+    selling_price_per_unit: item.selling_price_per_unit || 0,
     status: item.status || 'active'
   });
   const [loading, setLoading] = useState(false);
@@ -48,7 +49,12 @@ export default function EditInventoryItemModal({ item, onClose, onSubmit }: Edit
     }
 
     if (formData.unit_price !== undefined && formData.unit_price < 0) {
-      setError('Unit price cannot be negative');
+      setError('Investment price cannot be negative');
+      return;
+    }
+
+    if (formData.selling_price_per_unit !== undefined && formData.selling_price_per_unit < 0) {
+      setError('Selling price cannot be negative');
       return;
     }
 
@@ -138,10 +144,20 @@ export default function EditInventoryItemModal({ item, onClose, onSubmit }: Edit
             />
 
             <Input
-              label="Unit Price (₹)"
+              label="Investment Price per Unit (₹)"
               type="number"
               value={formData.unit_price ?? 0}
               onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) || 0 })}
+              min="0"
+              step="0.01"
+              required
+            />
+
+            <Input
+              label="Selling Price per Unit (₹)"
+              type="number"
+              value={formData.selling_price_per_unit ?? 0}
+              onChange={(e) => setFormData({ ...formData, selling_price_per_unit: parseFloat(e.target.value) || 0 })}
               min="0"
               step="0.01"
               required

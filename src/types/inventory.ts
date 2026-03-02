@@ -8,6 +8,7 @@ export interface InventoryItem {
   minimum_stock: number;
   current_stock: number;
   unit_price: number;
+  selling_price_per_unit: number;
   total_investment: number;
   total_collected: number;
   status: 'active' | 'inactive';
@@ -22,6 +23,7 @@ export interface StockTransaction {
   quantity: number;
   amount_per_unit: number;
   total_amount: number;
+  is_investment?: boolean;
   collection_from_user_id?: string;
   reference_number?: string;
   notes?: string;
@@ -45,6 +47,7 @@ export interface CreateInventoryItemData {
   minimum_stock: number;
   current_stock: number;
   unit_price: number;
+  selling_price_per_unit: number;
   status: 'active' | 'inactive';
 }
 
@@ -56,6 +59,7 @@ export interface UpdateInventoryItemData {
   description?: string;
   minimum_stock?: number;
   unit_price?: number;
+  selling_price_per_unit?: number;
   status?: 'active' | 'inactive';
 }
 

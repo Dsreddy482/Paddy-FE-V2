@@ -15,7 +15,8 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
   const [transactionType, setTransactionType] = useState<'addition' | 'removal' | 'adjustment'>('addition');
   const [quantity, setQuantity] = useState<number>(0);
   const [newStock, setNewStock] = useState<number>(item.current_stock);
-  const [amountPerUnit, setAmountPerUnit] = useState<number>(item.unit_price);
+  const [investmentPrice, setInvestmentPrice] = useState<number>(item.unit_price);
+  const [amountPerUnit, setAmountPerUnit] = useState<number>(item.selling_price_per_unit);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [referenceNumber, setReferenceNumber] = useState('');
@@ -29,7 +30,8 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
     ? Math.max(0, item.current_stock - quantity)
     : newStock;
 
-  const totalAmount = quantity * amountPerUnit;
+  const currentPrice = transactionType === 'addition' ? investmentPrice : amountPerUnit;
+  const totalAmount = quantity * currentPrice;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +52,13 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
       return;
     }
 
-    if (amountPerUnit < 0) {
-      setError('Amount per unit cannot be negative');
+    if (transactionType === 'addition' && investmentPrice < 0) {
+      setError('Investment price cannot be negative');
+      return;
+    }
+
+    if (transactionType === 'removal' && amountPerUnit < 0) {
+      setError('Selling price cannot be negative');
       return;
     }
 
@@ -61,7 +68,7 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
         inventory_item_id: item.id,
         transaction_type: transactionType,
         quantity: transactionType === 'adjustment' ? (newStock - item.current_stock) : quantity,
-        amount_per_unit: amountPerUnit,
+        amount_per_unit: currentPrice,
         total_amount: totalAmount,
         collection_from_user_id: transactionType === 'removal' ? selectedUser?.id : undefined,
         reference_number: referenceNumber || undefined,
@@ -166,15 +173,32 @@ export default function StockTransactionModal({ item, onClose, onSubmit }: Stock
                 step="0.01"
                 required
               />
-              <Input
-                label={transactionType === 'addition' ? 'Investment per Unit (₹)' : 'Collection per Unit (₹)'}
-                type="number"
-                value={amountPerUnit}
-                onChange={(e) => setAmountPerUnit(parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                required
-              />
+              {transactionType === 'addition' ? (
+                <Input
+                  label="Investment per Unit (₹)"
+                  type="number"
+                  value={investmentPrice}
+                  onChange={(e) => setInvestmentPrice(parseFloat(e.target.value) || 0)}
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              ) : (
+                <div className="space-y-2">
+                  <Input
+                    label="Selling Price per Unit (₹)"
+                    type="number"
+                    value={amountPerUnit}
+                    onChange={(e) => setAmountPerUnit(parseFloat(e.target.value) || 0)}
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                  <div className="bg-blue-50 px-3 py-2 rounded text-sm text-blue-700">
+                    Standard selling price: ₹{item.selling_price_per_unit.toFixed(2)}/{item.unit}
+                  </div>
+                </div>
+              )}
             </>
           )}
 
