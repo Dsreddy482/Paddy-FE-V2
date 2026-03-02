@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LogOut, User, Sprout, Users, Mail, Calendar, Search, Menu, FileText, Truck, UserCog, MapPin, Package } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { LogOut, User, Sprout, Users, Search, Menu, FileText, Truck, UserCog, MapPin, Package, Home, ChevronDown } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { UserSearch } from './UserSearch';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuthStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
@@ -28,212 +29,139 @@ export const Header: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const navItems = [
+    { path: '/dashboard', icon: Home, label: 'Dashboard' },
+    { path: '/users', icon: Users, label: 'Users' },
+    { path: '/paddy', icon: FileText, label: 'Paddy' },
+    { path: '/loading', icon: Truck, label: 'Loading' },
+    { path: '/amali', icon: UserCog, label: 'Amali' },
+    { path: '/fields', icon: MapPin, label: 'Fields' },
+    { path: '/inventory', icon: Package, label: 'Inventory' },
+  ];
+
+  const isActive = (path: string) => location.pathname === path;
+
   return (
     <>
-      <nav className="bg-white shadow">
+      <nav className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-2">
-              <Sprout className="h-6 w-6 text-green-600" />
-              <h1 className="text-xl font-semibold text-gray-900">Paddy</h1>
+          <div className="flex justify-between items-center h-16">
+            <div
+              className="flex items-center space-x-3 cursor-pointer group"
+              onClick={() => navigate('/dashboard')}
+            >
+              <div className="bg-white rounded-lg p-2 shadow-md group-hover:shadow-lg transition-shadow">
+                <Sprout className="h-6 w-6 text-green-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Paddy Manager</h1>
             </div>
-            <div className="flex items-center space-x-4">
+
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden inline-flex items-center justify-center p-2 rounded-lg text-white hover:bg-green-500 transition-colors"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+
+            <div className="hidden lg:flex items-center space-x-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isActive(item.path)
+                      ? 'bg-white text-green-700 shadow-md'
+                      : 'text-white hover:bg-green-500'
+                  }`}
+                >
+                  <item.icon className="h-4 w-4 mr-2" />
+                  {item.label}
+                </button>
+              ))}
+
               <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
+                onClick={() => setIsUserSearchOpen(true)}
+                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-green-500 transition-all"
               >
-                <Menu className="h-6 w-6" />
+                <Search className="h-4 w-4 mr-2" />
+                Search
               </button>
 
-              <div className="hidden md:flex items-center space-x-4">
+              <div className="relative ml-3" ref={dropdownRef}>
                 <button
-                  onClick={() => navigate('/dashboard')}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-white hover:bg-green-500 transition-all"
                 >
-                  Dashboard
+                  <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shadow-md">
+                    <User className="h-5 w-5 text-green-600" />
+                  </div>
+                  <span className="font-medium">{user?.name}</span>
+                  <ChevronDown className="h-4 w-4" />
                 </button>
-                <button
-                  onClick={() => setIsUserSearchOpen(true)}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <Search className="h-4 w-4 mr-2" />
-                  Search Users
-                </button>
-                <button
-                  onClick={() => navigate('/users')}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Users
-                </button>
-                <button
-                  onClick={() => navigate('/paddy')}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  All Paddy
-                </button>
-                <button
-                  onClick={() => navigate('/loading')}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <Truck className="h-4 w-4 mr-2" />
-                  Loading
-                </button>
-                <button
-                  onClick={() => navigate('/amali')}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <UserCog className="h-4 w-4 mr-2" />
-                  Amali
-                </button>
-                <button
-                  onClick={() => navigate('/fields')}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Fields
-                </button>
-                <button
-                  onClick={() => navigate('/inventory')}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <Package className="h-4 w-4 mr-2" />
-                  Inventory
-                </button>
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none"
-                  >
-                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      <User className="h-5 w-5" />
-                    </div>
-                    <span className="hidden md:inline-block">{user?.name}</span>
-                  </button>
 
-                  {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                      <div className="p-4 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                        <p className="text-sm text-gray-500">{user?.email}</p>
-                      </div>
-                      <div className="p-4 space-y-3">
-                        <div className="flex items-center text-sm text-gray-700">
-                          <User className="h-4 w-4 mr-3 text-gray-400" />
-                          <span>ID: {user?.id}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-gray-700">
-                          <Calendar className="h-4 w-4 mr-3 text-gray-400" />
-                          <span>Joined: Today</span>
-                        </div>
-                      </div>
-                      <div className="border-t border-gray-100">
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                          <LogOut className="h-4 w-4 mr-3 text-gray-400" />
-                          Sign out
-                        </button>
-                      </div>
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 overflow-hidden z-50">
+                    <div className="p-4 bg-gradient-to-r from-green-50 to-green-100">
+                      <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
+                      <p className="text-xs text-gray-600 mt-1">{user?.email}</p>
                     </div>
-                  )}
-                </div>
+                    <div className="border-t border-gray-100">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4 mr-3" />
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         {isMobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <button
-                onClick={() => {
-                  navigate('/dashboard');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              >
-                Dashboard
-              </button>
+          <div className="lg:hidden border-t border-green-500">
+            <div className="px-4 pt-2 pb-4 space-y-1 bg-green-600">
+              {navItems.map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => {
+                    navigate(item.path);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                    isActive(item.path)
+                      ? 'bg-white text-green-700 shadow-md'
+                      : 'text-white hover:bg-green-500'
+                  }`}
+                >
+                  <item.icon className="h-5 w-5 mr-3" />
+                  {item.label}
+                </button>
+              ))}
+
               <button
                 onClick={() => {
                   setIsUserSearchOpen(true);
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                className="w-full text-left flex items-center px-4 py-3 rounded-lg text-sm font-medium text-white hover:bg-green-500 transition-all"
               >
-                <Search className="h-4 w-4 inline mr-2" />
+                <Search className="h-5 w-5 mr-3" />
                 Search Users
               </button>
-              <button
-                onClick={() => {
-                  navigate('/users');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <Users className="h-4 w-4 inline mr-2" />
-                Users
-              </button>
-              <button
-                onClick={() => {
-                  navigate('/paddy');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <FileText className="h-4 w-4 inline mr-2" />
-                All Paddy
-              </button>
-              <button
-                onClick={() => {
-                  navigate('/loading');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <Truck className="h-4 w-4 inline mr-2" />
-                Loading
-              </button>
-              <button
-                onClick={() => {
-                  navigate('/amali');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <UserCog className="h-4 w-4 inline mr-2" />
-                Amali
-              </button>
-              <button
-                onClick={() => {
-                  navigate('/fields');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <MapPin className="h-4 w-4 inline mr-2" />
-                Fields
-              </button>
-              <button
-                onClick={() => {
-                  navigate('/inventory');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <Package className="h-4 w-4 inline mr-2" />
-                Inventory
-              </button>
-              <button
-                onClick={handleLogout}
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <LogOut className="h-4 w-4 inline mr-2" />
-                Sign out
-              </button>
+
+              <div className="border-t border-green-500 mt-2 pt-2">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left flex items-center px-4 py-3 rounded-lg text-sm font-medium text-white hover:bg-red-500 transition-all"
+                >
+                  <LogOut className="h-5 w-5 mr-3" />
+                  Sign out
+                </button>
+              </div>
             </div>
           </div>
         )}
