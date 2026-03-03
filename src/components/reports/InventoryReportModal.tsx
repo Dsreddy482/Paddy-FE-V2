@@ -43,9 +43,9 @@ export const InventoryReportModal: React.FC<InventoryReportModalProps> = ({ onCl
       filtered = filtered.filter(item => item.category === categoryFilter);
     }
     if (stockFilter === 'low') {
-      filtered = filtered.filter(item => item.currentStock <= item.minimumStock);
+      filtered = filtered.filter(item => (item.currentStock || 0) <= (item.minimumStock || 0));
     } else if (stockFilter === 'out') {
-      filtered = filtered.filter(item => item.currentStock === 0);
+      filtered = filtered.filter(item => (item.currentStock || 0) === 0);
     }
 
     setFilteredData(filtered);
@@ -61,8 +61,8 @@ export const InventoryReportModal: React.FC<InventoryReportModalProps> = ({ onCl
     doc.text(`Generated on: ${new Date().toLocaleDateString('en-IN')}`, 14, 28);
 
     const totalItems = filteredData.length;
-    const totalStock = filteredData.reduce((sum, d) => sum + d.currentStock, 0);
-    const totalValue = filteredData.reduce((sum, d) => sum + (d.currentStock * (d.unitPrice || 0)), 0);
+    const totalStock = filteredData.reduce((sum, d) => sum + (d.currentStock || 0), 0);
+    const totalValue = filteredData.reduce((sum, d) => sum + ((d.currentStock || 0) * (d.sellingPrice || 0)), 0);
     const totalInvestment = filteredData.reduce((sum, d) => sum + (d.totalInvestment || 0), 0);
 
     doc.text(`Total Items: ${totalItems}`, 14, 36);
@@ -71,11 +71,11 @@ export const InventoryReportModal: React.FC<InventoryReportModalProps> = ({ onCl
     doc.text(`Total Value: ₹${totalValue.toLocaleString()}`, 14, 54);
 
     const tableData = filteredData.map(item => [
-      item.name,
-      item.category,
-      item.currentStock.toString(),
-      item.unit,
-      item.minimumStock.toString(),
+      item.itemName || item.name || 'N/A',
+      item.category || 'N/A',
+      (item.currentStock || 0).toString(),
+      item.unit || 'N/A',
+      (item.minimumStock || 0).toString(),
       (item.totalInvestment || 0).toLocaleString(),
       (item.sellingPrice || 0).toLocaleString(),
       item.location || 'N/A'
@@ -156,7 +156,7 @@ export const InventoryReportModal: React.FC<InventoryReportModalProps> = ({ onCl
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <p className="text-sm text-blue-600 font-medium">Total Stock</p>
                   <p className="text-2xl font-bold text-blue-900">
-                    {filteredData.reduce((sum, d) => sum + d.currentStock, 0)}
+                    {filteredData.reduce((sum, d) => sum + (d.currentStock || 0), 0)}
                   </p>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
@@ -168,7 +168,7 @@ export const InventoryReportModal: React.FC<InventoryReportModalProps> = ({ onCl
                 <div className="bg-orange-50 p-4 rounded-lg">
                   <p className="text-sm text-orange-600 font-medium">Low Stock Items</p>
                   <p className="text-2xl font-bold text-orange-900">
-                    {filteredData.filter(d => d.currentStock <= d.minimumStock).length}
+                    {filteredData.filter(d => (d.currentStock || 0) <= (d.minimumStock || 0)).length}
                   </p>
                 </div>
               </div>
@@ -190,19 +190,19 @@ export const InventoryReportModal: React.FC<InventoryReportModalProps> = ({ onCl
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredData.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.category}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.itemName || item.name || 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{item.category || 'N/A'}</td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`font-medium ${
-                            item.currentStock === 0 ? 'text-red-600' :
-                            item.currentStock <= item.minimumStock ? 'text-yellow-600' :
+                            (item.currentStock || 0) === 0 ? 'text-red-600' :
+                            (item.currentStock || 0) <= (item.minimumStock || 0) ? 'text-yellow-600' :
                             'text-green-600'
                           }`}>
-                            {item.currentStock}
+                            {item.currentStock || 0}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.unit}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.minimumStock}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{item.unit || 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{item.minimumStock || 0}</td>
                         <td className="px-4 py-3 text-sm text-gray-900">₹{(item.totalInvestment || 0).toLocaleString()}</td>
                         <td className="px-4 py-3 text-sm text-gray-900">₹{(item.sellingPrice || 0).toLocaleString()}</td>
                         <td className="px-4 py-3 text-sm text-gray-500">{item.location || 'N/A'}</td>

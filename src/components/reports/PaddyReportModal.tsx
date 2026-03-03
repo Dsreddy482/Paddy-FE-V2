@@ -48,7 +48,7 @@ export const PaddyReportModal: React.FC<PaddyReportModalProps> = ({ onClose }) =
       filtered = filtered.filter(item => new Date(item.date) <= new Date(endDate));
     }
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(item => item.status.toLowerCase() === statusFilter.toLowerCase());
+      filtered = filtered.filter(item => item.status?.toLowerCase() === statusFilter.toLowerCase());
     }
     if (dealerFilter !== 'all') {
       filtered = filtered.filter(item => item.dealer === dealerFilter);
@@ -71,8 +71,8 @@ export const PaddyReportModal: React.FC<PaddyReportModalProps> = ({ onClose }) =
     }
 
     const uniqueLorries = new Set(filteredData.map(d => d.lorryNumber)).size;
-    const totalAmount = filteredData.reduce((sum, d) => sum + d.finalAmount, 0);
-    const totalWeight = filteredData.reduce((sum, d) => sum + d.netWeight, 0);
+    const totalAmount = filteredData.reduce((sum, d) => sum + (d.finalAmount || 0), 0);
+    const totalWeight = filteredData.reduce((sum, d) => sum + (d.netWeight || 0), 0);
 
     doc.setFontSize(10);
     doc.text(`Total Unique Lorries: ${uniqueLorries}`, 14, 42);
@@ -81,13 +81,13 @@ export const PaddyReportModal: React.FC<PaddyReportModalProps> = ({ onClose }) =
 
     const tableData = filteredData.map(item => [
       new Date(item.date).toLocaleDateString('en-IN'),
-      item.lorryNumber,
-      item.dealer,
-      item.variety,
-      item.netWeight.toLocaleString(),
-      item.rate.toLocaleString(),
-      item.finalAmount.toLocaleString(),
-      item.status
+      item.lorryNumber || 'N/A',
+      item.dealer || 'N/A',
+      item.variety || 'N/A',
+      (item.netWeight || 0).toLocaleString(),
+      (item.rate || 0).toLocaleString(),
+      (item.finalAmount || 0).toLocaleString(),
+      item.status || 'N/A'
     ]);
 
     autoTable(doc, {
@@ -193,13 +193,13 @@ export const PaddyReportModal: React.FC<PaddyReportModalProps> = ({ onClose }) =
                 <div className="bg-green-50 p-4 rounded-lg">
                   <p className="text-sm text-green-600 font-medium">Total Weight</p>
                   <p className="text-2xl font-bold text-green-900">
-                    {filteredData.reduce((sum, d) => sum + d.netWeight, 0).toLocaleString()} kg
+                    {filteredData.reduce((sum, d) => sum + (d.netWeight || 0), 0).toLocaleString()} kg
                   </p>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <p className="text-sm text-purple-600 font-medium">Total Amount</p>
                   <p className="text-2xl font-bold text-purple-900">
-                    ₹{filteredData.reduce((sum, d) => sum + d.finalAmount, 0).toLocaleString()}
+                    ₹{filteredData.reduce((sum, d) => sum + (d.finalAmount || 0), 0).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -224,19 +224,19 @@ export const PaddyReportModal: React.FC<PaddyReportModalProps> = ({ onClose }) =
                         <td className="px-4 py-3 text-sm text-gray-900">
                           {new Date(item.date).toLocaleDateString('en-IN')}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.lorryNumber}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.dealer}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.variety}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.netWeight.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">₹{item.rate.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">₹{item.finalAmount.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{item.lorryNumber || 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{item.dealer || 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{item.variety || 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{(item.netWeight || 0).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">₹{(item.rate || 0).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">₹{(item.finalAmount || 0).toLocaleString()}</td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs ${
-                            item.status.toLowerCase() === 'completed'
+                            item.status?.toLowerCase() === 'completed'
                               ? 'bg-green-100 text-green-800'
                               : 'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {item.status}
+                            {item.status || 'N/A'}
                           </span>
                         </td>
                       </tr>
