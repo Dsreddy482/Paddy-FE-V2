@@ -12,6 +12,7 @@ import Loading from './pages/Loading';
 import Amali from './pages/Amali';
 import PaddyFields from './pages/PaddyFields';
 import InventoryManagement from './pages/InventoryManagement';
+import { Reports } from './pages/Reports';
 
 function App() {
   const token = useAuthStore((state) => state.token);
@@ -82,6 +83,14 @@ function App() {
           element={
             <ProtectedRoute>
               <InventoryManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
             </ProtectedRoute>
           }
         />

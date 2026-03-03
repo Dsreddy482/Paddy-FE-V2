@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LogOut, User, Sprout, Users, Search, Menu, FileText, Truck, UserCog, MapPin, Package, Home, ChevronDown } from 'lucide-react';
+import { LogOut, User, Sprout, Users, Search, Menu, FileText, Truck, UserCog, MapPin, Package, Home, ChevronDown, BarChart3 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { UserSearch } from './UserSearch';
@@ -39,6 +39,7 @@ export const Header: React.FC = () => {
     { path: '/users', icon: Users, label: 'Users' },
     { path: '/fields', icon: MapPin, label: 'Fields' },
     { path: '/inventory', icon: Package, label: 'Inventory' },
+    { path: '/reports', icon: BarChart3, label: 'Reports' },
   ];
 
   const operationsItems = [
