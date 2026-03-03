@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Plus, Edit, Trash2, TrendingUp, TrendingDown, History, Search, AlertTriangle, UserPlus, DollarSign, Wallet } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, TrendingUp, TrendingDown, History, Search, AlertTriangle, UserPlus, DollarSign, Wallet, Clock, CheckCircle } from 'lucide-react';
 import Header from '../components/Header';
 import Alert from '../components/Alert';
 import AddInventoryItemModal from '../components/AddInventoryItemModal';
@@ -8,8 +8,9 @@ import StockTransactionModal from '../components/StockTransactionModal';
 import StockHistoryModal from '../components/StockHistoryModal';
 import AllocateInventoryModal from '../components/AllocateInventoryModal';
 import AllocationHistoryModal from '../components/AllocationHistoryModal';
+import CollectPaymentModal from '../components/CollectPaymentModal';
 import { inventoryService } from '../services/inventory';
-import type { InventoryItem, CreateInventoryItemData, UpdateInventoryItemData, CreateStockTransactionData, CreateInventoryAllocationData } from '../types/inventory';
+import type { InventoryItem, CreateInventoryItemData, UpdateInventoryItemData, CreateStockTransactionData, CreateInventoryAllocationData, StockTransactionWithItem, UpdatePaymentStatusData } from '../types/inventory';
 import { INVENTORY_CATEGORIES } from '../types/inventory';
 
 export default function InventoryManagement() {
@@ -23,11 +24,15 @@ export default function InventoryManagement() {
   const [historyItem, setHistoryItem] = useState<InventoryItem | null>(null);
   const [allocateItem, setAllocateItem] = useState<InventoryItem | null>(null);
   const [allocationHistoryItem, setAllocationHistoryItem] = useState<InventoryItem | null>(null);
+  const [pendingCollections, setPendingCollections] = useState<StockTransactionWithItem[]>([]);
+  const [selectedCollection, setSelectedCollection] = useState<StockTransactionWithItem | null>(null);
+  const [showPendingCollections, setShowPendingCollections] = useState(false);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
     loadItems();
+    loadPendingCollections();
   }, []);
 
   useEffect(() => {
@@ -42,6 +47,15 @@ export default function InventoryManagement() {
       setAlert({ type: 'error', message: 'Failed to load inventory items' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPendingCollections = async () => {
+    try {
+      const data = await inventoryService.getPendingCollections();
+      setPendingCollections(data);
+    } catch (error) {
+      console.error('Failed to load pending collections:', error);
     }
   };
 
@@ -122,11 +136,26 @@ export default function InventoryManagement() {
     }
   };
 
+  const handleCollectPayment = async (paymentData: UpdatePaymentStatusData) => {
+    try {
+      await inventoryService.updatePaymentStatus(paymentData);
+      setAlert({ type: 'success', message: 'Payment collected successfully' });
+      await loadItems();
+      await loadPendingCollections();
+    } catch (error) {
+      throw new Error('Failed to record payment');
+    }
+  };
+
   const lowStockItems = items.filter(item => item.current_stock <= item.minimum_stock && item.status === 'active');
 
   const totalInvestment = items.reduce((sum, item) => sum + (item.total_investment || 0), 0);
   const totalCollected = items.reduce((sum, item) => sum + (item.total_collected || 0), 0);
   const totalProfit = totalCollected - totalInvestment;
+
+  const totalPendingAmount = pendingCollections.reduce((sum, collection) =>
+    sum + (collection.total_amount - collection.amount_collected), 0
+  );
 
   const getStockStatus = (item: InventoryItem) => {
     if (item.current_stock === 0) return 'out-of-stock';
@@ -243,6 +272,106 @@ export default function InventoryManagement() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {pendingCollections.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Clock className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Pending Collections</h3>
+                    <p className="text-sm text-gray-600">
+                      {pendingCollections.length} transaction{pendingCollections.length !== 1 ? 's' : ''} awaiting payment
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Total Pending</p>
+                  <p className="text-2xl font-bold text-orange-600">₹{totalPendingAmount.toFixed(2)}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowPendingCollections(!showPendingCollections)}
+                className="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                {showPendingCollections ? 'Hide Details' : 'Show Details'}
+              </button>
+
+              {showPendingCollections && (
+                <div className="mt-4 space-y-3">
+                  {pendingCollections.map((collection) => {
+                    const remainingAmount = collection.total_amount - collection.amount_collected;
+                    return (
+                      <div
+                        key={collection.id}
+                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-semibold text-gray-900">{collection.item_name}</h4>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                                collection.payment_status === 'partial'
+                                  ? 'bg-orange-100 text-orange-700'
+                                  : 'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {collection.payment_status === 'partial' ? 'Partial' : 'Pending'}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <span className="text-gray-600">Quantity:</span>
+                                <span className="ml-2 font-medium">{collection.quantity}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Price/Unit:</span>
+                                <span className="ml-2 font-medium">₹{collection.amount_per_unit.toFixed(2)}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Total Amount:</span>
+                                <span className="ml-2 font-semibold">₹{collection.total_amount.toFixed(2)}</span>
+                              </div>
+                              {collection.payment_status === 'partial' && (
+                                <div>
+                                  <span className="text-gray-600">Already Collected:</span>
+                                  <span className="ml-2 font-medium text-green-600">₹{collection.amount_collected.toFixed(2)}</span>
+                                </div>
+                              )}
+                              <div className="col-span-2">
+                                <span className="text-gray-600">Remaining:</span>
+                                <span className="ml-2 font-bold text-orange-600">₹{remainingAmount.toFixed(2)}</span>
+                              </div>
+                              <div className="col-span-2 text-xs text-gray-500">
+                                {new Date(collection.transaction_date).toLocaleString('en-IN', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setSelectedCollection(collection)}
+                            className="ml-4 flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 whitespace-nowrap"
+                          >
+                            <DollarSign className="w-4 h-4" />
+                            Collect
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -441,6 +570,14 @@ export default function InventoryManagement() {
         <AllocationHistoryModal
           item={allocationHistoryItem}
           onClose={() => setAllocationHistoryItem(null)}
+        />
+      )}
+
+      {selectedCollection && (
+        <CollectPaymentModal
+          transaction={selectedCollection}
+          onClose={() => setSelectedCollection(null)}
+          onSubmit={handleCollectPayment}
         />
       )}
     </div>
