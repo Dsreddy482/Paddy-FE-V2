@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LogOut, User, Sprout, Users, Search, Menu, FileText, Truck, UserCog, MapPin, Package, Home, ChevronDown, BarChart3 } from 'lucide-react';
+import { LogOut, User, Sprout, Users, Search, Menu, FileText, Truck, UserCog, MapPin, Package, Home, ChevronDown, BarChart3, Wallet, TrendingUp, Zap } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { UserSearch } from './UserSearch';
@@ -10,10 +10,12 @@ export const Header: React.FC = () => {
   const { user, logout } = useAuthStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOperationsDropdownOpen, setIsOperationsDropdownOpen] = useState(false);
+  const [isLedgerDropdownOpen, setIsLedgerDropdownOpen] = useState(false);
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const operationsDropdownRef = useRef<HTMLDivElement>(null);
+  const ledgerDropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     logout();
@@ -27,6 +29,9 @@ export const Header: React.FC = () => {
       }
       if (operationsDropdownRef.current && !operationsDropdownRef.current.contains(event.target as Node)) {
         setIsOperationsDropdownOpen(false);
+      }
+      if (ledgerDropdownRef.current && !ledgerDropdownRef.current.contains(event.target as Node)) {
+        setIsLedgerDropdownOpen(false);
       }
     };
 
@@ -46,10 +51,20 @@ export const Header: React.FC = () => {
     { path: '/paddy', icon: FileText, label: 'Paddy' },
     { path: '/loading', icon: Truck, label: 'Loading' },
     { path: '/amali', icon: UserCog, label: 'Amali' },
+    { path: '/lorry-management', icon: Truck, label: 'Lorry Management' },
+    { path: '/quick-entry', icon: Zap, label: 'Quick Entry' },
+  ];
+
+  const ledgerItems = [
+    { path: '/farmer-ledger', icon: Wallet, label: 'Farmer Ledger' },
+    { path: '/dealer-ledger', icon: TrendingUp, label: 'Dealer Ledger' },
+    { path: '/amali-ledger', icon: Users, label: 'Amali Ledger' },
+    { path: '/smart-reports', icon: BarChart3, label: 'Smart Reports' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
   const isOperationsActive = operationsItems.some(item => location.pathname === item.path);
+  const isLedgerActive = ledgerItems.some(item => location.pathname === item.path);
 
   return (
     <>
@@ -103,13 +118,49 @@ export const Header: React.FC = () => {
                 </button>
 
                 {isOperationsDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-48 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 overflow-hidden z-50">
+                  <div className="absolute left-0 mt-2 w-56 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 overflow-hidden z-50">
                     {operationsItems.map((item) => (
                       <button
                         key={item.path}
                         onClick={() => {
                           navigate(item.path);
                           setIsOperationsDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center px-4 py-3 text-sm transition-colors ${
+                          isActive(item.path)
+                            ? 'bg-green-50 text-green-700 font-medium'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4 mr-3" />
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="relative" ref={ledgerDropdownRef}>
+                <button
+                  onClick={() => setIsLedgerDropdownOpen(!isLedgerDropdownOpen)}
+                  className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isLedgerActive
+                      ? 'bg-white text-green-700 shadow-md'
+                      : 'text-white hover:bg-green-500'
+                  }`}
+                >
+                  Ledgers
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </button>
+
+                {isLedgerDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-56 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 overflow-hidden z-50">
+                    {ledgerItems.map((item) => (
+                      <button
+                        key={item.path}
+                        onClick={() => {
+                          navigate(item.path);
+                          setIsLedgerDropdownOpen(false);
                         }}
                         className={`w-full flex items-center px-4 py-3 text-sm transition-colors ${
                           isActive(item.path)
@@ -193,6 +244,29 @@ export const Header: React.FC = () => {
                   Operations
                 </p>
                 {operationsItems.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => {
+                      navigate(item.path);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full text-left flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                      isActive(item.path)
+                        ? 'bg-white text-green-700 shadow-md'
+                        : 'text-white hover:bg-green-500'
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5 mr-3" />
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="border-t border-green-500 my-2 pt-2">
+                <p className="px-4 py-2 text-xs font-semibold text-green-200 uppercase tracking-wider">
+                  Ledgers & Reports
+                </p>
+                {ledgerItems.map((item) => (
                   <button
                     key={item.path}
                     onClick={() => {

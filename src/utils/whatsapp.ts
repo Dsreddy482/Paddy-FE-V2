@@ -91,3 +91,64 @@ export const formatUserSummaryForWhatsApp = (
 
   return message;
 };
+
+export const formatFarmerPaymentNotification = (
+  farmerName: string,
+  bags: number,
+  weight: number,
+  totalAmount: number,
+  paidAmount: number,
+  balanceAmount: number
+) => {
+  let message = `*Farmer Payment Notification*\n\n`;
+  message += `👤 Dear ${farmerName},\n\n`;
+  message += `Your paddy has been loaded successfully.\n\n`;
+  message += `📦 Bags: ${bags}\n`;
+  message += `⚖️ Weight: ${weight} kg\n`;
+  message += `💰 Total Amount: ₹${totalAmount.toLocaleString()}\n`;
+  message += `✅ Paid: ₹${paidAmount.toLocaleString()}\n`;
+  message += `⏳ Balance: ₹${balanceAmount.toLocaleString()}\n\n`;
+  message += `Thank you for your business!\n`;
+
+  return message;
+};
+
+export const formatDealerPaymentNotification = (
+  dealerName: string,
+  lorryNumber: string,
+  bags: number,
+  totalAmount: number,
+  receivedAmount: number,
+  pendingAmount: number
+) => {
+  let message = `*Dealer Payment Received*\n\n`;
+  message += `👤 Dear ${dealerName},\n\n`;
+  message += `Payment received for:\n\n`;
+  message += `🚛 Lorry: ${lorryNumber}\n`;
+  message += `📦 Bags: ${bags}\n`;
+  message += `💰 Total Amount: ₹${totalAmount.toLocaleString()}\n`;
+  message += `✅ Received: ₹${receivedAmount.toLocaleString()}\n`;
+  message += `⏳ Pending: ₹${pendingAmount.toLocaleString()}\n\n`;
+  message += `Thank you for your payment!\n`;
+
+  return message;
+};
+
+export const formatAmaliPaymentNotification = (
+  amaliName: string,
+  bags: number,
+  totalAmount: number,
+  paidAmount: number,
+  pendingAmount: number
+) => {
+  let message = `*Amali Payment Notification*\n\n`;
+  message += `👤 Dear ${amaliName},\n\n`;
+  message += `Payment details:\n\n`;
+  message += `📦 Bags Loaded: ${bags}\n`;
+  message += `💰 Total Amount: ₹${totalAmount.toLocaleString()}\n`;
+  message += `✅ Paid: ₹${paidAmount.toLocaleString()}\n`;
+  message += `⏳ Pending: ₹${pendingAmount.toLocaleString()}\n\n`;
+  message += `Thank you for your service!\n`;
+
+  return message;
+};

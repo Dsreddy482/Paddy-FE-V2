@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Truck, IndianRupee, Clock } from 'lucide-react';
+import { TrendingUp, Truck, IndianRupee, Clock, Package, Users, DollarSign, TrendingDown } from 'lucide-react';
 import { paddyService } from '../services/Paddy';
 import { PaddyEntryDetails } from '../types/paddy';
 import { Header } from '../components/Header';
+import { commissionService } from '../services/commission';
+import { CommissionSummary } from '../types/commission';
 
 export const Dashboard: React.FC = () => {
   const [paddyStats, setPaddyStats] = useState<{
@@ -12,6 +14,11 @@ export const Dashboard: React.FC = () => {
     totalAmount: number;
     pendingAmount: number;
     receivedAmount: number;
+    todayBags: number;
+    todayWeight: number;
+    farmerPayable: number;
+    dealerReceivable: number;
+    amaliPayable: number;
     vendorStats: Array<{
       name: string;
       totalLorries: number;
@@ -24,24 +31,59 @@ export const Dashboard: React.FC = () => {
     totalAmount: 0,
     pendingAmount: 0,
     receivedAmount: 0,
+    todayBags: 0,
+    todayWeight: 0,
+    farmerPayable: 0,
+    dealerReceivable: 0,
+    amaliPayable: 0,
     vendorStats: []
   });
 
+  const [commissionData, setCommissionData] = useState<CommissionSummary>({
+    todayCommission: 0,
+    monthlyCommission: 0,
+    totalCommission: 0,
+    todayBags: 0,
+    monthlyBags: 0,
+    totalBags: 0,
+    transactions: []
+  });
+
   useEffect(() => {
-    const fetchPaddyStats = async () => {
+    const fetchData = async () => {
       try {
-        const entries = await paddyService.getAllPaddyEntries();
+        const [entries, commission] = await Promise.all([
+          paddyService.getAllPaddyEntries(),
+          commissionService.getCommissionSummary().catch(() => ({
+            todayCommission: 0,
+            monthlyCommission: 0,
+            totalCommission: 0,
+            todayBags: 0,
+            monthlyBags: 0,
+            totalBags: 0,
+            transactions: []
+          }))
+        ]);
         calculateStats(entries);
+        setCommissionData(commission);
       } catch (error) {
-        console.error('Failed to fetch paddy statistics:', error);
+        console.error('Failed to fetch dashboard statistics:', error);
       }
     };
 
-    fetchPaddyStats();
+    fetchData();
   }, []);
 
   const calculateStats = (entries: PaddyEntryDetails[]) => {
-    // Get unique lorry numbers
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayEntries = entries.filter(e => {
+      const entryDate = new Date(e.loadedDate);
+      entryDate.setHours(0, 0, 0, 0);
+      return entryDate.getTime() === today.getTime();
+    });
+
     const uniqueLorryNumbers = new Set(entries.map(e => e.lorryNumber));
     const completedLorryNumbers = new Set(
       entries
@@ -54,7 +96,6 @@ export const Dashboard: React.FC = () => {
         .map(e => e.lorryNumber)
     );
 
-    // Calculate vendor stats with unique lorry numbers
     const vendorStatsMap = entries.reduce((acc: { [key: string]: { name: string; lorryNumbers: Set<string>; amount: number } }, entry) => {
       if (!acc[entry.dealer]) {
         acc[entry.dealer] = {
@@ -79,6 +120,11 @@ export const Dashboard: React.FC = () => {
       receivedAmount: entries
         .filter(e => e.status.toLowerCase() === 'completed')
         .reduce((sum, e) => sum + e.finalAmount, 0),
+      todayBags: todayEntries.reduce((sum, e) => sum + e.bags, 0),
+      todayWeight: todayEntries.reduce((sum, e) => sum + (e.totalWeight || 0), 0),
+      farmerPayable: entries.reduce((sum, e) => sum + e.finalAmount, 0),
+      dealerReceivable: entries.reduce((sum, e) => sum + (e.dealerFinalAmount || 0), 0),
+      amaliPayable: 0,
       vendorStats: Object.values(vendorStatsMap).map(vendor => ({
         name: vendor.name,
         totalLorries: vendor.lorryNumbers.size,
@@ -101,6 +147,60 @@ export const Dashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
+                  <p className="text-sm font-medium text-gray-500">Today's Bags</p>
+                  <p className="text-2xl font-bold text-gray-900">{paddyStats.todayBags}</p>
+                </div>
+                <Package className="h-8 w-8 text-blue-500" />
+              </div>
+              <div className="mt-4 text-sm text-gray-600">
+                Weight: {paddyStats.todayWeight} kg
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Today's Commission</p>
+                  <p className="text-2xl font-bold text-green-600">₹{commissionData.todayCommission.toLocaleString()}</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-green-500" />
+              </div>
+              <div className="mt-4 text-sm text-gray-600">
+                Monthly: ₹{commissionData.monthlyCommission.toLocaleString()}
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Farmer Payable</p>
+                  <p className="text-2xl font-bold text-red-600">₹{paddyStats.farmerPayable.toLocaleString()}</p>
+                </div>
+                <TrendingDown className="h-8 w-8 text-red-500" />
+              </div>
+              <div className="mt-4 text-sm text-gray-600">
+                Pending payments
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Dealer Receivable</p>
+                  <p className="text-2xl font-bold text-green-600">₹{paddyStats.dealerReceivable.toLocaleString()}</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-green-500" />
+              </div>
+              <div className="mt-4 text-sm text-gray-600">
+                Expected collections
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
                   <p className="text-sm font-medium text-gray-500">Unique Lorries</p>
                   <p className="text-2xl font-bold text-gray-900">{paddyStats.totalLorries}</p>
                 </div>
@@ -115,58 +215,41 @@ export const Dashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total Amount</p>
-                  <p className="text-2xl font-bold text-gray-900">₹{paddyStats.totalAmount.toLocaleString()}</p>
+                  <p className="text-sm font-medium text-gray-500">Total Commission</p>
+                  <p className="text-2xl font-bold text-green-600">₹{commissionData.totalCommission.toLocaleString()}</p>
                 </div>
                 <IndianRupee className="h-8 w-8 text-green-500" />
               </div>
-              <div className="mt-4 flex justify-between text-sm">
-                <span className="text-green-600">₹{paddyStats.receivedAmount.toLocaleString()} Received</span>
-                <span className="text-yellow-600">₹{paddyStats.pendingAmount.toLocaleString()} Pending</span>
+              <div className="mt-4 text-sm text-gray-600">
+                Total bags: {commissionData.totalBags}
               </div>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Completion Rate</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {((paddyStats.completedLorries / paddyStats.totalLorries) * 100).toFixed(1)}%
+                  <p className="text-sm font-medium text-gray-500">Amali Payable</p>
+                  <p className="text-2xl font-bold text-red-600">₹{paddyStats.amaliPayable.toLocaleString()}</p>
+                </div>
+                <Users className="h-8 w-8 text-orange-500" />
+              </div>
+              <div className="mt-4 text-sm text-gray-600">
+                Labor payments pending
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Net Profit</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    ₹{(commissionData.totalCommission - paddyStats.amaliPayable).toLocaleString()}
                   </p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-500" />
               </div>
-              <div className="mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full"
-                    style={{
-                      width: `${(paddyStats.completedLorries / paddyStats.totalLorries) * 100}%`
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Payment Status</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {((paddyStats.receivedAmount / paddyStats.totalAmount) * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <Clock className="h-8 w-8 text-green-500" />
-              </div>
-              <div className="mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full"
-                    style={{
-                      width: `${(paddyStats.receivedAmount / paddyStats.totalAmount) * 100}%`
-                    }}
-                  />
-                </div>
+              <div className="mt-4 text-sm text-gray-600">
+                Commission - Amali
               </div>
             </div>
           </div>

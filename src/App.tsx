@@ -13,6 +13,12 @@ import Amali from './pages/Amali';
 import PaddyFields from './pages/PaddyFields';
 import InventoryManagement from './pages/InventoryManagement';
 import { Reports } from './pages/Reports';
+import { FarmerLedger } from './pages/FarmerLedger';
+import { DealerLedger } from './pages/DealerLedger';
+import { AmaliLedger } from './pages/AmaliLedger';
+import { LorryManagement } from './pages/LorryManagement';
+import { SmartReports } from './pages/SmartReports';
+import { QuickEntry } from './pages/QuickEntry';
 
 function App() {
   const token = useAuthStore((state) => state.token);
@@ -91,6 +97,54 @@ function App() {
           element={
             <ProtectedRoute>
               <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/farmer-ledger"
+          element={
+            <ProtectedRoute>
+              <FarmerLedger />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dealer-ledger"
+          element={
+            <ProtectedRoute>
+              <DealerLedger />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/amali-ledger"
+          element={
+            <ProtectedRoute>
+              <AmaliLedger />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lorry-management"
+          element={
+            <ProtectedRoute>
+              <LorryManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/smart-reports"
+          element={
+            <ProtectedRoute>
+              <SmartReports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quick-entry"
+          element={
+            <ProtectedRoute>
+              <QuickEntry />
             </ProtectedRoute>
           }
         />

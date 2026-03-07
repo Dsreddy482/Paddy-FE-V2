@@ -12,6 +12,9 @@ export interface PaddyEntry {
     dealerBagAmount: number;
     loadingId?: string;
     loadType?: string;
+    farmerPricePerBag?: number;
+    commissionPerBag?: number;
+    totalCommission?: number;
   }
 
   export interface PaddyEntryDetails {
@@ -31,8 +34,12 @@ export interface PaddyEntry {
     dealerBagAmount:number;
     dealerFinalAmount:number;
     dealerId: string;
+    rythuId?: string;
     rythuPhone?: string;
     dealerPhone?: string;
     loadType?: string;
     loadingId?: string;
+    farmerPricePerBag?: number;
+    commissionPerBag?: number;
+    totalCommission?: number;
   }
