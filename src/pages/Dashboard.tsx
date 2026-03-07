@@ -3,8 +3,8 @@ import { TrendingUp, Truck, IndianRupee, Clock, Package, Users, DollarSign, Tren
 import { paddyService } from '../services/Paddy';
 import { PaddyEntryDetails } from '../types/paddy';
 import { Header } from '../components/Header';
-import { commissionService } from '../services/commission';
-import { CommissionSummary } from '../types/commission';
+import { paymentService } from '../services/payment';
+import { FarmerLedger, DealerLedger } from '../types/payment';
 
 export const Dashboard: React.FC = () => {
   const [paddyStats, setPaddyStats] = useState<{
@@ -16,9 +16,6 @@ export const Dashboard: React.FC = () => {
     receivedAmount: number;
     todayBags: number;
     todayWeight: number;
-    farmerPayable: number;
-    dealerReceivable: number;
-    amaliPayable: number;
     vendorStats: Array<{
       name: string;
       totalLorries: number;
@@ -33,39 +30,26 @@ export const Dashboard: React.FC = () => {
     receivedAmount: 0,
     todayBags: 0,
     todayWeight: 0,
-    farmerPayable: 0,
-    dealerReceivable: 0,
-    amaliPayable: 0,
     vendorStats: []
   });
 
-  const [commissionData, setCommissionData] = useState<CommissionSummary>({
-    todayCommission: 0,
-    monthlyCommission: 0,
-    totalCommission: 0,
-    todayBags: 0,
-    monthlyBags: 0,
-    totalBags: 0,
-    transactions: []
+  const [paymentStats, setPaymentStats] = useState({
+    farmerTotalPaid: 0,
+    farmerBalanceDue: 0,
+    dealerTotalReceived: 0,
+    dealerPendingAmount: 0
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [entries, commission] = await Promise.all([
+        const [entries, farmerLedgers, dealerLedgers] = await Promise.all([
           paddyService.getAllPaddyEntries(),
-          commissionService.getCommissionSummary().catch(() => ({
-            todayCommission: 0,
-            monthlyCommission: 0,
-            totalCommission: 0,
-            todayBags: 0,
-            monthlyBags: 0,
-            totalBags: 0,
-            transactions: []
-          }))
+          paymentService.getAllFarmerLedgers().catch(() => []),
+          paymentService.getAllDealerLedgers().catch(() => [])
         ]);
         calculateStats(entries);
-        setCommissionData(commission);
+        calculatePaymentStats(farmerLedgers, dealerLedgers);
       } catch (error) {
         console.error('Failed to fetch dashboard statistics:', error);
       }
@@ -122,9 +106,6 @@ export const Dashboard: React.FC = () => {
         .reduce((sum, e) => sum + e.finalAmount, 0),
       todayBags: todayEntries.reduce((sum, e) => sum + e.bags, 0),
       todayWeight: todayEntries.reduce((sum, e) => sum + (e.totalWeight || 0), 0),
-      farmerPayable: entries.reduce((sum, e) => sum + e.finalAmount, 0),
-      dealerReceivable: entries.reduce((sum, e) => sum + (e.dealerFinalAmount || 0), 0),
-      amaliPayable: 0,
       vendorStats: Object.values(vendorStatsMap).map(vendor => ({
         name: vendor.name,
         totalLorries: vendor.lorryNumbers.size,
@@ -133,6 +114,20 @@ export const Dashboard: React.FC = () => {
     };
 
     setPaddyStats(stats);
+  };
+
+  const calculatePaymentStats = (farmerLedgers: FarmerLedger[], dealerLedgers: DealerLedger[]) => {
+    const farmerTotalPaid = farmerLedgers.reduce((sum, ledger) => sum + ledger.totalPaid, 0);
+    const farmerBalanceDue = farmerLedgers.reduce((sum, ledger) => sum + ledger.pendingBalance, 0);
+    const dealerTotalReceived = dealerLedgers.reduce((sum, ledger) => sum + ledger.totalReceived, 0);
+    const dealerPendingAmount = dealerLedgers.reduce((sum, ledger) => sum + ledger.pendingAmount, 0);
+
+    setPaymentStats({
+      farmerTotalPaid,
+      farmerBalanceDue,
+      dealerTotalReceived,
+      dealerPendingAmount
+    });
   };
 
   return (
@@ -160,21 +155,21 @@ export const Dashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Today's Commission</p>
-                  <p className="text-2xl font-bold text-green-600">₹{commissionData.todayCommission.toLocaleString()}</p>
+                  <p className="text-sm font-medium text-gray-500">Paid to Farmers</p>
+                  <p className="text-2xl font-bold text-green-600">₹{paymentStats.farmerTotalPaid.toLocaleString()}</p>
                 </div>
                 <DollarSign className="h-8 w-8 text-green-500" />
               </div>
               <div className="mt-4 text-sm text-gray-600">
-                Monthly: ₹{commissionData.monthlyCommission.toLocaleString()}
+                Till date payments
               </div>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Farmer Payable</p>
-                  <p className="text-2xl font-bold text-red-600">₹{paddyStats.farmerPayable.toLocaleString()}</p>
+                  <p className="text-sm font-medium text-gray-500">Balance Due to Farmers</p>
+                  <p className="text-2xl font-bold text-red-600">₹{paymentStats.farmerBalanceDue.toLocaleString()}</p>
                 </div>
                 <TrendingDown className="h-8 w-8 text-red-500" />
               </div>
@@ -186,13 +181,13 @@ export const Dashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Dealer Receivable</p>
-                  <p className="text-2xl font-bold text-green-600">₹{paddyStats.dealerReceivable.toLocaleString()}</p>
+                  <p className="text-sm font-medium text-gray-500">Received from Dealers</p>
+                  <p className="text-2xl font-bold text-green-600">₹{paymentStats.dealerTotalReceived.toLocaleString()}</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-500" />
               </div>
               <div className="mt-4 text-sm text-gray-600">
-                Expected collections
+                Till date collections
               </div>
             </div>
           </div>
@@ -201,10 +196,23 @@ export const Dashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
+                  <p className="text-sm font-medium text-gray-500">Pending from Dealers</p>
+                  <p className="text-2xl font-bold text-orange-600">₹{paymentStats.dealerPendingAmount.toLocaleString()}</p>
+                </div>
+                <Clock className="h-8 w-8 text-orange-500" />
+              </div>
+              <div className="mt-4 text-sm text-gray-600">
+                Amount to be collected
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
                   <p className="text-sm font-medium text-gray-500">Unique Lorries</p>
                   <p className="text-2xl font-bold text-gray-900">{paddyStats.totalLorries}</p>
                 </div>
-                <Truck className="h-8 w-8 text-green-500" />
+                <Truck className="h-8 w-8 text-blue-500" />
               </div>
               <div className="mt-4 flex justify-between text-sm">
                 <span className="text-green-600">{paddyStats.completedLorries} Completed</span>
@@ -215,41 +223,28 @@ export const Dashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total Commission</p>
-                  <p className="text-2xl font-bold text-green-600">₹{commissionData.totalCommission.toLocaleString()}</p>
+                  <p className="text-sm font-medium text-gray-500">Total Amount</p>
+                  <p className="text-2xl font-bold text-gray-900">₹{paddyStats.totalAmount.toLocaleString()}</p>
                 </div>
-                <IndianRupee className="h-8 w-8 text-green-500" />
+                <IndianRupee className="h-8 w-8 text-gray-500" />
               </div>
               <div className="mt-4 text-sm text-gray-600">
-                Total bags: {commissionData.totalBags}
+                All transactions
               </div>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Amali Payable</p>
-                  <p className="text-2xl font-bold text-red-600">₹{paddyStats.amaliPayable.toLocaleString()}</p>
-                </div>
-                <Users className="h-8 w-8 text-orange-500" />
-              </div>
-              <div className="mt-4 text-sm text-gray-600">
-                Labor payments pending
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Net Profit</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    ₹{(commissionData.totalCommission - paddyStats.amaliPayable).toLocaleString()}
+                  <p className="text-sm font-medium text-gray-500">Cash Flow</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    ₹{(paymentStats.dealerTotalReceived - paymentStats.farmerTotalPaid).toLocaleString()}
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-green-500" />
+                <TrendingUp className="h-8 w-8 text-blue-500" />
               </div>
               <div className="mt-4 text-sm text-gray-600">
-                Commission - Amali
+                Net cash position
               </div>
             </div>
           </div>
