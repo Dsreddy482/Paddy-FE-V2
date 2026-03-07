@@ -78,26 +78,26 @@ export const DealerLedger: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Total Bags Purchased</span>
-                  <span className="font-semibold text-gray-900">{ledger.totalBags}</span>
+                  <span className="font-semibold text-gray-900">{ledger.totalBags || 0}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Total Receivable</span>
-                  <span className="font-semibold text-gray-900">₹{ledger.totalAmount.toLocaleString()}</span>
+                  <span className="font-semibold text-gray-900">₹{(ledger.totalAmount || 0).toLocaleString()}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Total Received</span>
-                  <span className="font-semibold text-green-600">₹{ledger.totalReceived.toLocaleString()}</span>
+                  <span className="font-semibold text-green-600">₹{(ledger.totalReceived || 0).toLocaleString()}</span>
                 </div>
 
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-sm font-medium text-gray-700">Pending Amount</span>
-                  <span className="font-bold text-red-600">₹{ledger.pendingAmount.toLocaleString()}</span>
+                  <span className="font-bold text-red-600">₹{(ledger.pendingAmount || 0).toLocaleString()}</span>
                 </div>
               </div>
 
-              {ledger.pendingAmount > 0 && (
+              {(ledger.pendingAmount || 0) > 0 && (
                 <button
                   onClick={() => handleAddPayment(ledger)}
                   className="mt-4 w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
@@ -107,7 +107,7 @@ export const DealerLedger: React.FC = () => {
                 </button>
               )}
 
-              {ledger.payments.length > 0 && (
+              {ledger.payments && ledger.payments.length > 0 && (
                 <div className="mt-4 pt-4 border-t">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Recent Payments</h4>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -117,7 +117,7 @@ export const DealerLedger: React.FC = () => {
                           {new Date(payment.paymentDate).toLocaleDateString()}
                         </span>
                         <span className="font-medium text-green-600">
-                          ₹{payment.receivedAmount.toLocaleString()}
+                          ₹{(payment.receivedAmount || 0).toLocaleString()}
                         </span>
                       </div>
                     ))}
