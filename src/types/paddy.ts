@@ -15,6 +15,7 @@ export interface PaddyEntry {
     farmerPricePerBag?: number;
     commissionPerBag?: number;
     totalCommission?: number;
+    season_id?: string;
   }
 
   export interface PaddyEntryDetails {
@@ -42,4 +43,5 @@ export interface PaddyEntry {
     farmerPricePerBag?: number;
     commissionPerBag?: number;
     totalCommission?: number;
+    season_id?: string;
   }

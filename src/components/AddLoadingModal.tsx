@@ -6,6 +6,7 @@ import { LoadingEntry } from '../types/loading';
 import { authService } from '../services/auth';
 import { User } from '../types/auth';
 import Alert from './Alert';
+import { useAuthStore } from '../store/authStore';
 
 interface AddLoadingModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { selectedSeason } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -74,12 +76,18 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
       return;
     }
 
+    if (!selectedSeason) {
+      setError('Please select a season from the header');
+      setLoading(false);
+      return;
+    }
+
     const loadingData: LoadingEntry = {
       loadedDate: formData.get('date') as string,
       lorryNumber: formData.get('lorryNumber') as string,
       dealerId: dealerId,
       amaliId: amaliUserId,
-      seasonId: 0,
+      season_id: selectedSeason.id,
     };
 
     try {

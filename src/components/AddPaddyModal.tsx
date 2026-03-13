@@ -6,6 +6,7 @@ import { authService } from '../services/auth';
 import { PaddyEntry, Dealer } from '../types/paddy';
 import { LoadingEntryDetails } from '../types/loading';
 import Alert from './Alert';
+import { useAuthStore } from '../store/authStore';
 
 interface AddPaddyModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
   loadingEntry,
   isRythuPage = false,
 }) => {
+  const { selectedSeason } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -89,6 +91,12 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       return;
     }
 
+    if (!selectedSeason) {
+      setError('Please select a season from the header');
+      setLoading(false);
+      return;
+    }
+
     const paddyData: PaddyEntry = {
       lorryNumber: loadingEntry?.lorryNumber || '',
       totalWeight: parseFloat(formData.get('weight') as string),
@@ -102,6 +110,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       rythuId: rythuId,
       loadingId: loadingId,
       loadType: formData.get('loadType') as string || 'potha',
+      season_id: selectedSeason.id,
     };
 
     try {

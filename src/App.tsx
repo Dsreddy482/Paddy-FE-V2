@@ -19,6 +19,7 @@ import { AmaliLedger } from './pages/AmaliLedger';
 import { LorryManagement } from './pages/LorryManagement';
 import { SmartReports } from './pages/SmartReports';
 import { QuickEntry } from './pages/QuickEntry';
+import { SeasonManagement } from './pages/SeasonManagement';
 
 function App() {
   const token = useAuthStore((state) => state.token);
@@ -145,6 +146,14 @@ function App() {
           element={
             <ProtectedRoute>
               <QuickEntry />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/seasons"
+          element={
+            <ProtectedRoute>
+              <SeasonManagement />
             </ProtectedRoute>
           }
         />
