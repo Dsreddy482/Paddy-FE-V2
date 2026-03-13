@@ -17,11 +17,11 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
 }) => {
   const currentYear = new Date().getFullYear();
   const [formData, setFormData] = useState({
-    year: currentYear,
-    season_number: '',
-    start_date: '',
-    end_date: '',
-    is_active: false,
+    Year: currentYear,
+    SeasonNumber: '',
+    StartDate: '',
+    EndDate: '',
+    IsActive: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,12 +32,12 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
     e.preventDefault();
     setError('');
 
-    if (!formData.season_number || !formData.start_date || !formData.end_date) {
+    if (!formData.SeasonNumber || !formData.StartDate || !formData.EndDate) {
       setError('Please fill in all required fields');
       return;
     }
 
-    if (new Date(formData.start_date) >= new Date(formData.end_date)) {
+    if (new Date(formData.StartDate) >= new Date(formData.EndDate)) {
       setError('End date must be after start date');
       return;
     }
@@ -46,18 +46,18 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
       setLoading(true);
       const seasonData: CreateSeasonData = {
         ...formData,
-        name: `${formData.year} - ${formData.season_number}`,
+        Name: `${formData.Year} - ${formData.SeasonNumber}`,
       };
 
       await seasonService.createSeason(seasonData);
       onSuccess();
       onClose();
       setFormData({
-        year: currentYear,
-        season_number: '',
-        start_date: '',
-        end_date: '',
-        is_active: false,
+        Year: currentYear,
+        SeasonNumber: '',
+        StartDate: '',
+        EndDate: '',
+        IsActive: false,
       });
     } catch (err: any) {
       setError(err.message || 'Failed to create season');
@@ -92,9 +92,9 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
             </label>
             <Input
               type="number"
-              value={formData.year}
+              value={formData.Year}
               onChange={(e) =>
-                setFormData({ ...formData, year: parseInt(e.target.value) })
+                setFormData({ ...formData, Year: parseInt(e.target.value) })
               }
               min={2000}
               max={2100}
@@ -108,9 +108,9 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
             </label>
             <Input
               type="text"
-              value={formData.season_number}
+              value={formData.SeasonNumber}
               onChange={(e) =>
-                setFormData({ ...formData, season_number: e.target.value })
+                setFormData({ ...formData, SeasonNumber: e.target.value })
               }
               placeholder="e.g., Yala, Maha, Season 1"
               maxLength={50}
@@ -124,9 +124,9 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
             </label>
             <Input
               type="date"
-              value={formData.start_date}
+              value={formData.StartDate}
               onChange={(e) =>
-                setFormData({ ...formData, start_date: e.target.value })
+                setFormData({ ...formData, StartDate: e.target.value })
               }
               required
             />
@@ -138,9 +138,9 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
             </label>
             <Input
               type="date"
-              value={formData.end_date}
+              value={formData.EndDate}
               onChange={(e) =>
-                setFormData({ ...formData, end_date: e.target.value })
+                setFormData({ ...formData, EndDate: e.target.value })
               }
               required
             />
@@ -150,9 +150,9 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
             <input
               type="checkbox"
               id="is_active"
-              checked={formData.is_active}
+              checked={formData.IsActive}
               onChange={(e) =>
-                setFormData({ ...formData, is_active: e.target.checked })
+                setFormData({ ...formData, IsActive: e.target.checked })
               }
               className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
             />

@@ -1,27 +1,27 @@
 export interface Season {
-  id: string;
-  name: string;
-  year: number;
-  season_number: string;
-  start_date: string;
-  end_date: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  Id: string;
+  Name: string;
+  Year: number;
+  SeasonNumber: string;
+  StartDate: string;
+  EndDate: string;
+  IsActive: boolean;
+  CreatedAt: string;
+  UpdatedAt: string;
 }
 
 export interface CreateSeasonData {
-  name: string;
-  year: number;
-  season_number: string;
-  start_date: string;
-  end_date: string;
-  is_active?: boolean;
+  Name: string;
+  Year: number;
+  SeasonNumber: string;
+  StartDate: string;
+  EndDate: string;
+  IsActive?: boolean;
 }
 
 export interface UpdateSeasonData {
-  name?: string;
-  start_date?: string;
-  end_date?: string;
-  is_active?: boolean;
+  Name?: string;
+  StartDate?: string;
+  EndDate?: string;
+  IsActive?: boolean;
 }
