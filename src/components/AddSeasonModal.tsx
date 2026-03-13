@@ -18,7 +18,7 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
   const currentYear = new Date().getFullYear();
   const [formData, setFormData] = useState({
     year: currentYear,
-    season_number: 1 as 1 | 2,
+    season_number: '',
     start_date: '',
     end_date: '',
     is_active: false,
@@ -32,7 +32,7 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
     e.preventDefault();
     setError('');
 
-    if (!formData.start_date || !formData.end_date) {
+    if (!formData.season_number || !formData.start_date || !formData.end_date) {
       setError('Please fill in all required fields');
       return;
     }
@@ -46,7 +46,7 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
       setLoading(true);
       const seasonData: CreateSeasonData = {
         ...formData,
-        name: `${formData.year} - Season ${formData.season_number}`,
+        name: `${formData.year} - ${formData.season_number}`,
       };
 
       await seasonService.createSeason(seasonData);
@@ -54,7 +54,7 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
       onClose();
       setFormData({
         year: currentYear,
-        season_number: 1,
+        season_number: '',
         start_date: '',
         end_date: '',
         is_active: false,
@@ -106,20 +106,16 @@ export const AddSeasonModal: React.FC<AddSeasonModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Season Number
             </label>
-            <select
+            <Input
+              type="text"
               value={formData.season_number}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  season_number: parseInt(e.target.value) as 1 | 2,
-                })
+                setFormData({ ...formData, season_number: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="e.g., Yala, Maha, Season 1"
+              maxLength={50}
               required
-            >
-              <option value={1}>Season 1</option>
-              <option value={2}>Season 2</option>
-            </select>
+            />
           </div>
 
           <div>

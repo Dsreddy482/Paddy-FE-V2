@@ -2,7 +2,7 @@ export interface Season {
   id: string;
   name: string;
   year: number;
-  season_number: 1 | 2;
+  season_number: string;
   start_date: string;
   end_date: string;
   is_active: boolean;
@@ -13,7 +13,7 @@ export interface Season {
 export interface CreateSeasonData {
   name: string;
   year: number;
-  season_number: 1 | 2;
+  season_number: string;
   start_date: string;
   end_date: string;
   is_active?: boolean;
