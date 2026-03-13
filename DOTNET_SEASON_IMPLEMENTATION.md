@@ -12,15 +12,14 @@ CREATE TABLE seasons (
     id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     name NVARCHAR(100) NOT NULL,
     year INT NOT NULL,
-    season_number INT NOT NULL,
+    season_number NVARCHAR(50) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     is_active BIT NOT NULL DEFAULT 0,
     created_at DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     updated_at DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT UQ_Season_Year_Number UNIQUE (year, season_number),
-    CONSTRAINT CHK_Season_Dates CHECK (end_date > start_date),
-    CONSTRAINT CHK_Season_Number CHECK (season_number BETWEEN 1 AND 4)
+    CONSTRAINT CHK_Season_Dates CHECK (end_date > start_date)
 );
 
 CREATE INDEX IX_Seasons_Active ON seasons(is_active) WHERE is_active = 1;
@@ -95,8 +94,8 @@ namespace PaddyManagement.Models
 
         [Required]
         [Column("season_number")]
-        [Range(1, 4)]
-        public int SeasonNumber { get; set; }
+        [StringLength(50)]
+        public string SeasonNumber { get; set; }
 
         [Required]
         [Column("start_date")]
@@ -139,8 +138,8 @@ namespace PaddyManagement.DTOs
         public int Year { get; set; }
 
         [Required]
-        [Range(1, 4)]
-        public int SeasonNumber { get; set; }
+        [StringLength(50)]
+        public string SeasonNumber { get; set; }
 
         [Required]
         public DateTime StartDate { get; set; }
@@ -159,8 +158,8 @@ namespace PaddyManagement.DTOs
         [Range(2000, 2100)]
         public int? Year { get; set; }
 
-        [Range(1, 4)]
-        public int? SeasonNumber { get; set; }
+        [StringLength(50)]
+        public string? SeasonNumber { get; set; }
 
         public DateTime? StartDate { get; set; }
 
@@ -174,7 +173,7 @@ namespace PaddyManagement.DTOs
         public Guid Id { get; set; }
         public string Name { get; set; }
         public int Year { get; set; }
-        public int SeasonNumber { get; set; }
+        public string SeasonNumber { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public bool IsActive { get; set; }
@@ -206,7 +205,7 @@ namespace PaddyManagement.Repositories
         Task<Season> UpdateAsync(Season season);
         Task<bool> DeleteAsync(Guid id);
         Task<Season> SetActiveAsync(Guid id);
-        Task<bool> ExistsAsync(int year, int seasonNumber);
+        Task<bool> ExistsAsync(int year, string seasonNumber);
     }
 }
 ```
@@ -325,7 +324,7 @@ namespace PaddyManagement.Repositories
             return season;
         }
 
-        public async Task<bool> ExistsAsync(int year, int seasonNumber)
+        public async Task<bool> ExistsAsync(int year, string seasonNumber)
         {
             return await _context.Seasons
                 .AnyAsync(s => s.Year == year && s.SeasonNumber == seasonNumber);
@@ -454,7 +453,7 @@ namespace PaddyManagement.Services
 
             if (dto.Name != null) season.Name = dto.Name;
             if (dto.Year.HasValue) season.Year = dto.Year.Value;
-            if (dto.SeasonNumber.HasValue) season.SeasonNumber = dto.SeasonNumber.Value;
+            if (dto.SeasonNumber != null) season.SeasonNumber = dto.SeasonNumber;
             if (dto.StartDate.HasValue) season.StartDate = dto.StartDate.Value;
             if (dto.EndDate.HasValue) season.EndDate = dto.EndDate.Value;
             if (dto.IsActive.HasValue) season.IsActive = dto.IsActive.Value;
@@ -821,7 +820,7 @@ POST /api/seasons
 {
   "name": "Yala 2024",
   "year": 2024,
-  "seasonNumber": 1,
+  "seasonNumber": "Yala",
   "startDate": "2024-04-01",
   "endDate": "2024-09-30",
   "isActive": true
@@ -849,7 +848,7 @@ DELETE /api/seasons/{id}
 
 3. **Date Validation**: End date must be after start date.
 
-4. **Season Numbers**: Valid range is 1-4 (representing different cultivation seasons in a year).
+4. **Season Numbers**: Text field up to 50 characters (e.g., "Yala", "Maha", "Season 1", etc.).
 
 5. **Delete Restriction**: Cannot delete a season that has associated loading or paddy records.
 
