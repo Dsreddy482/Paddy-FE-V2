@@ -1,49 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LogOut, User, Sprout, Users, Search, Menu, FileText, Truck, UserCog, MapPin, Package, Home, ChevronDown, BarChart3, Wallet, TrendingUp, Zap, Calendar } from 'lucide-react';
+import { LogOut, User, Sprout, Users, Search, Menu, FileText, Truck, UserCog, MapPin, Package, Home, ChevronDown, BarChart3, Wallet, TrendingUp, Zap } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { UserSearch } from './UserSearch';
-import { seasonService } from '../services/season';
-import { Season } from '../types/season';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, selectedSeason, setSelectedSeason } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOperationsDropdownOpen, setIsOperationsDropdownOpen] = useState(false);
   const [isLedgerDropdownOpen, setIsLedgerDropdownOpen] = useState(false);
-  const [isSeasonDropdownOpen, setIsSeasonDropdownOpen] = useState(false);
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [seasons, setSeasons] = useState<Season[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const operationsDropdownRef = useRef<HTMLDivElement>(null);
   const ledgerDropdownRef = useRef<HTMLDivElement>(null);
-  const seasonDropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
-
-  useEffect(() => {
-    const fetchSeasons = async () => {
-      try {
-        const data = await seasonService.getAllSeasons();
-        setSeasons(data);
-
-        if (!selectedSeason && data.length > 0) {
-          const activeSeason = data.find(s => s.is_active) || data[0];
-          setSelectedSeason(activeSeason);
-        }
-      } catch (err) {
-        console.error('Failed to load seasons:', err);
-      }
-    };
-
-    fetchSeasons();
-  }, [selectedSeason, setSelectedSeason]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -55,9 +32,6 @@ export const Header: React.FC = () => {
       }
       if (ledgerDropdownRef.current && !ledgerDropdownRef.current.contains(event.target as Node)) {
         setIsLedgerDropdownOpen(false);
-      }
-      if (seasonDropdownRef.current && !seasonDropdownRef.current.contains(event.target as Node)) {
-        setIsSeasonDropdownOpen(false);
       }
     };
 
@@ -115,62 +89,6 @@ export const Header: React.FC = () => {
             </button>
 
             <div className="hidden lg:flex items-center space-x-1">
-              <div className="relative mr-2" ref={seasonDropdownRef}>
-                <button
-                  onClick={() => setIsSeasonDropdownOpen(!isSeasonDropdownOpen)}
-                  className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-white text-green-700 shadow-md hover:shadow-lg transition-all"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {selectedSeason ? selectedSeason.name : 'Select Season'}
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </button>
-
-                {isSeasonDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-64 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 overflow-hidden z-50">
-                    <div className="p-2">
-                      <button
-                        onClick={() => {
-                          navigate('/seasons');
-                          setIsSeasonDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center px-3 py-2 text-sm text-green-700 hover:bg-green-50 rounded-md font-medium"
-                      >
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Manage Seasons
-                      </button>
-                    </div>
-                    <div className="border-t border-gray-100 max-h-60 overflow-y-auto">
-                      {seasons.map((season) => (
-                        <button
-                          key={season.id}
-                          onClick={() => {
-                            setSelectedSeason(season);
-                            setIsSeasonDropdownOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
-                            selectedSeason?.id === season.id
-                              ? 'bg-green-50 text-green-700 font-medium'
-                              : 'text-gray-700 hover:bg-gray-50'
-                          }`}
-                        >
-                          <span>{season.name}</span>
-                          {season.is_active && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                              Active
-                            </span>
-                          )}
-                        </button>
-                      ))}
-                      {seasons.length === 0 && (
-                        <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                          No seasons available
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {navItems.map((item) => (
                 <button
                   key={item.path}
@@ -303,56 +221,6 @@ export const Header: React.FC = () => {
         {isMobileMenuOpen && (
           <div className="lg:hidden border-t border-green-500">
             <div className="px-4 pt-2 pb-4 space-y-1 bg-green-600">
-              <div className="mb-3">
-                <button
-                  onClick={() => setIsSeasonDropdownOpen(!isSeasonDropdownOpen)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-white text-green-700 rounded-lg shadow-md font-medium"
-                >
-                  <span className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-3" />
-                    {selectedSeason ? selectedSeason.name : 'Select Season'}
-                  </span>
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-
-                {isSeasonDropdownOpen && (
-                  <div className="mt-2 bg-white rounded-lg shadow-lg overflow-hidden">
-                    <button
-                      onClick={() => {
-                        navigate('/seasons');
-                        setIsSeasonDropdownOpen(false);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full flex items-center px-4 py-3 text-sm text-green-700 hover:bg-green-50 font-medium border-b"
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Manage Seasons
-                    </button>
-                    {seasons.map((season) => (
-                      <button
-                        key={season.id}
-                        onClick={() => {
-                          setSelectedSeason(season);
-                          setIsSeasonDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-4 py-3 text-sm ${
-                          selectedSeason?.id === season.id
-                            ? 'bg-green-50 text-green-700 font-medium'
-                            : 'text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span>{season.name}</span>
-                        {season.is_active && (
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                            Active
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               {navItems.map((item) => (
                 <button
                   key={item.path}
