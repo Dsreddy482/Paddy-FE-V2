@@ -19,7 +19,7 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { selectedSeason } = useAuthStore();
+  const DEFAULT_SEASON_ID = '1';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -76,18 +76,12 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
       return;
     }
 
-    if (!selectedSeason) {
-      setError('Please select a season from the header');
-      setLoading(false);
-      return;
-    }
-
     const loadingData: LoadingEntry = {
       loadedDate: formData.get('date') as string,
       lorryNumber: formData.get('lorryNumber') as string,
       dealerId: dealerId,
       amaliId: amaliUserId,
-      season_id: selectedSeason.id,
+      season_id: DEFAULT_SEASON_ID,
     };
 
     try {

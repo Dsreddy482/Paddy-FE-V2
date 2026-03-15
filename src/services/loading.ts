@@ -20,7 +20,7 @@ export const loadingService = {
         dealerId: data.dealerId,
         amaliId: data.amaliId,
         userId: data.userId || "0",
-        seasonId: data.seasonId || 0
+        seasonId: data.season_id || 1
       });
       return response.data;
     } catch (error) {
@@ -38,7 +38,7 @@ export const loadingService = {
         lorryNumber: data.lorryNumber,
         dealerId: data.dealerId,
         amaliId: data.amaliId,
-        seasonId: data.seasonId || 0,
+        seasonId: data.season_id || 1,
         totalLoadWeight: data.totalLoadWeight || 0,
         totalNoOfBags: data.totalNoOfBags || 0,
         status: data.status || 'loading not started',

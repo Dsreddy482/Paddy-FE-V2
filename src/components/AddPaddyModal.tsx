@@ -27,7 +27,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
   loadingEntry,
   isRythuPage = false,
 }) => {
-  const { selectedSeason } = useAuthStore();
+  const DEFAULT_SEASON_ID = '1';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -91,11 +91,6 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       return;
     }
 
-    if (!selectedSeason) {
-      setError('Please select a season from the header');
-      setLoading(false);
-      return;
-    }
 
     const paddyData: PaddyEntry = {
       lorryNumber: loadingEntry?.lorryNumber || '',
@@ -110,7 +105,7 @@ export const AddPaddyModal: React.FC<AddPaddyModalProps> = ({
       rythuId: rythuId,
       loadingId: loadingId,
       loadType: formData.get('loadType') as string || 'potha',
-      season_id: selectedSeason.id,
+      season_id: DEFAULT_SEASON_ID,
     };
 
     try {
