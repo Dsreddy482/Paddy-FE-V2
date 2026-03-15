@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Plus, Download, CheckCircle, Clock, Edit, Filter, IndianRupee, Share2, Package } from 'lucide-react';
+import { ArrowLeft, Phone, Plus, Download, CheckCircle, Clock, CreditCard as Edit, Filter, IndianRupee, Share2, Package } from 'lucide-react';
 import { authService } from '../services/auth';
 import { paddyService } from '../services/Paddy';
 import { transactionService } from '../services/transaction';
@@ -773,15 +773,15 @@ export const UserDetails: React.FC = () => {
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => setIsAddPayableModalOpen(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  disabled
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed opacity-60"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Payable
                 </button>
                 <button
-                  onClick={() => setIsAddReceivableModalOpen(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  disabled
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed opacity-60"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Receivable
