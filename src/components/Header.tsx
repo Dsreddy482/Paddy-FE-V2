@@ -54,7 +54,6 @@ export const Header: React.FC = () => {
   ];
 
   const ledgerItems = [
-    { path: '/farmer-ledger', icon: Wallet, label: 'Farmer Ledger' },
     { path: '/dealer-ledger', icon: TrendingUp, label: 'Dealer Ledger' },
     { path: '/amali-ledger', icon: Users, label: 'Amali Ledger' },
   ];

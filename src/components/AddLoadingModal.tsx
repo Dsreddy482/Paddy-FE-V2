@@ -6,7 +6,6 @@ import { LoadingEntry } from '../types/loading';
 import { authService } from '../services/auth';
 import { User } from '../types/auth';
 import Alert from './Alert';
-import { useAuthStore } from '../store/authStore';
 
 interface AddLoadingModalProps {
   isOpen: boolean;

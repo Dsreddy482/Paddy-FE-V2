@@ -792,54 +792,32 @@ export const UserDetails: React.FC = () => {
                   <p className="text-green-600 font-medium">{selectedUser.role}</p>
                 </div>
               </div>
-            </div>
-            
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-500">Paddy Amount:</span>
-                  </div>
-                  <span className="text-xl font-bold text-green-600">₹{calculateGrandTotal().toLocaleString()}</span>
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <div className="flex flex-col">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-500">Net Balance</span>
-                    <span className="text-xl font-bold text-blue-600">
-                      ₹{(calculateGrandTotal() - calculateTransactionTotals().receivables - calculateTransactionTotals().payables).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleShareUserSummary}
+                  className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
+                >
+                  <Share2 className="h-4 w-4 mr-1" />
+                  Share Summary
+                </button>
+                {selectedUser.role === 'rythu' && (
+                  <>
                     <button
-                      onClick={handleShareUserSummary}
-                      className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
+                      onClick={downloadComprehensiveReceipt}
+                      className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                     >
-                      <Share2 className="h-3 w-3 mr-1" />
-                      Share Summary
+                      <Download className="h-4 w-4 mr-1" />
+                      Full Receipt
                     </button>
-                    {selectedUser.role === 'rythu' && (
-                      <>
-                        <button
-                          onClick={downloadComprehensiveReceipt}
-                          className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                        >
-                          <Download className="h-3 w-3 mr-1" />
-                          Full Receipt
-                        </button>
-                        <button
-                          onClick={() => navigate(`/farmer-ledger?userId=${selectedUser.id}&userName=${encodeURIComponent(selectedUser.name)}`)}
-                          className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
-                        >
-                          <IndianRupee className="h-3 w-3 mr-1" />
-                          Farmer Ledger
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                    <button
+                      onClick={() => navigate(`/farmer-ledger?userId=${selectedUser.id}&userName=${encodeURIComponent(selectedUser.name)}`)}
+                      className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
+                    >
+                      <IndianRupee className="h-4 w-4 mr-1" />
+                      Farmer Ledger
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

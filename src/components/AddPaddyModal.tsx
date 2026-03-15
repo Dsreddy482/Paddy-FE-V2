@@ -6,8 +6,6 @@ import { authService } from '../services/auth';
 import { PaddyEntry, Dealer } from '../types/paddy';
 import { LoadingEntryDetails } from '../types/loading';
 import Alert from './Alert';
-import { useAuthStore } from '../store/authStore';
-
 interface AddPaddyModalProps {
   isOpen: boolean;
   onClose: () => void;
