@@ -995,12 +995,12 @@ export const generateUserReceiptWithInventory = (
       theme: 'striped',
       margin: { left: margin, right: margin },
       headStyles: {
-        fillColor: [34, 197, 94],
+        fillColor: [75, 85, 99],
         textColor: 255,
-        fontSize: 10,
+        fontSize: 11,
       },
       styles: {
-        fontSize: 9,
+        fontSize: 10,
         cellPadding: 3,
       },
       columnStyles: {
@@ -1274,12 +1274,12 @@ export const generateDealerReceiptWithInventory = (
       theme: 'striped',
       margin: { left: margin, right: margin },
       headStyles: {
-        fillColor: [34, 197, 94],
+        fillColor: [75, 85, 99],
         textColor: 255,
-        fontSize: 10,
+        fontSize: 11,
       },
       styles: {
-        fontSize: 9,
+        fontSize: 10,
         cellPadding: 3,
       },
       columnStyles: {
