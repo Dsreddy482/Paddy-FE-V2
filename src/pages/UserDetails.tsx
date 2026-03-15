@@ -19,6 +19,9 @@ import { shareOnWhatsApp, formatPaddyEntryForWhatsApp, formatUserSummaryForWhats
 import { generatePaddyReceipt, generateBulkPaddyReceipts, generateRythuComprehensiveReceipt, generateUserReceiptWithInventory } from '../utils/pdfReceipt';
 import { inventoryService } from '../services/inventory';
 import { InventoryAllocation, InventoryItem } from '../types/inventory';
+import { paymentService } from '../services/payment';
+import { FarmerLedger } from '../types/payment';
+import { FarmerPaymentModal } from '../components/FarmerPaymentModal';
 
 interface FilterState {
   lorryNumber: string;
@@ -65,6 +68,8 @@ export const UserDetails: React.FC = () => {
   const [showInventory, setShowInventory] = useState(false);
   const [selectedAllocations, setSelectedAllocations] = useState<Set<string>>(new Set());
   const [inventoryItems, setInventoryItems] = useState<Map<string, InventoryItem>>(new Map());
+  const [farmerLedger, setFarmerLedger] = useState<FarmerLedger | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,6 +96,11 @@ export const UserDetails: React.FC = () => {
         });
         setInventoryItems(itemsMap);
 
+        if (userData.role === 'rythu') {
+          const ledger = await paymentService.getFarmerLedger(userId);
+          setFarmerLedger(ledger);
+        }
+
         if (paddyData.length > 10 && tableRef.current) {
           setTimeout(() => {
             tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -116,6 +126,17 @@ export const UserDetails: React.FC = () => {
         setTransactions([...payables, ...receivables]);
       } catch (err) {
         console.error('Failed to refresh transactions:', err);
+      }
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    if (userId && selectedUser?.role === 'rythu') {
+      try {
+        const ledger = await paymentService.getFarmerLedger(userId);
+        setFarmerLedger(ledger);
+      } catch (err) {
+        console.error('Failed to refresh farmer ledger:', err);
       }
     }
   };
@@ -1031,6 +1052,72 @@ export const UserDetails: React.FC = () => {
           </div>
         )}
 
+        {selectedUser?.role === 'rythu' && farmerLedger && (
+          <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+              <h3 className="text-lg font-medium leading-6 text-gray-900">Farmer Payment Ledger</h3>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Bags</span>
+                    <span className="font-semibold text-gray-900">{farmerLedger.totalBags || 0}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Amount</span>
+                    <span className="font-semibold text-gray-900">₹{(farmerLedger.totalAmount || 0).toLocaleString()}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Paid</span>
+                    <span className="font-semibold text-green-600">₹{(farmerLedger.totalPaid || 0).toLocaleString()}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <span className="text-sm font-medium text-gray-700">Pending Balance</span>
+                    <span className="font-bold text-red-600">₹{(farmerLedger.pendingBalance || 0).toLocaleString()}</span>
+                  </div>
+
+                  {(farmerLedger.pendingBalance || 0) > 0 && (
+                    <button
+                      onClick={() => setIsPaymentModalOpen(true)}
+                      className="mt-4 w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Payment
+                    </button>
+                  )}
+                </div>
+
+                {farmerLedger.payments && farmerLedger.payments.length > 0 && (
+                  <div className="border-l pl-6">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Recent Payments</h4>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {farmerLedger.payments.map((payment, idx) => (
+                        <div key={payment.id || idx} className="flex justify-between items-center py-2 border-b border-gray-100">
+                          <div>
+                            <span className="text-sm text-gray-600">
+                              {new Date(payment.paymentDate).toLocaleDateString()}
+                            </span>
+                            {payment.notes && (
+                              <p className="text-xs text-gray-500 mt-1">{payment.notes}</p>
+                            )}
+                          </div>
+                          <span className="font-medium text-green-600">
+                            ₹{(payment.paidAmount || 0).toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="border-b border-gray-200 overflow-x-auto">
           <nav className="flex -mb-px space-x-4 sm:space-x-8">
             <button
@@ -1493,6 +1580,19 @@ export const UserDetails: React.FC = () => {
         paddyEntry={newPaddyEntry}
         rythu={newRythuData}
       />
+
+      {farmerLedger && (
+        <FarmerPaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          onSuccess={handlePaymentSuccess}
+          farmerId={farmerLedger.farmerId}
+          farmerName={farmerLedger.farmerName}
+          paddyEntryId=""
+          totalAmount={farmerLedger.totalAmount}
+          balanceAmount={farmerLedger.pendingBalance}
+        />
+      )}
     </div>
   );
 };
