@@ -12,6 +12,7 @@ interface AmaliPaymentRecordModalProps {
   loadingId: string;
   totalAmount: number;
   pendingAmount: number;
+  totalBags: number;
 }
 
 export const AmaliPaymentRecordModal: React.FC<AmaliPaymentRecordModalProps> = ({
@@ -23,6 +24,7 @@ export const AmaliPaymentRecordModal: React.FC<AmaliPaymentRecordModalProps> = (
   loadingId,
   totalAmount,
   pendingAmount,
+  totalBags,
 }) => {
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
@@ -49,10 +51,12 @@ export const AmaliPaymentRecordModal: React.FC<AmaliPaymentRecordModalProps> = (
     setLoading(true);
 
     try {
+      const ratePerBag = totalBags > 0 ? totalAmount / totalBags : 0;
+
       const payment: AmaliPayment = {
         amaliId,
-        totalBags: 0,
-        ratePerBag: 0,
+        totalBags,
+        ratePerBag,
         totalAmount,
         paidAmount,
         balanceAmount: pendingAmount - paidAmount,
@@ -82,6 +86,8 @@ export const AmaliPaymentRecordModal: React.FC<AmaliPaymentRecordModalProps> = (
 
         <div className="mb-4 p-3 bg-gray-50 rounded">
           <p className="text-sm text-gray-600">Amali: <span className="font-semibold text-gray-900">{amaliName}</span></p>
+          <p className="text-sm text-gray-600">Total Bags: <span className="font-semibold text-gray-900">{totalBags.toLocaleString()}</span></p>
+          <p className="text-sm text-gray-600">Rate Per Bag: <span className="font-semibold text-gray-900">₹{totalBags > 0 ? (totalAmount / totalBags).toFixed(2) : '0.00'}</span></p>
           <p className="text-sm text-gray-600">Total Payable: <span className="font-semibold text-gray-900">₹{totalAmount.toLocaleString()}</span></p>
           <p className="text-sm text-gray-600">Pending: <span className="font-semibold text-red-600">₹{pendingAmount.toLocaleString()}</span></p>
         </div>

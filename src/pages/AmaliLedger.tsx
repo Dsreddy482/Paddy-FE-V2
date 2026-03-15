@@ -149,6 +149,7 @@ export const AmaliLedger: React.FC = () => {
           loadingId=""
           totalAmount={selectedLedger.totalPayableAmount || 0}
           pendingAmount={selectedLedger.pendingAmount || 0}
+          totalBags={selectedLedger.totalBags || 0}
         />
       )}
     </div>
