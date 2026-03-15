@@ -609,14 +609,15 @@ export const generateRythuComprehensiveReceipt = (
       head: paddyTableHead,
       body: paddyTableBody,
       theme: 'striped',
+      margin: { left: margin, right: margin },
       headStyles: {
         fillColor: [34, 197, 94],
         textColor: 255,
-        fontSize: 9,
+        fontSize: 10,
       },
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 9,
+        cellPadding: 3,
       },
       columnStyles: {
         0: { cellWidth: 25 },
@@ -927,14 +928,15 @@ export const generateUserReceiptWithInventory = (
       head: inventoryTableHead,
       body: inventoryTableBody,
       theme: 'striped',
+      margin: { left: margin, right: margin },
       headStyles: {
         fillColor: [99, 102, 241],
         textColor: 255,
-        fontSize: 9,
+        fontSize: 10,
       },
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 9,
+        cellPadding: 3,
       },
       columnStyles: {
         0: { cellWidth: 25 },
@@ -988,14 +990,15 @@ export const generateUserReceiptWithInventory = (
       head: paddyTableHead,
       body: paddyTableBody,
       theme: 'striped',
+      margin: { left: margin, right: margin },
       headStyles: {
         fillColor: [34, 197, 94],
         textColor: 255,
-        fontSize: 9,
+        fontSize: 10,
       },
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 9,
+        cellPadding: 3,
       },
       columnStyles: {
         0: { cellWidth: 25 },
@@ -1138,7 +1141,7 @@ export const generateDealerReceiptWithInventory = (
       const paymentsTableHead = [['Date', 'Amount Received', 'Method', 'Notes']];
       const paymentsTableBody = ledgerData.payments.map(payment => [
         new Date(payment.paymentDate).toLocaleDateString('en-IN'),
-        `₹${payment.receivedAmount.toLocaleString()}`,
+        `${payment.receivedAmount.toLocaleString()}`,
         payment.paymentMode || '-',
         payment.notes || '-'
       ]);
@@ -1148,14 +1151,15 @@ export const generateDealerReceiptWithInventory = (
         head: paymentsTableHead,
         body: paymentsTableBody,
         theme: 'striped',
+        margin: { left: margin, right: margin },
         headStyles: {
           fillColor: [34, 197, 94],
           textColor: 255,
-          fontSize: 9,
+          fontSize: 11,
         },
         styles: {
-          fontSize: 9,
-          cellPadding: 2,
+          fontSize: 10,
+          cellPadding: 3,
         },
         columnStyles: {
           0: { cellWidth: 30 },
@@ -1203,14 +1207,15 @@ export const generateDealerReceiptWithInventory = (
       head: inventoryTableHead,
       body: inventoryTableBody,
       theme: 'striped',
+      margin: { left: margin, right: margin },
       headStyles: {
         fillColor: [99, 102, 241],
         textColor: 255,
-        fontSize: 9,
+        fontSize: 10,
       },
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 9,
+        cellPadding: 3,
       },
       columnStyles: {
         0: { cellWidth: 25 },
@@ -1264,14 +1269,15 @@ export const generateDealerReceiptWithInventory = (
       head: paddyTableHead,
       body: paddyTableBody,
       theme: 'striped',
+      margin: { left: margin, right: margin },
       headStyles: {
         fillColor: [34, 197, 94],
         textColor: 255,
-        fontSize: 9,
+        fontSize: 10,
       },
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 9,
+        cellPadding: 3,
       },
       columnStyles: {
         0: { cellWidth: 25 },
