@@ -2,7 +2,6 @@ export interface FarmerPayment {
   id?: string;
   farmerId: string;
   farmerName?: string;
-  paddyEntryId: string;
   totalAmount: number;
   paidAmount: number;
   balanceAmount: number;
@@ -16,7 +15,6 @@ export interface DealerPayment {
   id?: string;
   dealerId: string;
   dealerName?: string;
-  loadingId: string;
   totalAmount: number;
   receivedAmount: number;
   balanceAmount: number;

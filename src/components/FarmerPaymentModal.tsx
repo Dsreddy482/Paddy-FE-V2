@@ -55,7 +55,6 @@ export const FarmerPaymentModal: React.FC<FarmerPaymentModalProps> = ({
     try {
       const payment: FarmerPayment = {
         farmerId,
-        paddyEntryId,
         totalAmount,
         paidAmount: paymentAmount,
         balanceAmount: balanceAmount - paymentAmount,

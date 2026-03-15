@@ -55,7 +55,6 @@ export const DealerPaymentModal: React.FC<DealerPaymentModalProps> = ({
     try {
       const payment: DealerPayment = {
         dealerId,
-        loadingId,
         totalAmount,
         receivedAmount,
         balanceAmount: pendingAmount - receivedAmount,
