@@ -611,7 +611,7 @@ export const generateRythuComprehensiveReceipt = (
       theme: 'striped',
       margin: { left: margin, right: margin },
       headStyles: {
-        fillColor: [34, 197, 94],
+        fillColor: [75, 85, 99],
         textColor: 255,
         fontSize: 10,
       },
@@ -664,14 +664,15 @@ export const generateRythuComprehensiveReceipt = (
       head: payablesTableHead,
       body: payablesTableBody,
       theme: 'striped',
+      margin: { left: margin, right: margin },
       headStyles: {
-        fillColor: [239, 68, 68],
+        fillColor: [75, 85, 99],
         textColor: 255,
-        fontSize: 9,
+        fontSize: 10,
       },
       styles: {
         fontSize: 9,
-        cellPadding: 2,
+        cellPadding: 3,
       },
       columnStyles: {
         0: { cellWidth: 30 },
@@ -715,14 +716,15 @@ export const generateRythuComprehensiveReceipt = (
       head: receivablesTableHead,
       body: receivablesTableBody,
       theme: 'striped',
+      margin: { left: margin, right: margin },
       headStyles: {
-        fillColor: [34, 197, 94],
+        fillColor: [75, 85, 99],
         textColor: 255,
-        fontSize: 9,
+        fontSize: 10,
       },
       styles: {
         fontSize: 9,
-        cellPadding: 2,
+        cellPadding: 3,
       },
       columnStyles: {
         0: { cellWidth: 30 },
@@ -873,14 +875,15 @@ export const generateUserReceiptWithInventory = (
         head: paymentsTableHead,
         body: paymentsTableBody,
         theme: 'striped',
+        margin: { left: margin, right: margin },
         headStyles: {
-          fillColor: [34, 197, 94],
+          fillColor: [75, 85, 99],
           textColor: 255,
-          fontSize: 9,
+          fontSize: 10,
         },
         styles: {
           fontSize: 9,
-          cellPadding: 2,
+          cellPadding: 3,
         },
         columnStyles: {
           0: { cellWidth: 30 },
