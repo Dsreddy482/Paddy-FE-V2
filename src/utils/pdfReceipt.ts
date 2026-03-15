@@ -835,9 +835,9 @@ export const generateUserReceiptWithInventory = (
 
     const ledgerItems = [
       { label: 'Total Bags', value: `${ledgerData.totalBags.toLocaleString()}`, color: [0, 0, 0] },
-      { label: 'Total Amount', value: `₹${ledgerData.totalAmount.toLocaleString()}`, color: [34, 197, 94] },
-      { label: 'Total Paid', value: `₹${ledgerData.totalPaid.toLocaleString()}`, color: [34, 197, 94] },
-      { label: 'Pending Balance', value: `₹${ledgerData.pendingBalance.toLocaleString()}`, color: [239, 68, 68] },
+      { label: 'Total Amount', value: `${ledgerData.totalAmount.toLocaleString()}`, color: [34, 197, 94] },
+      { label: 'Total Paid', value: `${ledgerData.totalPaid.toLocaleString()}`, color: [34, 197, 94] },
+      { label: 'Pending Balance', value: `${ledgerData.pendingBalance.toLocaleString()}`, color: [239, 68, 68] },
     ];
 
     ledgerItems.forEach(item => {
@@ -861,7 +861,7 @@ export const generateUserReceiptWithInventory = (
       const paymentsTableHead = [['Date', 'Amount Paid', 'Notes']];
       const paymentsTableBody = ledgerData.payments.map(payment => [
         new Date(payment.paymentDate).toLocaleDateString('en-IN'),
-        `₹${payment.paidAmount.toLocaleString()}`,
+        `${payment.paidAmount.toLocaleString()}`,
         payment.notes || '-'
       ]);
 
