@@ -665,26 +665,6 @@ export const UserDetails: React.FC = () => {
   };
 
   const downloadComprehensiveReceipt = () => {
-    const { payables: pendingPayables, receivables: pendingReceivables } = calculateTransactionTotals();
-    const paddyAmount = calculateGrandTotal();
-    const netBalance = paddyAmount - pendingReceivables - pendingPayables;
-
-    const payablesData = transactions
-      .filter(t => t.type === 'payable' && t.status.toLowerCase() === 'pending')
-      .map(t => ({
-        date: t.date,
-        amount: t.amount,
-        reason: t.reason
-      }));
-
-    const receivablesData = transactions
-      .filter(t => t.type === 'receivable' && t.status.toLowerCase() === 'pending')
-      .map(t => ({
-        date: t.date,
-        amount: t.amount,
-        reason: t.reason
-      }));
-
     const selectedAllocationsList = userAllocations
       .filter(a => selectedAllocations.has(a.id))
       .map(a => {
@@ -698,13 +678,14 @@ export const UserDetails: React.FC = () => {
     generateUserReceiptWithInventory(
       selectedUser.name,
       paddyEntries,
-      payablesData,
-      receivablesData,
       selectedAllocationsList,
-      paddyAmount,
-      pendingPayables,
-      pendingReceivables,
-      netBalance
+      farmerLedger ? {
+        totalBags: farmerLedger.totalBags,
+        totalAmount: farmerLedger.totalAmount,
+        totalPaid: farmerLedger.totalPaid,
+        pendingBalance: farmerLedger.pendingBalance,
+        payments: farmerLedger.payments
+      } : undefined
     );
   };
 

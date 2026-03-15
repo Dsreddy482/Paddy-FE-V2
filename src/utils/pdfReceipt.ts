@@ -767,8 +767,6 @@ export const generateRythuComprehensiveReceipt = (
 export const generateUserReceiptWithInventory = (
   userName: string,
   paddyEntries: PaddyEntryDetails[],
-  payables: Array<{ date: string; amount: number; reason: string }>,
-  receivables: Array<{ date: string; amount: number; reason: string }>,
   inventoryAllocations: Array<{
     id: string;
     item_name?: string;
@@ -779,10 +777,18 @@ export const generateUserReceiptWithInventory = (
     purpose?: string;
     status: string;
   }>,
-  paddyAmount: number,
-  pendingPayables: number,
-  pendingReceivables: number,
-  netBalance: number
+  ledgerData?: {
+    totalBags: number;
+    totalAmount: number;
+    totalPaid: number;
+    pendingBalance: number;
+    payments: Array<{
+      id?: string;
+      paymentDate: string;
+      paidAmount: number;
+      notes?: string;
+    }>;
+  }
 ) => {
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -818,49 +824,75 @@ export const generateUserReceiptWithInventory = (
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += 8;
 
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(16);
-  pdf.text('FINANCIAL SUMMARY', margin, yPosition);
-  yPosition += 8;
+  if (ledgerData) {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(16);
+    pdf.text('PAYMENT LEDGER', margin, yPosition);
+    yPosition += 8;
 
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(11);
 
-  const summaryItems = [
-    { label: 'Total Paddy Amount', value: `₹${paddyAmount.toLocaleString()}`, color: [34, 197, 94] },
-    { label: 'Pending Payables', value: `₹${pendingPayables.toLocaleString()}`, color: [239, 68, 68] },
-    { label: 'Pending Receivables', value: `₹${pendingReceivables.toLocaleString()}`, color: [34, 197, 94] },
-  ];
+    const ledgerItems = [
+      { label: 'Total Bags', value: `${ledgerData.totalBags.toLocaleString()}`, color: [0, 0, 0] },
+      { label: 'Total Amount', value: `₹${ledgerData.totalAmount.toLocaleString()}`, color: [34, 197, 94] },
+      { label: 'Total Paid', value: `₹${ledgerData.totalPaid.toLocaleString()}`, color: [34, 197, 94] },
+      { label: 'Pending Balance', value: `₹${ledgerData.pendingBalance.toLocaleString()}`, color: [239, 68, 68] },
+    ];
 
-  summaryItems.forEach(item => {
+    ledgerItems.forEach(item => {
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(item.label, margin, yPosition);
+      pdf.setTextColor(item.color[0], item.color[1], item.color[2]);
+      const valueWidth = pdf.getTextWidth(item.value);
+      pdf.text(item.value, pageWidth - margin - valueWidth, yPosition);
+      yPosition += 6;
+    });
+
     pdf.setTextColor(0, 0, 0);
-    pdf.text(item.label, margin, yPosition);
-    pdf.setTextColor(item.color[0], item.color[1], item.color[2]);
-    const valueWidth = pdf.getTextWidth(item.value);
-    pdf.text(item.value, pageWidth - margin - valueWidth, yPosition);
-    yPosition += 6;
-  });
+    yPosition += 2;
 
-  yPosition += 2;
-  pdf.setLineWidth(0.5);
-  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-  yPosition += 6;
+    if (ledgerData.payments && ledgerData.payments.length > 0) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(12);
+      pdf.text('Payment History', margin, yPosition);
+      yPosition += 6;
 
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(14);
-  pdf.setTextColor(0, 0, 0);
-  pdf.text('NET BALANCE', margin, yPosition);
-  const netBalanceColor = netBalance >= 0 ? [34, 197, 94] : [239, 68, 68];
-  pdf.setTextColor(netBalanceColor[0], netBalanceColor[1], netBalanceColor[2]);
-  const netBalanceText = `₹${netBalance.toLocaleString()}`;
-  const netBalanceWidth = pdf.getTextWidth(netBalanceText);
-  pdf.text(netBalanceText, pageWidth - margin - netBalanceWidth, yPosition);
-  yPosition += 4;
+      const paymentsTableHead = [['Date', 'Amount Paid', 'Notes']];
+      const paymentsTableBody = ledgerData.payments.map(payment => [
+        new Date(payment.paymentDate).toLocaleDateString('en-IN'),
+        `₹${payment.paidAmount.toLocaleString()}`,
+        payment.notes || '-'
+      ]);
 
-  pdf.setTextColor(0, 0, 0);
-  pdf.setLineWidth(0.5);
-  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-  yPosition += 10;
+      autoTable(pdf, {
+        startY: yPosition,
+        head: paymentsTableHead,
+        body: paymentsTableBody,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [34, 197, 94],
+          textColor: 255,
+          fontSize: 9,
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 2,
+        },
+        columnStyles: {
+          0: { cellWidth: 40 },
+          1: { cellWidth: 40 },
+          2: { cellWidth: 70 },
+        },
+      });
+
+      yPosition = (pdf as any).lastAutoTable.finalY + 10;
+    }
+
+    pdf.setLineWidth(0.5);
+    pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
+  }
 
   if (yPosition > pageHeight - 80) {
     pdf.addPage();
@@ -978,104 +1010,6 @@ export const generateUserReceiptWithInventory = (
     pdf.setFontSize(10);
     pdf.setTextColor(128, 128, 128);
     pdf.text('No paddy entries found', margin, yPosition);
-    yPosition += 10;
-    pdf.setTextColor(0, 0, 0);
-  }
-
-  if (yPosition > pageHeight - 80) {
-    pdf.addPage();
-    yPosition = 20;
-  }
-
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(14);
-  pdf.text(`PAYABLES (${payables.length})`, margin, yPosition);
-  yPosition += 6;
-
-  if (payables.length > 0) {
-    const payablesTableHead = [['Date', 'Reason', 'Amount']];
-    const payablesTableBody = payables.map(txn => [
-      new Date(txn.date).toLocaleDateString('en-IN'),
-      txn.reason,
-      `₹${txn.amount.toLocaleString()}`
-    ]);
-
-    autoTable(pdf, {
-      startY: yPosition,
-      head: payablesTableHead,
-      body: payablesTableBody,
-      theme: 'striped',
-      headStyles: {
-        fillColor: [239, 68, 68],
-        textColor: 255,
-        fontSize: 9,
-      },
-      styles: {
-        fontSize: 9,
-        cellPadding: 2,
-      },
-      columnStyles: {
-        0: { cellWidth: 30 },
-        1: { cellWidth: 90 },
-        2: { cellWidth: 30 },
-      },
-    });
-
-    yPosition = (pdf as any).lastAutoTable.finalY + 10;
-  } else {
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.setTextColor(128, 128, 128);
-    pdf.text('No payables', margin, yPosition);
-    yPosition += 10;
-    pdf.setTextColor(0, 0, 0);
-  }
-
-  if (yPosition > pageHeight - 80) {
-    pdf.addPage();
-    yPosition = 20;
-  }
-
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(14);
-  pdf.text(`RECEIVABLES (${receivables.length})`, margin, yPosition);
-  yPosition += 6;
-
-  if (receivables.length > 0) {
-    const receivablesTableHead = [['Date', 'Reason', 'Amount']];
-    const receivablesTableBody = receivables.map(txn => [
-      new Date(txn.date).toLocaleDateString('en-IN'),
-      txn.reason,
-      `₹${txn.amount.toLocaleString()}`
-    ]);
-
-    autoTable(pdf, {
-      startY: yPosition,
-      head: receivablesTableHead,
-      body: receivablesTableBody,
-      theme: 'striped',
-      headStyles: {
-        fillColor: [34, 197, 94],
-        textColor: 255,
-        fontSize: 9,
-      },
-      styles: {
-        fontSize: 9,
-        cellPadding: 2,
-      },
-      columnStyles: {
-        0: { cellWidth: 30 },
-        1: { cellWidth: 90 },
-        2: { cellWidth: 30 },
-      },
-    });
-
-    yPosition = (pdf as any).lastAutoTable.finalY + 10;
-  } else {
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.setTextColor(128, 128, 128);
-    pdf.text('No receivables', margin, yPosition);
     yPosition += 10;
     pdf.setTextColor(0, 0, 0);
   }
