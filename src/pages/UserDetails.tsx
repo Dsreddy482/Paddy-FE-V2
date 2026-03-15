@@ -1234,7 +1234,7 @@ export const UserDetails: React.FC = () => {
             <>
               <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-                  <h3 className="text-lg font-medium leading-6 text-gray-900">Paddy Entries</h3>
+                  <h3 className="text-lg font-medium leading-6 text-gray-900 whitespace-nowrap">Paddy Entries</h3>
                   <button
                     onClick={() => setShowFilters(!showFilters)}
                     className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
