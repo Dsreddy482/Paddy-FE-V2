@@ -786,6 +786,7 @@ export const generateUserReceiptWithInventory = (
       id?: string;
       paymentDate: string;
       paidAmount: number;
+      paymentMethod?: string;
       notes?: string;
     }>;
   }
@@ -858,11 +859,12 @@ export const generateUserReceiptWithInventory = (
       pdf.text('Payment History', margin, yPosition);
       yPosition += 6;
 
-      const paymentsTableHead = [['Date', 'Amount Paid', 'Notes']];
+      const paymentsTableHead = [['Date', 'Amount Paid', 'Method', 'Notes']];
       const paymentsTableBody = ledgerData.payments.map(payment => [
         new Date(payment.paymentDate).toLocaleDateString('en-IN'),
         `${payment.paidAmount.toLocaleString()}`,
-        payment.notes || '-'
+        (payment as any).paymentMethod || '-',
+        (payment as any).notes || '-'
       ]);
 
       autoTable(pdf, {
@@ -880,9 +882,10 @@ export const generateUserReceiptWithInventory = (
           cellPadding: 2,
         },
         columnStyles: {
-          0: { cellWidth: 40 },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 70 },
+          0: { cellWidth: 30 },
+          1: { cellWidth: 35 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 55 },
         },
       });
 

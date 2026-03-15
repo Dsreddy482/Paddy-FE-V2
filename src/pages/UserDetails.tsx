@@ -1051,6 +1051,11 @@ export const UserDetails: React.FC = () => {
                             <span className="text-sm text-gray-600">
                               {new Date(payment.paymentDate).toLocaleDateString()}
                             </span>
+                            {payment.paymentMethod && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                <span className="font-medium">Method:</span> {payment.paymentMethod}
+                              </p>
+                            )}
                             {payment.notes && (
                               <p className="text-xs text-gray-500 mt-1">{payment.notes}</p>
                             )}
