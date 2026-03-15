@@ -604,6 +604,19 @@ export const generateRythuComprehensiveReceipt = (
       entry.finalAmount.toLocaleString()
     ]);
 
+    // Calculate total weight
+    const totalWeight = paddyEntries.reduce((sum, entry) => sum + (entry.bags * entry.kgperBag), 0);
+
+    // Add footer row
+    paddyTableBody.push([
+      { content: 'Total Weight', colSpan: 2, styles: { fontStyle: 'bold', halign: 'right' } },
+      '',
+      { content: `${totalWeight.toLocaleString()} KG`, colSpan: 4, styles: { fontStyle: 'bold', halign: 'left' } },
+      '',
+      '',
+      ''
+    ]);
+
     autoTable(pdf, {
       startY: yPosition,
       head: paddyTableHead,
@@ -988,6 +1001,19 @@ export const generateUserReceiptWithInventory = (
       entry.finalAmount.toLocaleString()
     ]);
 
+    // Calculate total weight
+    const totalWeight = paddyEntries.reduce((sum, entry) => sum + (entry.bags * entry.kgperBag), 0);
+
+    // Add footer row
+    paddyTableBody.push([
+      { content: 'Total Weight', colSpan: 2, styles: { fontStyle: 'bold', halign: 'right' } },
+      '',
+      { content: `${totalWeight.toLocaleString()} KG`, colSpan: 4, styles: { fontStyle: 'bold', halign: 'left' } },
+      '',
+      '',
+      ''
+    ]);
+
     autoTable(pdf, {
       startY: yPosition,
       head: paddyTableHead,
@@ -1265,6 +1291,19 @@ export const generateDealerReceiptWithInventory = (
       entry.kgperBag.toString(),
       entry.dealerBagAmount.toLocaleString(),
       entry.dealerFinalAmount.toLocaleString()
+    ]);
+
+    // Calculate total weight
+    const totalWeight = paddyEntries.reduce((sum, entry) => sum + (entry.bags * entry.kgperBag), 0);
+
+    // Add footer row
+    paddyTableBody.push([
+      { content: 'Total Weight', colSpan: 2, styles: { fontStyle: 'bold', halign: 'right' } },
+      '',
+      { content: `${totalWeight.toLocaleString()} KG`, colSpan: 4, styles: { fontStyle: 'bold', halign: 'left' } },
+      '',
+      '',
+      ''
     ]);
 
     autoTable(pdf, {
