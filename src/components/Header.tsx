@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LogOut, User, Sprout, Users, Search, Menu, FileText, Truck, UserCog, MapPin, Package, Home, ChevronDown, BarChart3, Wallet, TrendingUp, Zap } from 'lucide-react';
+import { LogOut, User, Sprout, Users, Search, Menu, FileText, Truck, UserCog, MapPin, Package, Home, ChevronDown, BarChart3, Wallet, TrendingUp } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { UserSearch } from './UserSearch';
@@ -51,15 +51,12 @@ export const Header: React.FC = () => {
     { path: '/paddy', icon: FileText, label: 'Paddy' },
     { path: '/loading', icon: Truck, label: 'Loading' },
     { path: '/amali', icon: UserCog, label: 'Amali' },
-    { path: '/lorry-management', icon: Truck, label: 'Lorry Management' },
-    { path: '/quick-entry', icon: Zap, label: 'Quick Entry' },
   ];
 
   const ledgerItems = [
     { path: '/farmer-ledger', icon: Wallet, label: 'Farmer Ledger' },
     { path: '/dealer-ledger', icon: TrendingUp, label: 'Dealer Ledger' },
     { path: '/amali-ledger', icon: Users, label: 'Amali Ledger' },
-    { path: '/smart-reports', icon: BarChart3, label: 'Smart Reports' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
