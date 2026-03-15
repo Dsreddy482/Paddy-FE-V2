@@ -594,12 +594,13 @@ export const generateRythuComprehensiveReceipt = (
   yPosition += 6;
 
   if (paddyEntries.length > 0) {
-    const paddyTableHead = [['Date', 'Lorry', 'Bags', 'KG/Bag', 'Rate', 'Amount']];
+    const paddyTableHead = [['Date', 'Lorry', 'Bags', 'KG/Bag', 'Weight', 'Rate', 'Amount']];
     const paddyTableBody = paddyEntries.map(entry => [
       entry.loadedDate.split('T')[0],
       entry.lorryNumber,
       entry.bags.toString(),
       entry.kgperBag.toString(),
+      (entry.bags * entry.kgperBag).toLocaleString(),
       entry.bagAmount.toLocaleString(),
       entry.finalAmount.toLocaleString()
     ]);
@@ -611,8 +612,9 @@ export const generateRythuComprehensiveReceipt = (
     paddyTableBody.push([
       { content: 'Total Weight', colSpan: 2, styles: { fontStyle: 'bold', halign: 'right' } },
       '',
-      { content: `${totalWeight.toLocaleString()} KG`, colSpan: 4, styles: { fontStyle: 'bold', halign: 'left' } },
       '',
+      '',
+      { content: `${totalWeight.toLocaleString()} KG`, colSpan: 3, styles: { fontStyle: 'bold', halign: 'left' } },
       '',
       ''
     ]);
@@ -633,12 +635,13 @@ export const generateRythuComprehensiveReceipt = (
         cellPadding: 3,
       },
       columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 25 },
-        5: { cellWidth: 25 },
+        0: { cellWidth: 22 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 15 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 25 },
       },
     });
 
@@ -991,12 +994,13 @@ export const generateUserReceiptWithInventory = (
   yPosition += 6;
 
   if (paddyEntries.length > 0) {
-    const paddyTableHead = [['Date', 'Lorry', 'Bags', 'KG/Bag', 'Rate', 'Amount']];
+    const paddyTableHead = [['Date', 'Lorry', 'Bags', 'KG/Bag', 'Weight', 'Rate', 'Amount']];
     const paddyTableBody = paddyEntries.map(entry => [
       entry.loadedDate.split('T')[0],
       entry.lorryNumber,
       entry.bags.toString(),
       entry.kgperBag.toString(),
+      (entry.bags * entry.kgperBag).toLocaleString(),
       entry.bagAmount.toLocaleString(),
       entry.finalAmount.toLocaleString()
     ]);
@@ -1008,8 +1012,9 @@ export const generateUserReceiptWithInventory = (
     paddyTableBody.push([
       { content: 'Total Weight', colSpan: 2, styles: { fontStyle: 'bold', halign: 'right' } },
       '',
-      { content: `${totalWeight.toLocaleString()} KG`, colSpan: 4, styles: { fontStyle: 'bold', halign: 'left' } },
       '',
+      '',
+      { content: `${totalWeight.toLocaleString()} KG`, colSpan: 3, styles: { fontStyle: 'bold', halign: 'left' } },
       '',
       ''
     ]);
@@ -1030,12 +1035,13 @@ export const generateUserReceiptWithInventory = (
         cellPadding: 3,
       },
       columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 25 },
-        5: { cellWidth: 25 },
+        0: { cellWidth: 22 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 15 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 25 },
       },
     });
 
@@ -1283,12 +1289,13 @@ export const generateDealerReceiptWithInventory = (
   yPosition += 6;
 
   if (paddyEntries.length > 0) {
-    const paddyTableHead = [['Date', 'Lorry', 'Bags', 'KG/Bag', 'Rate', 'Amount']];
+    const paddyTableHead = [['Date', 'Lorry', 'Bags', 'KG/Bag', 'Weight', 'Rate', 'Amount']];
     const paddyTableBody = paddyEntries.map(entry => [
       entry.loadedDate.split('T')[0],
       entry.lorryNumber,
       entry.bags.toString(),
       entry.kgperBag.toString(),
+      (entry.bags * entry.kgperBag).toLocaleString(),
       entry.dealerBagAmount.toLocaleString(),
       entry.dealerFinalAmount.toLocaleString()
     ]);
@@ -1300,8 +1307,9 @@ export const generateDealerReceiptWithInventory = (
     paddyTableBody.push([
       { content: 'Total Weight', colSpan: 2, styles: { fontStyle: 'bold', halign: 'right' } },
       '',
-      { content: `${totalWeight.toLocaleString()} KG`, colSpan: 4, styles: { fontStyle: 'bold', halign: 'left' } },
       '',
+      '',
+      { content: `${totalWeight.toLocaleString()} KG`, colSpan: 3, styles: { fontStyle: 'bold', halign: 'left' } },
       '',
       ''
     ]);
@@ -1322,12 +1330,13 @@ export const generateDealerReceiptWithInventory = (
         cellPadding: 3,
       },
       columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 25 },
-        5: { cellWidth: 25 },
+        0: { cellWidth: 22 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 15 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 25 },
       },
     });
 
