@@ -21,7 +21,6 @@ export const AmaliPaymentRecordModal: React.FC<AmaliPaymentRecordModalProps> = (
   onSuccess,
   amaliId,
   amaliName,
-  loadingId,
   totalAmount,
   pendingAmount,
   totalBags,
