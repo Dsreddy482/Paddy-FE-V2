@@ -773,59 +773,13 @@ export const UserDetails: React.FC = () => {
               </div>
             </div>
             
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <span className="text-sm font-medium text-gray-500">Paddy Amount:</span>
                   </div>
                   <span className="text-xl font-bold text-green-600">₹{calculateGrandTotal().toLocaleString()}</span>
-                </div>
-              </div>
-              
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <div className="flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <button
-                      onClick={() => setIsPayablesModalOpen(true)}
-                      className="text-sm font-medium text-gray-500 hover:text-gray-700"
-                    >
-                      Pending Payables
-                    </button>
-                    <span className="text-xl font-bold text-red-600">
-                      ₹{calculateTransactionTotals().payables.toLocaleString()}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => downloadPendingTransactionsPDF('payable')}
-                    className="mt-2 inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                  >
-                    <Download className="h-3 w-3 mr-1" />
-                    Download Report
-                  </button>
-                </div>
-              </div>
-              
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <div className="flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <button
-                      onClick={() => setIsReceivablesModalOpen(true)}
-                      className="text-sm font-medium text-gray-500 hover:text-gray-700"
-                    >
-                      Pending Receivables
-                    </button>
-                    <span className="text-xl font-bold text-green-600">
-                      ₹{calculateTransactionTotals().receivables.toLocaleString()}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => downloadPendingTransactionsPDF('receivable')}
-                    className="mt-2 inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                  >
-                    <Download className="h-3 w-3 mr-1" />
-                    Download Report
-                  </button>
                 </div>
               </div>
 
