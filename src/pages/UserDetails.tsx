@@ -800,13 +800,22 @@ export const UserDetails: React.FC = () => {
                       Share Summary
                     </button>
                     {selectedUser.role === 'rythu' && (
-                      <button
-                        onClick={downloadComprehensiveReceipt}
-                        className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                      >
-                        <Download className="h-3 w-3 mr-1" />
-                        Full Receipt
-                      </button>
+                      <>
+                        <button
+                          onClick={downloadComprehensiveReceipt}
+                          className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          Full Receipt
+                        </button>
+                        <button
+                          onClick={() => navigate(`/farmer-ledger?userId=${selectedUser.id}&userName=${encodeURIComponent(selectedUser.name)}`)}
+                          className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
+                        >
+                          <IndianRupee className="h-3 w-3 mr-1" />
+                          Farmer Ledger
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
