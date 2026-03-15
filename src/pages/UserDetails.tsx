@@ -16,12 +16,13 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Header } from '../components/Header';
 import { shareOnWhatsApp, formatPaddyEntryForWhatsApp, formatUserSummaryForWhatsApp } from '../utils/whatsapp';
-import { generatePaddyReceipt, generateBulkPaddyReceipts, generateRythuComprehensiveReceipt, generateUserReceiptWithInventory } from '../utils/pdfReceipt';
+import { generatePaddyReceipt, generateBulkPaddyReceipts, generateRythuComprehensiveReceipt, generateUserReceiptWithInventory, generateDealerReceiptWithInventory } from '../utils/pdfReceipt';
 import { inventoryService } from '../services/inventory';
 import { InventoryAllocation, InventoryItem } from '../types/inventory';
 import { paymentService } from '../services/payment';
-import { FarmerLedger } from '../types/payment';
+import { FarmerLedger, DealerLedger } from '../types/payment';
 import { FarmerPaymentModal } from '../components/FarmerPaymentModal';
+import { DealerPaymentModal } from '../components/DealerPaymentModal';
 
 interface FilterState {
   lorryNumber: string;
@@ -70,6 +71,8 @@ export const UserDetails: React.FC = () => {
   const [inventoryItems, setInventoryItems] = useState<Map<string, InventoryItem>>(new Map());
   const [farmerLedger, setFarmerLedger] = useState<FarmerLedger | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [dealerLedger, setDealerLedger] = useState<any>(null);
+  const [isDealerPaymentModalOpen, setIsDealerPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -99,6 +102,9 @@ export const UserDetails: React.FC = () => {
         if (userData.role === 'rythu') {
           const ledger = await paymentService.getFarmerLedger(userId);
           setFarmerLedger(ledger);
+        } else if (userData.role === 'vendor') {
+          const ledger = await paymentService.getDealerLedger(userId);
+          setDealerLedger(ledger);
         }
 
         if (paddyData.length > 10 && tableRef.current) {
@@ -137,6 +143,13 @@ export const UserDetails: React.FC = () => {
         setFarmerLedger(ledger);
       } catch (err) {
         console.error('Failed to refresh farmer ledger:', err);
+      }
+    } else if (userId && selectedUser?.role === 'vendor') {
+      try {
+        const ledger = await paymentService.getDealerLedger(userId);
+        setDealerLedger(ledger);
+      } catch (err) {
+        console.error('Failed to refresh dealer ledger:', err);
       }
     }
   };
@@ -675,18 +688,33 @@ export const UserDetails: React.FC = () => {
         };
       });
 
-    generateUserReceiptWithInventory(
-      selectedUser.name,
-      paddyEntries,
-      selectedAllocationsList,
-      farmerLedger ? {
-        totalBags: farmerLedger.totalBags,
-        totalAmount: farmerLedger.totalAmount,
-        totalPaid: farmerLedger.totalPaid,
-        pendingBalance: farmerLedger.pendingBalance,
-        payments: farmerLedger.payments
-      } : undefined
-    );
+    if (selectedUser.role === 'vendor' && dealerLedger) {
+      generateDealerReceiptWithInventory(
+        selectedUser.name,
+        paddyEntries,
+        selectedAllocationsList,
+        {
+          totalBags: dealerLedger.totalBags,
+          totalAmount: dealerLedger.totalAmount,
+          totalReceived: dealerLedger.totalReceived,
+          pendingAmount: dealerLedger.pendingAmount,
+          payments: dealerLedger.payments
+        }
+      );
+    } else {
+      generateUserReceiptWithInventory(
+        selectedUser.name,
+        paddyEntries,
+        selectedAllocationsList,
+        farmerLedger ? {
+          totalBags: farmerLedger.totalBags,
+          totalAmount: farmerLedger.totalAmount,
+          totalPaid: farmerLedger.totalPaid,
+          pendingBalance: farmerLedger.pendingBalance,
+          payments: farmerLedger.payments
+        } : undefined
+      );
+    }
   };
 
   const toggleAllocationSelection = (allocationId: string) => {
@@ -781,7 +809,7 @@ export const UserDetails: React.FC = () => {
                   <Share2 className="h-4 w-4 mr-1" />
                   Share Summary
                 </button>
-                {selectedUser.role === 'rythu' && (
+                {(selectedUser.role === 'rythu' || selectedUser.role === 'vendor') && (
                   <button
                     onClick={downloadComprehensiveReceipt}
                     className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
@@ -796,71 +824,144 @@ export const UserDetails: React.FC = () => {
         </div>
 
         {selectedUser.role === 'vendor' && (
-          <div className="mt-6 bg-white rounded-lg shadow-md overflow-hidden mb-6">
-            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">Combined Data View</h3>
-                <button
-                  onClick={downloadCombinedPDF}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Combined Report
-                </button>
+          <>
+            <div className="mt-6 bg-white rounded-lg shadow-md overflow-hidden mb-6">
+              <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium leading-6 text-gray-900">Combined Data View</h3>
+                  <button
+                    onClick={downloadCombinedPDF}
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Combined Report
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Lorry Number
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Weight
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Bags
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Bag Amount
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Amount
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {getCombinedData().map((data, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {data.lorryNumber}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {data.date}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {data.totalWeight.toLocaleString()} KGs
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {data.totalBags.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                          ₹{data.dealerBagAmount.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                          ₹{data.totalAmount.toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Lorry Number
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Weight
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Bags
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Bag Amount
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Amount
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {getCombinedData().map((data, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {data.lorryNumber}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {data.date}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {data.totalWeight.toLocaleString()} KGs
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {data.totalBags.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                        ₹{data.dealerBagAmount.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                        ₹{data.totalAmount.toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            {dealerLedger && (
+              <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+                  <h3 className="text-lg font-medium leading-6 text-gray-900">Dealer Payment Ledger</h3>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Total Bags</span>
+                        <span className="font-semibold text-gray-900">{dealerLedger.totalBags || 0}</span>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Total Amount</span>
+                        <span className="font-semibold text-gray-900">₹{(dealerLedger.totalAmount || 0).toLocaleString()}</span>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Total Received</span>
+                        <span className="font-semibold text-green-600">₹{(dealerLedger.totalReceived || 0).toLocaleString()}</span>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2 border-t">
+                        <span className="text-sm font-medium text-gray-700">Pending Amount</span>
+                        <span className="font-bold text-red-600">₹{(dealerLedger.pendingAmount || 0).toLocaleString()}</span>
+                      </div>
+
+                      {(dealerLedger.pendingAmount || 0) > 0 && (
+                        <button
+                          onClick={() => setIsDealerPaymentModalOpen(true)}
+                          className="mt-4 w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Payment
+                        </button>
+                      )}
+                    </div>
+
+                    {dealerLedger.payments && dealerLedger.payments.length > 0 && (
+                      <div className="border-l pl-6">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">Recent Payments</h4>
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {dealerLedger.payments.map((payment: any, idx: number) => (
+                            <div key={payment.id || idx} className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <div>
+                                <span className="text-sm text-gray-600">
+                                  {new Date(payment.paymentDate).toLocaleDateString()}
+                                </span>
+                                {payment.paymentMode && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    <span className="font-medium">Method:</span> {payment.paymentMode}
+                                  </p>
+                                )}
+                                {payment.notes && (
+                                  <p className="text-xs text-gray-500 mt-1">{payment.notes}</p>
+                                )}
+                              </div>
+                              <span className="font-medium text-green-600">
+                                ₹{(payment.receivedAmount || 0).toLocaleString()}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {userAllocations.length > 0 && (
@@ -1546,6 +1647,19 @@ export const UserDetails: React.FC = () => {
           paddyEntryId=""
           totalAmount={farmerLedger.totalAmount}
           balanceAmount={farmerLedger.pendingBalance}
+        />
+      )}
+
+      {dealerLedger && (
+        <DealerPaymentModal
+          isOpen={isDealerPaymentModalOpen}
+          onClose={() => setIsDealerPaymentModalOpen(false)}
+          onSuccess={handlePaymentSuccess}
+          dealerId={dealerLedger.dealerId}
+          dealerName={dealerLedger.dealerName}
+          loadingId=""
+          totalAmount={dealerLedger.totalAmount}
+          pendingAmount={dealerLedger.pendingAmount}
         />
       )}
     </div>

@@ -1039,3 +1039,279 @@ export const generateUserReceiptWithInventory = (
   const fileName = `comprehensive-receipt-${userName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
   pdf.save(fileName);
 };
+
+export const generateDealerReceiptWithInventory = (
+  dealerName: string,
+  paddyEntries: PaddyEntryDetails[],
+  inventoryAllocations: Array<{
+    id: string;
+    item_name?: string;
+    item_code?: string;
+    quantity: number;
+    unit_price?: number;
+    allocation_date: string;
+    purpose?: string;
+    status: string;
+  }>,
+  ledgerData?: {
+    totalBags: number;
+    totalAmount: number;
+    totalReceived: number;
+    pendingAmount: number;
+    payments: Array<{
+      id?: string;
+      paymentDate: string;
+      receivedAmount: number;
+      paymentMode?: string;
+      notes?: string;
+    }>;
+  }
+) => {
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.height;
+  const margin = 20;
+  let yPosition = 20;
+
+  pdf.setFontSize(20);
+  pdf.setFont('helvetica', 'bold');
+  const title = 'COMPREHENSIVE RECEIPT';
+  const titleWidth = pdf.getTextWidth(title);
+  pdf.text(title, (pageWidth - titleWidth) / 2, yPosition);
+  yPosition += 10;
+
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+  const currentDate = new Date().toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+
+  pdf.text(`Dealer: ${dealerName}`, margin, yPosition);
+  pdf.text(`Date: ${currentDate}`, pageWidth - margin - pdf.getTextWidth(`Date: ${currentDate}`), yPosition);
+  yPosition += 10;
+
+  pdf.setLineWidth(0.3);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 8;
+
+  if (ledgerData) {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(16);
+    pdf.text('PAYMENT LEDGER', margin, yPosition);
+    yPosition += 8;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(11);
+
+    const ledgerItems = [
+      { label: 'Total Bags', value: `${ledgerData.totalBags.toLocaleString()}`, color: [0, 0, 0] },
+      { label: 'Total Amount', value: `${ledgerData.totalAmount.toLocaleString()}`, color: [34, 197, 94] },
+      { label: 'Total Received', value: `${ledgerData.totalReceived.toLocaleString()}`, color: [34, 197, 94] },
+      { label: 'Pending Amount', value: `${ledgerData.pendingAmount.toLocaleString()}`, color: [239, 68, 68] },
+    ];
+
+    ledgerItems.forEach(item => {
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(item.label, margin, yPosition);
+      pdf.setTextColor(item.color[0], item.color[1], item.color[2]);
+      const valueWidth = pdf.getTextWidth(item.value);
+      pdf.text(item.value, pageWidth - margin - valueWidth, yPosition);
+      yPosition += 6;
+    });
+
+    pdf.setTextColor(0, 0, 0);
+    yPosition += 2;
+
+    if (ledgerData.payments && ledgerData.payments.length > 0) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(12);
+      pdf.text('Payment History', margin, yPosition);
+      yPosition += 6;
+
+      const paymentsTableHead = [['Date', 'Amount Received', 'Method', 'Notes']];
+      const paymentsTableBody = ledgerData.payments.map(payment => [
+        new Date(payment.paymentDate).toLocaleDateString('en-IN'),
+        `₹${payment.receivedAmount.toLocaleString()}`,
+        payment.paymentMode || '-',
+        payment.notes || '-'
+      ]);
+
+      autoTable(pdf, {
+        startY: yPosition,
+        head: paymentsTableHead,
+        body: paymentsTableBody,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [34, 197, 94],
+          textColor: 255,
+          fontSize: 9,
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 2,
+        },
+        columnStyles: {
+          0: { cellWidth: 30 },
+          1: { cellWidth: 35 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 55 },
+        },
+      });
+
+      yPosition = (pdf as any).lastAutoTable.finalY + 10;
+    }
+
+    pdf.setLineWidth(0.5);
+    pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
+  }
+
+  if (yPosition > pageHeight - 80) {
+    pdf.addPage();
+    yPosition = 20;
+  }
+
+  if (inventoryAllocations.length > 0) {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.text(`INVENTORY ALLOCATIONS (${inventoryAllocations.length})`, margin, yPosition);
+    yPosition += 6;
+
+    const inventoryTableHead = [['Date', 'Item Name', 'Code', 'Qty', 'Price', 'Amount', 'Status']];
+    const inventoryTableBody = inventoryAllocations.map(allocation => {
+      const totalAmount = (allocation.unit_price || 0) * allocation.quantity;
+      return [
+        new Date(allocation.allocation_date).toLocaleDateString('en-IN'),
+        allocation.item_name || 'N/A',
+        allocation.item_code || 'N/A',
+        allocation.quantity.toString(),
+        (allocation.unit_price || 0).toLocaleString(),
+        totalAmount.toLocaleString(),
+        allocation.status
+      ];
+    });
+
+    autoTable(pdf, {
+      startY: yPosition,
+      head: inventoryTableHead,
+      body: inventoryTableBody,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [99, 102, 241],
+        textColor: 255,
+        fontSize: 9,
+      },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 15 },
+        4: { cellWidth: 22 },
+        5: { cellWidth: 25 },
+        6: { cellWidth: 20 },
+      },
+    });
+
+    yPosition = (pdf as any).lastAutoTable.finalY + 6;
+
+    const inventoryTotal = inventoryAllocations.reduce((sum, a) => sum + ((a.unit_price || 0) * a.quantity), 0);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.text('Inventory Total:', margin, yPosition);
+    const inventoryTotalText = inventoryTotal.toLocaleString();
+    const inventoryTotalWidth = pdf.getTextWidth(inventoryTotalText);
+    pdf.setTextColor(99, 102, 241);
+    pdf.text(inventoryTotalText, pageWidth - margin - inventoryTotalWidth, yPosition);
+    pdf.setTextColor(0, 0, 0);
+    yPosition += 10;
+
+    if (yPosition > pageHeight - 80) {
+      pdf.addPage();
+      yPosition = 20;
+    }
+  }
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(14);
+  pdf.text(`PADDY ENTRIES (${paddyEntries.length})`, margin, yPosition);
+  yPosition += 6;
+
+  if (paddyEntries.length > 0) {
+    const paddyTableHead = [['Date', 'Lorry', 'Bags', 'KG/Bag', 'Rate', 'Amount']];
+    const paddyTableBody = paddyEntries.map(entry => [
+      entry.loadedDate.split('T')[0],
+      entry.lorryNumber,
+      entry.bags.toString(),
+      entry.kgperBag.toString(),
+      entry.dealerBagAmount.toLocaleString(),
+      entry.dealerFinalAmount.toLocaleString()
+    ]);
+
+    autoTable(pdf, {
+      startY: yPosition,
+      head: paddyTableHead,
+      body: paddyTableBody,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [34, 197, 94],
+        textColor: 255,
+        fontSize: 9,
+      },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 25 },
+        5: { cellWidth: 25 },
+      },
+    });
+
+    yPosition = (pdf as any).lastAutoTable.finalY + 10;
+  } else {
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(128, 128, 128);
+    pdf.text('No paddy entries found', margin, yPosition);
+    yPosition += 10;
+    pdf.setTextColor(0, 0, 0);
+  }
+
+  if (yPosition > pageHeight - 30) {
+    pdf.addPage();
+    yPosition = 20;
+  }
+
+  yPosition += 5;
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
+  const thankYou = 'Thank you for your business!';
+  const thankYouWidth = pdf.getTextWidth(thankYou);
+  pdf.text(thankYou, (pageWidth - thankYouWidth) / 2, yPosition);
+
+  yPosition += 6;
+  pdf.setFontSize(8);
+  pdf.setTextColor(128, 128, 128);
+  const footer = 'Computer-generated comprehensive receipt';
+  const footerWidth = pdf.getTextWidth(footer);
+  pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
+
+  const fileName = `dealer-receipt-${dealerName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+  pdf.save(fileName);
+};
