@@ -613,10 +613,10 @@ export const generateRythuComprehensiveReceipt = (
       headStyles: {
         fillColor: [75, 85, 99],
         textColor: 255,
-        fontSize: 10,
+        fontSize: 11,
       },
       styles: {
-        fontSize: 9,
+        fontSize: 10,
         cellPadding: 3,
       },
       columnStyles: {
@@ -668,10 +668,10 @@ export const generateRythuComprehensiveReceipt = (
       headStyles: {
         fillColor: [75, 85, 99],
         textColor: 255,
-        fontSize: 10,
+        fontSize: 11,
       },
       styles: {
-        fontSize: 9,
+        fontSize: 10,
         cellPadding: 3,
       },
       columnStyles: {
@@ -720,10 +720,10 @@ export const generateRythuComprehensiveReceipt = (
       headStyles: {
         fillColor: [75, 85, 99],
         textColor: 255,
-        fontSize: 10,
+        fontSize: 11,
       },
       styles: {
-        fontSize: 9,
+        fontSize: 10,
         cellPadding: 3,
       },
       columnStyles: {
@@ -879,10 +879,10 @@ export const generateUserReceiptWithInventory = (
         headStyles: {
           fillColor: [75, 85, 99],
           textColor: 255,
-          fontSize: 10,
+          fontSize: 11,
         },
         styles: {
-          fontSize: 9,
+          fontSize: 10,
           cellPadding: 3,
         },
         columnStyles: {
