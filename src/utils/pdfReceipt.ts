@@ -145,21 +145,6 @@ export const generatePaddyReceipt = (entry: PaddyEntryDetails, userName: string,
   pdf.text(`Status: ${statusLabel}`, (pageWidth - statusWidth) / 2, yPosition);
   pdf.setTextColor(0, 0, 0);
 
-  yPosition += 10;
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(11);
-  const thankYou = 'Thank you for your business!';
-  const thankYouWidth = pdf.getTextWidth(thankYou);
-  pdf.text(thankYou, (pageWidth - thankYouWidth) / 2, yPosition);
-
-  yPosition += 8;
-  pdf.setFontSize(9);
-  pdf.setTextColor(128, 128, 128);
-  const footer = 'Computer-generated receipt';
-  const footerWidth = pdf.getTextWidth(footer);
-  pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
-  pdf.setTextColor(0, 0, 0);
-
   const fileName = `paddy-receipt-${entry.id || Date.now()}.pdf`;
   pdf.save(fileName);
 };
@@ -317,16 +302,6 @@ export const generateBulkPaddyReceipts = (entries: PaddyEntryDetails[], userName
     pdf.text(`Status: ${statusLabel}`, (pageWidth - statusWidth) / 2, yPosition);
     pdf.setTextColor(0, 0, 0);
 
-    yPosition += 5;
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(7);
-    pdf.setTextColor(100, 100, 100);
-
-    const footerText = 'Computer-generated receipt';
-    const footerWidth = pdf.getTextWidth(footerText);
-    pdf.text(footerText, (pageWidth - footerWidth) / 2, yPosition);
-    pdf.setTextColor(0, 0, 0);
-
     if (positionOnPage === 0 && index < entries.length - 1) {
       pdf.setLineWidth(0.1);
       pdf.setDrawColor(200, 200, 200);
@@ -482,18 +457,6 @@ export const generateAmaliPOSReceipt = (
   yPosition += 6;
 
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(7);
-  const thankYou = 'Thank you!';
-  const thankYouWidth = pdf.getTextWidth(thankYou);
-  pdf.text(thankYou, (pageWidth - thankYouWidth) / 2, yPosition);
-  yPosition += 4;
-
-  pdf.setFontSize(6);
-  pdf.setTextColor(100, 100, 100);
-  const footer = 'Computer-generated receipt';
-  const footerWidth = pdf.getTextWidth(footer);
-  pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
-
   const fileName = `${amaliName}_POS_Receipt_${new Date().toISOString().split('T')[0]}.pdf`;
   pdf.save(fileName);
 };
@@ -764,20 +727,6 @@ export const generateRythuComprehensiveReceipt = (
     pdf.addPage();
     yPosition = 20;
   }
-
-  yPosition += 5;
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(10);
-  const thankYou = 'Thank you for your business!';
-  const thankYouWidth = pdf.getTextWidth(thankYou);
-  pdf.text(thankYou, (pageWidth - thankYouWidth) / 2, yPosition);
-
-  yPosition += 6;
-  pdf.setFontSize(8);
-  pdf.setTextColor(128, 128, 128);
-  const footer = 'Computer-generated comprehensive receipt';
-  const footerWidth = pdf.getTextWidth(footer);
-  pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
 
   const fileName = `comprehensive-receipt-${userName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
   pdf.save(fileName);
@@ -1060,20 +1009,6 @@ export const generateUserReceiptWithInventory = (
     yPosition = 20;
   }
 
-  yPosition += 5;
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(10);
-  const thankYou = 'Thank you for your business!';
-  const thankYouWidth = pdf.getTextWidth(thankYou);
-  pdf.text(thankYou, (pageWidth - thankYouWidth) / 2, yPosition);
-
-  yPosition += 6;
-  pdf.setFontSize(8);
-  pdf.setTextColor(128, 128, 128);
-  const footer = 'Computer-generated comprehensive receipt';
-  const footerWidth = pdf.getTextWidth(footer);
-  pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
-
   const fileName = `comprehensive-receipt-${userName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
   pdf.save(fileName);
 };
@@ -1354,20 +1289,6 @@ export const generateDealerReceiptWithInventory = (
     pdf.addPage();
     yPosition = 20;
   }
-
-  yPosition += 5;
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(10);
-  const thankYou = 'Thank you for your business!';
-  const thankYouWidth = pdf.getTextWidth(thankYou);
-  pdf.text(thankYou, (pageWidth - thankYouWidth) / 2, yPosition);
-
-  yPosition += 6;
-  pdf.setFontSize(8);
-  pdf.setTextColor(128, 128, 128);
-  const footer = 'Computer-generated comprehensive receipt';
-  const footerWidth = pdf.getTextWidth(footer);
-  pdf.text(footer, (pageWidth - footerWidth) / 2, yPosition);
 
   const fileName = `dealer-receipt-${dealerName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
   pdf.save(fileName);
