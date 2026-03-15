@@ -28,7 +28,6 @@ export interface AmaliPayment {
   id?: string;
   amaliId: string;
   amaliName?: string;
-  loadingId: string;
   totalBags: number;
   ratePerBag: number;
   totalAmount: number;

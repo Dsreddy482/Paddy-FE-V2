@@ -51,7 +51,6 @@ export const AmaliPaymentRecordModal: React.FC<AmaliPaymentRecordModalProps> = (
     try {
       const payment: AmaliPayment = {
         amaliId,
-        loadingId,
         totalBags: 0,
         ratePerBag: 0,
         totalAmount,
