@@ -771,22 +771,6 @@ export const UserDetails: React.FC = () => {
                   <p className="text-green-600 font-medium">{selectedUser.role}</p>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  disabled
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed opacity-60"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Payable
-                </button>
-                <button
-                  disabled
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed opacity-60"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Receivable
-                </button>
-              </div>
             </div>
             
             <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
