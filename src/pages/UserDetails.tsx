@@ -32,7 +32,7 @@ interface FilterState {
   amountTo: string;
 }
 
-type TabType = 'all' | 'completed' | 'pending' | 'payables' | 'receivables';
+type TabType = 'all' | 'completed' | 'pending';
 
 export const UserDetails: React.FC = () => {
   const { userId } = useParams();
@@ -1206,31 +1206,11 @@ export const UserDetails: React.FC = () => {
             >
               Pending ({paddyEntries.filter(e => (selectedUser.role == 'vendor'?  e.dealerPaddyStatus.toLowerCase() : e.status.toLowerCase()) === 'pending').length})
             </button>
-            <button
-              onClick={() => setActiveTab('payables')}
-              className={`${
-                activeTab === 'payables'
-                  ? 'border-green-500 text-green-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-2 sm:px-6 border-b-2 font-medium text-sm`}
-            >
-              Payables ({transactions.filter(t => t.type === 'payable' && t.status.toLowerCase() === 'pending').length})
-            </button>
-            <button
-              onClick={() => setActiveTab('receivables')}
-              className={`${
-                activeTab === 'receivables'
-                  ? 'border-green-500 text-green-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-2 sm:px-6 border-b-2 font-medium text-sm`}
-            >
-              Receivables ({transactions.filter(t => t.type === 'receivable' && t.status.toLowerCase() === 'pending').length})
-            </button>
           </nav>
         </div>
 
         <div ref={tableRef} className="bg-white rounded-lg shadow-md overflow-hidden mt-4">
-          {(activeTab === 'all' || activeTab === 'completed' || activeTab === 'pending') && (
+          {activeTab && (
             <>
               <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
@@ -1458,122 +1438,6 @@ export const UserDetails: React.FC = () => {
             </div>
           </div>
             </>
-          )}
-
-          {activeTab === 'payables' && (
-            <div className="p-6">
-              <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Pending Payables</h3>
-              {transactions.filter(t => t.type === 'payable' && t.status.toLowerCase() === 'pending').length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No pending payables found.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {transactions
-                        .filter(t => t.type === 'payable' && t.status.toLowerCase() === 'pending')
-                        .map((transaction) => (
-                          <tr key={transaction.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {new Date(transaction.date).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
-                              ₹{transaction.amount.toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500">
-                              {transaction.reason}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                {transaction.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                    <tfoot className="bg-gray-50">
-                      <tr>
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">Total</td>
-                        <td className="px-6 py-4 text-sm font-bold text-red-600">
-                          ₹{transactions
-                            .filter(t => t.type === 'payable' && t.status.toLowerCase() === 'pending')
-                            .reduce((sum, t) => sum + t.amount, 0)
-                            .toLocaleString()}
-                        </td>
-                        <td colSpan={2}></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'receivables' && (
-            <div className="p-6">
-              <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Pending Receivables</h3>
-              {transactions.filter(t => t.type === 'receivable' && t.status.toLowerCase() === 'pending').length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No pending receivables found.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {transactions
-                        .filter(t => t.type === 'receivable' && t.status.toLowerCase() === 'pending')
-                        .map((transaction) => (
-                          <tr key={transaction.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {new Date(transaction.date).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                              ₹{transaction.amount.toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500">
-                              {transaction.reason}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                {transaction.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                    <tfoot className="bg-gray-50">
-                      <tr>
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">Total</td>
-                        <td className="px-6 py-4 text-sm font-bold text-green-600">
-                          ₹{transactions
-                            .filter(t => t.type === 'receivable' && t.status.toLowerCase() === 'pending')
-                            .reduce((sum, t) => sum + t.amount, 0)
-                            .toLocaleString()}
-                        </td>
-                        <td colSpan={2}></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              )}
-            </div>
           )}
         </div>
       </div>
