@@ -63,10 +63,31 @@ export const Dashboard: React.FC = () => {
     today.setHours(0, 0, 0, 0);
 
     const todayEntries = entries.filter(e => {
-      const entryDate = new Date(e.loadedDate);
+      if (!e.loadedDate) return false;
+
+      // Handle different date formats
+      let entryDate: Date;
+
+      if (e.loadedDate.includes('T')) {
+        // ISO format: 2024-03-15T10:30:00Z
+        entryDate = new Date(e.loadedDate);
+      } else if (e.loadedDate.includes('/')) {
+        // DD/MM/YYYY format
+        const [day, month, year] = e.loadedDate.split('/');
+        entryDate = new Date(`${year}-${month}-${day}`);
+      } else {
+        // YYYY-MM-DD format
+        entryDate = new Date(e.loadedDate);
+      }
+
       entryDate.setHours(0, 0, 0, 0);
       return entryDate.getTime() === today.getTime();
     });
+
+    console.log('Today:', today);
+    console.log('Total entries:', entries.length);
+    console.log('Today entries:', todayEntries.length);
+    console.log('Sample entry dates:', entries.slice(0, 3).map(e => e.loadedDate));
 
     const uniqueLorryNumbers = new Set(entries.map(e => e.lorryNumber));
     const completedLorryNumbers = new Set(
