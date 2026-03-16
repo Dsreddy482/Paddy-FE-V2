@@ -28,6 +28,7 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
   const [users, setUsers] = useState<User[]>([]);
   const [selectedDealerId, setSelectedDealerId] = useState('');
   const [selectedUserId, setSelectedUserId] = useState('');
+  const [isCombinedOperation, setIsCombinedOperation] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,6 +49,7 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
       setFormData(loadingEntry);
       setSelectedDealerId(loadingEntry.dealerId || '');
       setSelectedUserId(loadingEntry.amaliId || '');
+      setIsCombinedOperation(loadingEntry.isCombinedOperation || false);
       fetchData();
     }
   }, [isOpen, loadingEntry]);
@@ -106,11 +108,14 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
     }
 
     try {
-      await loadingService.updateLoadingEntry(formData.userId!, {
+      const updateData = {
         ...formData,
         dealerId: selectedDealerId,
         amaliId: selectedUserId,
-      });
+        isCombinedOperation,
+      };
+
+      await loadingService.updateLoadingEntry(formData.userId!, updateData);
 
       setSuccess('Loading entry updated successfully!');
       setTimeout(() => {
@@ -263,6 +268,173 @@ export const EditLoadingModal: React.FC<EditLoadingModalProps> = ({
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    id="combinedOperation"
+                    checked={isCombinedOperation}
+                    onChange={(e) => {
+                      setIsCombinedOperation(e.target.checked);
+                      setFormData(prev => prev ? { ...prev, isCombinedOperation: e.target.checked } : null);
+                    }}
+                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="combinedOperation" className="ml-2 block text-sm text-gray-900">
+                    Same team for all operations (Potha + Kata + Loading)
+                  </label>
+                </div>
+
+                {isCombinedOperation ? (
+                  <div className="space-y-3 bg-green-50 p-3 rounded-md">
+                    <div>
+                      <Input
+                        label="Team Name"
+                        name="combinedTeamName"
+                        type="text"
+                        required
+                        value={formData.combinedTeam?.teamName || ''}
+                        onChange={(e) => {
+                          setFormData(prev => prev ? {
+                            ...prev,
+                            combinedTeam: { ...prev.combinedTeam!, teamName: e.target.value }
+                          } : null);
+                        }}
+                        className="h-10"
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        label="Rate per Bag"
+                        name="combinedRatePerBag"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        required
+                        value={formData.combinedTeam?.ratePerBag || 0}
+                        onChange={(e) => {
+                          setFormData(prev => prev ? {
+                            ...prev,
+                            combinedTeam: { ...prev.combinedTeam!, ratePerBag: parseFloat(e.target.value) || 0 }
+                          } : null);
+                        }}
+                        className="h-10"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 p-3 rounded-md">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Potha Team</h4>
+                      <div className="space-y-2">
+                        <Input
+                          label="Team Name"
+                          name="pothaTeamName"
+                          type="text"
+                          required
+                          value={formData.pothaTeam?.teamName || ''}
+                          onChange={(e) => {
+                            setFormData(prev => prev ? {
+                              ...prev,
+                              pothaTeam: { ...prev.pothaTeam!, teamName: e.target.value }
+                            } : null);
+                          }}
+                          className="h-10"
+                        />
+                        <Input
+                          label="Rate per Bag"
+                          name="pothaRatePerBag"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          required
+                          value={formData.pothaTeam?.ratePerBag || 0}
+                          onChange={(e) => {
+                            setFormData(prev => prev ? {
+                              ...prev,
+                              pothaTeam: { ...prev.pothaTeam!, ratePerBag: parseFloat(e.target.value) || 0 }
+                            } : null);
+                          }}
+                          className="h-10"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-yellow-50 p-3 rounded-md">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Kata Team</h4>
+                      <div className="space-y-2">
+                        <Input
+                          label="Team Name"
+                          name="kataTeamName"
+                          type="text"
+                          required
+                          value={formData.kataTeam?.teamName || ''}
+                          onChange={(e) => {
+                            setFormData(prev => prev ? {
+                              ...prev,
+                              kataTeam: { ...prev.kataTeam!, teamName: e.target.value }
+                            } : null);
+                          }}
+                          className="h-10"
+                        />
+                        <Input
+                          label="Rate per Bag"
+                          name="kataRatePerBag"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          required
+                          value={formData.kataTeam?.ratePerBag || 0}
+                          onChange={(e) => {
+                            setFormData(prev => prev ? {
+                              ...prev,
+                              kataTeam: { ...prev.kataTeam!, ratePerBag: parseFloat(e.target.value) || 0 }
+                            } : null);
+                          }}
+                          className="h-10"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-50 p-3 rounded-md">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Loading Team</h4>
+                      <div className="space-y-2">
+                        <Input
+                          label="Team Name"
+                          name="loadingTeamName"
+                          type="text"
+                          required
+                          value={formData.loadingTeam?.teamName || ''}
+                          onChange={(e) => {
+                            setFormData(prev => prev ? {
+                              ...prev,
+                              loadingTeam: { ...prev.loadingTeam!, teamName: e.target.value }
+                            } : null);
+                          }}
+                          className="h-10"
+                        />
+                        <Input
+                          label="Rate per Bag"
+                          name="loadingRatePerBag"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          required
+                          value={formData.loadingTeam?.ratePerBag || 0}
+                          onChange={(e) => {
+                            setFormData(prev => prev ? {
+                              ...prev,
+                              loadingTeam: { ...prev.loadingTeam!, ratePerBag: parseFloat(e.target.value) || 0 }
+                            } : null);
+                          }}
+                          className="h-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {error && <Alert type="error" message={error} />}

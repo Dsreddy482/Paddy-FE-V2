@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, PackagePlus, ChevronDown, ChevronRight, Share2, X } from 'lucide-react';
+import { ArrowLeft, Plus, CreditCard as Edit, PackagePlus, ChevronDown, ChevronRight, Share2, X } from 'lucide-react';
 import { loadingService } from '../services/loading';
 import { LoadingEntryDetails, LoadingEntry } from '../types/loading';
 import { PaddyEntryDetails } from '../types/paddy';
@@ -435,6 +435,61 @@ export const Loading: React.FC = () => {
                       {expandedRows.has(entry.id) && (
                         <tr>
                           <td colSpan={8} className="px-6 py-4 bg-gray-50">
+                            <div className="mb-4 p-4 bg-white rounded-md border border-gray-200">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Team Information</h4>
+                              {entry.isCombinedOperation && entry.combinedTeam ? (
+                                <div className="bg-green-50 p-3 rounded-md">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-900">Combined Team (Potha + Kata + Loading)</p>
+                                      <p className="text-sm text-gray-700 mt-1">{entry.combinedTeam.teamName}</p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-xs text-gray-600">Rate per Bag</p>
+                                      <p className="text-sm font-semibold text-green-700">₹{entry.combinedTeam.ratePerBag.toLocaleString()}</p>
+                                      {entry.totalNoOfBags && (
+                                        <p className="text-xs text-gray-600 mt-1">
+                                          Total: ₹{(entry.combinedTeam.ratePerBag * entry.totalNoOfBags).toLocaleString()}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                  {entry.pothaTeam && (
+                                    <div className="bg-blue-50 p-3 rounded-md">
+                                      <p className="text-xs font-medium text-gray-700 uppercase">Potha Team</p>
+                                      <p className="text-sm text-gray-900 mt-1">{entry.pothaTeam.teamName}</p>
+                                      <p className="text-xs text-gray-600 mt-2">Rate: ₹{entry.pothaTeam.ratePerBag.toLocaleString()}/bag</p>
+                                      {entry.totalNoOfBags && (
+                                        <p className="text-xs text-gray-600">Total: ₹{(entry.pothaTeam.ratePerBag * entry.totalNoOfBags).toLocaleString()}</p>
+                                      )}
+                                    </div>
+                                  )}
+                                  {entry.kataTeam && (
+                                    <div className="bg-yellow-50 p-3 rounded-md">
+                                      <p className="text-xs font-medium text-gray-700 uppercase">Kata Team</p>
+                                      <p className="text-sm text-gray-900 mt-1">{entry.kataTeam.teamName}</p>
+                                      <p className="text-xs text-gray-600 mt-2">Rate: ₹{entry.kataTeam.ratePerBag.toLocaleString()}/bag</p>
+                                      {entry.totalNoOfBags && (
+                                        <p className="text-xs text-gray-600">Total: ₹{(entry.kataTeam.ratePerBag * entry.totalNoOfBags).toLocaleString()}</p>
+                                      )}
+                                    </div>
+                                  )}
+                                  {entry.loadingTeam && (
+                                    <div className="bg-purple-50 p-3 rounded-md">
+                                      <p className="text-xs font-medium text-gray-700 uppercase">Loading Team</p>
+                                      <p className="text-sm text-gray-900 mt-1">{entry.loadingTeam.teamName}</p>
+                                      <p className="text-xs text-gray-600 mt-2">Rate: ₹{entry.loadingTeam.ratePerBag.toLocaleString()}/bag</p>
+                                      {entry.totalNoOfBags && (
+                                        <p className="text-xs text-gray-600">Total: ₹{(entry.loadingTeam.ratePerBag * entry.totalNoOfBags).toLocaleString()}</p>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                             <div className="overflow-x-auto">
                               <h4 className="text-sm font-semibold text-gray-700 mb-3">Paddy Details</h4>
                               {paddyDetails.get(entry.id)?.length ? (
