@@ -24,7 +24,6 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
   const [success, setSuccess] = useState('');
   const [dealers, setDealers] = useState<User[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [isCombinedOperation, setIsCombinedOperation] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,28 +81,7 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
       dealerId: dealerId,
       amaliId: amaliUserId,
       season_id: DEFAULT_SEASON_ID,
-      isCombinedOperation,
     };
-
-    if (isCombinedOperation) {
-      loadingData.combinedTeam = {
-        teamName: formData.get('combinedTeamName') as string,
-        ratePerBag: parseFloat(formData.get('combinedRatePerBag') as string) || 0,
-      };
-    } else {
-      loadingData.pothaTeam = {
-        teamName: formData.get('pothaTeamName') as string,
-        ratePerBag: parseFloat(formData.get('pothaRatePerBag') as string) || 0,
-      };
-      loadingData.kataTeam = {
-        teamName: formData.get('kataTeamName') as string,
-        ratePerBag: parseFloat(formData.get('kataRatePerBag') as string) || 0,
-      };
-      loadingData.loadingTeam = {
-        teamName: formData.get('loadingTeamName') as string,
-        ratePerBag: parseFloat(formData.get('loadingRatePerBag') as string) || 0,
-      };
-    }
 
     try {
       await loadingService.createLoadingEntry(loadingData);
@@ -199,122 +177,6 @@ export const AddLoadingModal: React.FC<AddLoadingModalProps> = ({
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div className="border-t pt-4">
-                <div className="flex items-center mb-3">
-                  <input
-                    type="checkbox"
-                    id="combinedOperation"
-                    checked={isCombinedOperation}
-                    onChange={(e) => setIsCombinedOperation(e.target.checked)}
-                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="combinedOperation" className="ml-2 block text-sm text-gray-900">
-                    Same team for all operations (Potha + Kata + Loading)
-                  </label>
-                </div>
-
-                {isCombinedOperation ? (
-                  <div className="space-y-3 bg-green-50 p-3 rounded-md">
-                    <div>
-                      <Input
-                        label="Team Name"
-                        name="combinedTeamName"
-                        type="text"
-                        required
-                        placeholder="Enter team name"
-                        className="h-10"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        label="Rate per Bag"
-                        name="combinedRatePerBag"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        required
-                        placeholder="Enter rate per bag"
-                        className="h-10"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="bg-blue-50 p-3 rounded-md">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Potha Team</h4>
-                      <div className="space-y-2">
-                        <Input
-                          label="Team Name"
-                          name="pothaTeamName"
-                          type="text"
-                          required
-                          placeholder="Enter potha team name"
-                          className="h-10"
-                        />
-                        <Input
-                          label="Rate per Bag"
-                          name="pothaRatePerBag"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          required
-                          placeholder="Enter rate per bag"
-                          className="h-10"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-yellow-50 p-3 rounded-md">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Kata Team</h4>
-                      <div className="space-y-2">
-                        <Input
-                          label="Team Name"
-                          name="kataTeamName"
-                          type="text"
-                          required
-                          placeholder="Enter kata team name"
-                          className="h-10"
-                        />
-                        <Input
-                          label="Rate per Bag"
-                          name="kataRatePerBag"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          required
-                          placeholder="Enter rate per bag"
-                          className="h-10"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-purple-50 p-3 rounded-md">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Loading Team</h4>
-                      <div className="space-y-2">
-                        <Input
-                          label="Team Name"
-                          name="loadingTeamName"
-                          type="text"
-                          required
-                          placeholder="Enter loading team name"
-                          className="h-10"
-                        />
-                        <Input
-                          label="Rate per Bag"
-                          name="loadingRatePerBag"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          required
-                          placeholder="Enter rate per bag"
-                          className="h-10"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {error && <Alert type="error" message={error} />}

@@ -1,9 +1,3 @@
-export interface TeamInfo {
-  teamId?: string;
-  teamName: string;
-  ratePerBag: number;
-}
-
 export interface LoadingEntry {
   userId?: string;
   loadingId?: number;
@@ -19,13 +13,6 @@ export interface LoadingEntry {
   status?: string;
   paymentDone?: boolean;
   id: number;
-
-  isCombinedOperation?: boolean;
-  combinedTeam?: TeamInfo;
-
-  pothaTeam?: TeamInfo;
-  kataTeam?: TeamInfo;
-  loadingTeam?: TeamInfo;
 }
 
 export interface LoadingEntryDetails {
@@ -42,11 +29,4 @@ export interface LoadingEntryDetails {
   totalNoOfBags?: number;
   status?: string;
   paymentDone?: boolean;
-
-  isCombinedOperation?: boolean;
-  combinedTeam?: TeamInfo;
-
-  pothaTeam?: TeamInfo;
-  kataTeam?: TeamInfo;
-  loadingTeam?: TeamInfo;
 }
