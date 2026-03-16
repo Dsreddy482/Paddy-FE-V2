@@ -114,19 +114,36 @@ export const Dashboard: React.FC = () => {
       return acc;
     }, {});
 
+    const todayBags = todayEntries.reduce((sum, e) => {
+      const bags = Number(e.bags) || 0;
+      return sum + bags;
+    }, 0);
+
+    const todayWeight = todayEntries.reduce((sum, e) => {
+      const weight = Number(e.totalWeight) || 0;
+      return sum + weight;
+    }, 0);
+
+    console.log('Today bags calculation:', {
+      todayEntries: todayEntries.length,
+      todayBags,
+      todayWeight,
+      sampleEntry: todayEntries[0]
+    });
+
     const stats = {
       totalLorries: uniqueLorryNumbers.size,
       completedLorries: completedLorryNumbers.size,
       pendingLorries: pendingLorryNumbers.size,
-      totalAmount: entries.reduce((sum, e) => sum + e.finalAmount, 0),
+      totalAmount: entries.reduce((sum, e) => sum + (Number(e.finalAmount) || 0), 0),
       pendingAmount: entries
         .filter(e => e.status.toLowerCase() === 'pending')
-        .reduce((sum, e) => sum + e.finalAmount, 0),
+        .reduce((sum, e) => sum + (Number(e.finalAmount) || 0), 0),
       receivedAmount: entries
         .filter(e => e.status.toLowerCase() === 'completed')
-        .reduce((sum, e) => sum + e.finalAmount, 0),
-      todayBags: todayEntries.reduce((sum, e) => sum + e.bags, 0),
-      todayWeight: todayEntries.reduce((sum, e) => sum + (e.totalWeight || 0), 0),
+        .reduce((sum, e) => sum + (Number(e.finalAmount) || 0), 0),
+      todayBags,
+      todayWeight,
       vendorStats: Object.values(vendorStatsMap).map(vendor => ({
         name: vendor.name,
         totalLorries: vendor.lorryNumbers.size,
