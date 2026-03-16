@@ -14,8 +14,8 @@ export const Dashboard: React.FC = () => {
     totalAmount: number;
     pendingAmount: number;
     receivedAmount: number;
-    todayBags: number;
-    todayWeight: number;
+    totalBags: number;
+    totalWeight: number;
     vendorStats: Array<{
       name: string;
       totalLorries: number;
@@ -28,8 +28,8 @@ export const Dashboard: React.FC = () => {
     totalAmount: 0,
     pendingAmount: 0,
     receivedAmount: 0,
-    todayBags: 0,
-    todayWeight: 0,
+    totalBags: 0,
+    totalWeight: 0,
     vendorStats: []
   });
 
@@ -59,35 +59,6 @@ export const Dashboard: React.FC = () => {
   }, []);
 
   const calculateStats = (entries: PaddyEntryDetails[]) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const todayEntries = entries.filter(e => {
-      if (!e.loadedDate) return false;
-
-      // Handle different date formats
-      let entryDate: Date;
-
-      if (e.loadedDate.includes('T')) {
-        // ISO format: 2024-03-15T10:30:00Z
-        entryDate = new Date(e.loadedDate);
-      } else if (e.loadedDate.includes('/')) {
-        // DD/MM/YYYY format
-        const [day, month, year] = e.loadedDate.split('/');
-        entryDate = new Date(`${year}-${month}-${day}`);
-      } else {
-        // YYYY-MM-DD format
-        entryDate = new Date(e.loadedDate);
-      }
-
-      entryDate.setHours(0, 0, 0, 0);
-      return entryDate.getTime() === today.getTime();
-    });
-
-    console.log('Today:', today);
-    console.log('Total entries:', entries.length);
-    console.log('Today entries:', todayEntries.length);
-    console.log('Sample entry dates:', entries.slice(0, 3).map(e => e.loadedDate));
 
     const uniqueLorryNumbers = new Set(entries.map(e => e.lorryNumber));
     const completedLorryNumbers = new Set(
@@ -114,22 +85,15 @@ export const Dashboard: React.FC = () => {
       return acc;
     }, {});
 
-    const todayBags = todayEntries.reduce((sum, e) => {
+    const totalBags = entries.reduce((sum, e) => {
       const bags = Number(e.bags) || 0;
       return sum + bags;
     }, 0);
 
-    const todayWeight = todayEntries.reduce((sum, e) => {
+    const totalWeight = entries.reduce((sum, e) => {
       const weight = Number(e.totalWeight) || 0;
       return sum + weight;
     }, 0);
-
-    console.log('Today bags calculation:', {
-      todayEntries: todayEntries.length,
-      todayBags,
-      todayWeight,
-      sampleEntry: todayEntries[0]
-    });
 
     const stats = {
       totalLorries: uniqueLorryNumbers.size,
@@ -142,8 +106,8 @@ export const Dashboard: React.FC = () => {
       receivedAmount: entries
         .filter(e => e.status.toLowerCase() === 'completed')
         .reduce((sum, e) => sum + (Number(e.finalAmount) || 0), 0),
-      todayBags,
-      todayWeight,
+      totalBags,
+      totalWeight,
       vendorStats: Object.values(vendorStatsMap).map(vendor => ({
         name: vendor.name,
         totalLorries: vendor.lorryNumbers.size,
@@ -180,13 +144,13 @@ export const Dashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Today's Bags</p>
-                  <p className="text-2xl font-bold text-gray-900">{paddyStats.todayBags}</p>
+                  <p className="text-sm font-medium text-gray-500">Total Bags</p>
+                  <p className="text-2xl font-bold text-gray-900">{paddyStats.totalBags}</p>
                 </div>
                 <Package className="h-8 w-8 text-blue-500" />
               </div>
               <div className="mt-4 text-sm text-gray-600">
-                Weight: {paddyStats.todayWeight} kg
+                Weight: {paddyStats.totalWeight} kg
               </div>
             </div>
 
