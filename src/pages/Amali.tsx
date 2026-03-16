@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight, Edit, Calculator } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, CreditCard as Edit, Calculator, Users } from 'lucide-react';
 import { loadingService } from '../services/loading';
 import { LoadingEntryDetails } from '../types/loading';
 import { PaddyEntryDetails } from '../types/paddy';
 import { paddyService } from '../services/Paddy';
+import { amaliTeamService } from '../services/amaliTeam';
+import { AmaliTeam } from '../types/amaliTeam';
 import { Header } from '../components/Header';
 import { EditLoadingModal } from '../components/EditLoadingModal';
 import { EditPaddyModal } from '../components/EditPaddyModal';
 import { AmaliPaymentModal } from '../components/AmaliPaymentModal';
+import ViewAmaliModal from '../components/ViewAmaliModal';
 
 export const Amali: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +29,9 @@ export const Amali: React.FC = () => {
   const [selectedPaddyEntry, setSelectedPaddyEntry] = useState<PaddyEntryDetails | null>(null);
   const [selectedLoadingIds, setSelectedLoadingIds] = useState<Set<number>>(new Set());
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [amaliTeams, setAmaliTeams] = useState<Map<number, AmaliTeam[]>>(new Map());
+  const [isViewAmaliModalOpen, setIsViewAmaliModalOpen] = useState(false);
+  const [selectedAmaliLoading, setSelectedAmaliLoading] = useState<LoadingEntryDetails | null>(null);
 
   useEffect(() => {
     fetchLoadingEntries();
@@ -74,6 +80,14 @@ export const Amali: React.FC = () => {
           setPaddyDetails(prev => new Map(prev).set(entryId, paddy));
         } catch (err) {
           console.error('Failed to fetch paddy details:', err);
+        }
+      }
+      if (!amaliTeams.has(entryId)) {
+        try {
+          const teams = await amaliTeamService.getAmaliTeamsByLoading(entryId);
+          setAmaliTeams(prev => new Map(prev).set(entryId, teams));
+        } catch (err) {
+          console.error('Failed to fetch amali teams:', err);
         }
       }
     }
@@ -325,7 +339,19 @@ export const Amali: React.FC = () => {
                         <tr>
                           <td colSpan={8} className="px-6 py-4 bg-gray-50">
                             <div className="overflow-x-auto">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Paddy Details</h4>
+                              <div className="flex justify-between items-center mb-3">
+                                <h4 className="text-sm font-semibold text-gray-700">Paddy Details</h4>
+                                <button
+                                  onClick={() => {
+                                    setSelectedAmaliLoading(entry);
+                                    setIsViewAmaliModalOpen(true);
+                                  }}
+                                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                                >
+                                  <Users className="h-4 w-4 mr-1" />
+                                  View Amali Teams
+                                </button>
+                              </div>
                               {paddyDetails.get(entry.id)?.length ? (
                                 <table className="min-w-full divide-y divide-gray-200">
                                   <thead className="bg-gray-100">
@@ -465,6 +491,24 @@ export const Amali: React.FC = () => {
         onSuccess={handlePaymentSuccess}
         selectedLoadings={getSelectedLoadings()}
       />
+
+      {selectedAmaliLoading && (
+        <ViewAmaliModal
+          isOpen={isViewAmaliModalOpen}
+          onClose={() => {
+            setIsViewAmaliModalOpen(false);
+            setSelectedAmaliLoading(null);
+          }}
+          loadingId={selectedAmaliLoading.id}
+          loadingDetails={{
+            lorryNumber: selectedAmaliLoading.lorryNumber,
+            loadedDate: selectedAmaliLoading.loadedDate,
+            dealerName: selectedAmaliLoading.delaerName,
+            amaliName: selectedAmaliLoading.amaliName,
+            totalNoOfBags: selectedAmaliLoading.totalNoOfBags
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -82,6 +82,16 @@ export const AmaliLedger: React.FC = () => {
                 </div>
 
                 <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Loadings</span>
+                  <span className="font-semibold text-gray-900">{ledger.totalLoadings || 0}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Amali Teams</span>
+                  <span className="font-semibold text-blue-600">{ledger.totalAmaliTeams || 0}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Total Payable</span>
                   <span className="font-semibold text-gray-900">₹{(ledger.totalPayableAmount || 0).toLocaleString()}</span>
                 </div>

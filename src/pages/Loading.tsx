@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, CreditCard as Edit, PackagePlus, ChevronDown, ChevronRight, Share2, X } from 'lucide-react';
+import { ArrowLeft, Plus, CreditCard as Edit, PackagePlus, ChevronDown, ChevronRight, Share2, X, Users } from 'lucide-react';
 import { loadingService } from '../services/loading';
 import { LoadingEntryDetails, LoadingEntry } from '../types/loading';
 import { PaddyEntryDetails } from '../types/paddy';
@@ -10,6 +10,7 @@ import { EditLoadingModal } from '../components/EditLoadingModal';
 import { AddPaddyModal } from '../components/AddPaddyModal';
 import { EditPaddyModal } from '../components/EditPaddyModal';
 import { PaddyConfirmationModal } from '../components/PaddyConfirmationModal';
+import ViewAmaliModal from '../components/ViewAmaliModal';
 import { Header } from '../components/Header';
 import { shareOnWhatsApp, formatLoadingDetailsForWhatsApp, formatPaddyEntryForWhatsApp } from '../utils/whatsapp';
 
@@ -31,6 +32,8 @@ export const Loading: React.FC = () => {
   const [newRythuData, setNewRythuData] = useState<any>(null);
   const [isEditPaddyModalOpen, setIsEditPaddyModalOpen] = useState(false);
   const [selectedPaddyEntry, setSelectedPaddyEntry] = useState<PaddyEntryDetails | null>(null);
+  const [isViewAmaliModalOpen, setIsViewAmaliModalOpen] = useState(false);
+  const [selectedAmaliLoading, setSelectedAmaliLoading] = useState<LoadingEntryDetails | null>(null);
 
   const [dealerList, setDealerList] = useState<string[]>([]);
   const [amaliList, setAmaliList] = useState<string[]>([]);
@@ -436,7 +439,19 @@ export const Loading: React.FC = () => {
                         <tr>
                           <td colSpan={8} className="px-6 py-4 bg-gray-50">
                             <div className="overflow-x-auto">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Paddy Details</h4>
+                              <div className="flex justify-between items-center mb-3">
+                                <h4 className="text-sm font-semibold text-gray-700">Paddy Details</h4>
+                                <button
+                                  onClick={() => {
+                                    setSelectedAmaliLoading(entry);
+                                    setIsViewAmaliModalOpen(true);
+                                  }}
+                                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                                >
+                                  <Users className="h-4 w-4 mr-1" />
+                                  View Amali
+                                </button>
+                              </div>
                               {paddyDetails.get(entry.id)?.length ? (
                                 <table className="min-w-full divide-y divide-gray-200">
                                   <thead className="bg-gray-100">
@@ -580,6 +595,24 @@ export const Loading: React.FC = () => {
         paddyEntry={newPaddyEntry}
         rythu={newRythuData}
       />
+
+      {selectedAmaliLoading && (
+        <ViewAmaliModal
+          isOpen={isViewAmaliModalOpen}
+          onClose={() => {
+            setIsViewAmaliModalOpen(false);
+            setSelectedAmaliLoading(null);
+          }}
+          loadingId={selectedAmaliLoading.id}
+          loadingDetails={{
+            lorryNumber: selectedAmaliLoading.lorryNumber,
+            loadedDate: selectedAmaliLoading.loadedDate,
+            dealerName: selectedAmaliLoading.delaerName,
+            amaliName: selectedAmaliLoading.amaliName,
+            totalNoOfBags: selectedAmaliLoading.totalNoOfBags
+          }}
+        />
+      )}
 
       <EditPaddyModal
         isOpen={isEditPaddyModalOpen}

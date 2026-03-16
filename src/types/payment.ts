@@ -61,6 +61,8 @@ export interface AmaliLedger {
   amaliId: string;
   amaliName: string;
   totalBags: number;
+  totalLoadings?: number;
+  totalAmaliTeams?: number;
   totalPayableAmount: number;
   totalPaid: number;
   pendingAmount: number;
