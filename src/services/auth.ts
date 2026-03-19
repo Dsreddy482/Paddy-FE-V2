@@ -58,5 +58,10 @@ export const authService = {
       // Fallback to mock API for development
       return mockApi.getDealers();
     }
+  },
+
+  async getUsersByRole(role: string): Promise<User[]> {
+    const response = await api.post('/Account/getSearchUserbyRole', { search: role });
+    return response.data;
   }
 };

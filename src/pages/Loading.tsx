@@ -11,6 +11,7 @@ import { AddPaddyModal } from '../components/AddPaddyModal';
 import { EditPaddyModal } from '../components/EditPaddyModal';
 import { PaddyConfirmationModal } from '../components/PaddyConfirmationModal';
 import ViewAmaliModal from '../components/ViewAmaliModal';
+import { AddPaddyAmaliModal } from '../components/AddPaddyAmaliModal';
 import { Header } from '../components/Header';
 import { shareOnWhatsApp, formatLoadingDetailsForWhatsApp, formatPaddyEntryForWhatsApp } from '../utils/whatsapp';
 
@@ -34,6 +35,8 @@ export const Loading: React.FC = () => {
   const [selectedPaddyEntry, setSelectedPaddyEntry] = useState<PaddyEntryDetails | null>(null);
   const [isViewAmaliModalOpen, setIsViewAmaliModalOpen] = useState(false);
   const [selectedAmaliLoading, setSelectedAmaliLoading] = useState<LoadingEntryDetails | null>(null);
+  const [isAddPaddyAmaliModalOpen, setIsAddPaddyAmaliModalOpen] = useState(false);
+  const [selectedPaddyForAmali, setSelectedPaddyForAmali] = useState<{ loadingId: number; paddyDetailId: string } | null>(null);
 
   const [dealerList, setDealerList] = useState<string[]>([]);
   const [amaliList, setAmaliList] = useState<string[]>([]);
@@ -220,8 +223,20 @@ export const Loading: React.FC = () => {
     }
 
     const message = formatLoadingDetailsForWhatsApp({
-      ...entry,
-      paddyDetails: paddy
+      lorryNumber: entry.lorryNumber,
+      loadedDate: entry.loadedDate,
+      delaerName: entry.delaerName,
+      amaliName: entry.amaliName,
+      totalNoOfBags: entry.totalNoOfBags ?? 0,
+      totalLoadWeight: entry.totalLoadWeight ?? 0,
+      paddyDetails: paddy?.map(p => ({
+        rythu: p.rythu,
+        bags: p.bags,
+        kgperBag: p.kgperBag,
+        totalWeight: p.totalWeight ?? 0,
+        bagAmount: p.bagAmount,
+        dealerBagAmount: p.dealerBagAmount,
+      }))
     });
 
     shareOnWhatsApp(message);
@@ -441,16 +456,6 @@ export const Loading: React.FC = () => {
                             <div className="overflow-x-auto">
                               <div className="flex justify-between items-center mb-3">
                                 <h4 className="text-sm font-semibold text-gray-700">Paddy Details</h4>
-                                <button
-                                  onClick={() => {
-                                    setSelectedAmaliLoading(entry);
-                                    setIsViewAmaliModalOpen(true);
-                                  }}
-                                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-                                >
-                                  <Users className="h-4 w-4 mr-1" />
-                                  View Amali
-                                </button>
                               </div>
                               {paddyDetails.get(entry.id)?.length ? (
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -536,6 +541,16 @@ export const Loading: React.FC = () => {
                                             <Share2 className="h-4 w-4 mr-1" />
                                             Share
                                           </button>
+                                          <button
+                                            onClick={() => {
+                                              setSelectedPaddyForAmali({ loadingId: entry.id, paddyDetailId: paddy.id! });
+                                              setIsAddPaddyAmaliModalOpen(true);
+                                            }}
+                                            className="text-purple-600 hover:text-purple-900 inline-flex items-center"
+                                          >
+                                            <Users className="h-4 w-4 mr-1" />
+                                            Amali
+                                          </button>
                                         </td>
                                       </tr>
                                     ))}
@@ -611,6 +626,22 @@ export const Loading: React.FC = () => {
             amaliName: selectedAmaliLoading.amaliName,
             totalNoOfBags: selectedAmaliLoading.totalNoOfBags
           }}
+        />
+      )}
+
+      {selectedPaddyForAmali && (
+        <AddPaddyAmaliModal
+          isOpen={isAddPaddyAmaliModalOpen}
+          onClose={() => {
+            setIsAddPaddyAmaliModalOpen(false);
+            setSelectedPaddyForAmali(null);
+          }}
+          onSuccess={() => {
+            setIsAddPaddyAmaliModalOpen(false);
+            setSelectedPaddyForAmali(null);
+          }}
+          loadingId={selectedPaddyForAmali.loadingId}
+          paddyDetailId={selectedPaddyForAmali.paddyDetailId}
         />
       )}
 

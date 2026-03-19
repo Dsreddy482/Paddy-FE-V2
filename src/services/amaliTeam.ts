@@ -12,6 +12,26 @@ export const amaliTeamService = {
     }
   },
 
+  async getAmaliTeamsByPaddyDetail(paddyDetailId: string): Promise<AmaliTeam[]> {
+    try {
+      const response = await api.post('/Account/getAmaliTeamsByPaddyDetail', { paddyDetailId: parseInt(paddyDetailId, 10) });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch amali teams by paddy detail:', error);
+      throw error;
+    }
+  },
+
+  async getAmaliTeamsByAmaliName(amaliName: string): Promise<AmaliTeamDetails[]> {
+    try {
+      const response = await api.post('/Account/getAmaliTeamsByAmaliName', { amaliName });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch amali teams by name:', error);
+      throw error;
+    }
+  },
+
   async getAllAmaliTeams(): Promise<AmaliTeamDetails[]> {
     try {
       const response = await api.post('/Account/getAllAmaliTeams');
@@ -34,13 +54,16 @@ export const amaliTeamService = {
 
   async createAmaliTeam(data: AmaliTeam): Promise<AmaliTeam> {
     try {
-      const payload = {
+      const dto: any = {
         loadingId: data.loadingId,
         amaliTeamName: data.amaliTeamName,
         loadingType: data.loadingType,
         ratePerBag: data.ratePerBag
       };
-      const response = await api.post('/Account/insertAmaliTeam', payload);
+      if (data.paddyDetailId !== undefined && data.paddyDetailId !== null) {
+        dto.paddyDetailId = parseInt(data.paddyDetailId, 10);
+      }
+      const response = await api.post('/Account/insertAmaliTeam', { dto });
       return response.data;
     } catch (error) {
       console.error('Failed to create amali team:', error);

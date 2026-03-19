@@ -82,6 +82,11 @@ export const AmaliLedger: React.FC = () => {
                 </div>
 
                 <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Weight</span>
+                  <span className="font-semibold text-gray-900">{(ledger.totalWeight || 0).toLocaleString()} kg</span>
+                </div>
+
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Total Loadings</span>
                   <span className="font-semibold text-gray-900">{ledger.totalLoadings || 0}</span>
                 </div>

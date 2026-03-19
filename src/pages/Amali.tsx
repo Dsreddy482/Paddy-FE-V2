@@ -1,199 +1,102 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight, CreditCard as Edit, Calculator, Users } from 'lucide-react';
-import { loadingService } from '../services/loading';
-import { LoadingEntryDetails } from '../types/loading';
-import { PaddyEntryDetails } from '../types/paddy';
-import { paddyService } from '../services/Paddy';
+import { ArrowLeft, Calculator } from 'lucide-react';
 import { amaliTeamService } from '../services/amaliTeam';
-import { AmaliTeam } from '../types/amaliTeam';
+import { authService } from '../services/auth';
+import { AmaliTeamDetails } from '../types/amaliTeam';
+import { User } from '../types/auth';
 import { Header } from '../components/Header';
-import { EditLoadingModal } from '../components/EditLoadingModal';
-import { EditPaddyModal } from '../components/EditPaddyModal';
 import { AmaliPaymentModal } from '../components/AmaliPaymentModal';
-import ViewAmaliModal from '../components/ViewAmaliModal';
+import { LOADING_TYPES } from '../components/AddPaddyAmaliModal';
 
 export const Amali: React.FC = () => {
   const navigate = useNavigate();
-  const [loadingEntries, setLoadingEntries] = useState<LoadingEntryDetails[]>([]);
-  const [filteredEntries, setFilteredEntries] = useState<LoadingEntryDetails[]>([]);
-  const [amaliList, setAmaliList] = useState<string[]>([]);
+  const [amaliUsers, setAmaliUsers] = useState<User[]>([]);
   const [selectedAmali, setSelectedAmali] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+  const [amaliTeams, setAmaliTeams] = useState<AmaliTeamDetails[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
-  const [paddyDetails, setPaddyDetails] = useState<Map<number, PaddyEntryDetails[]>>(new Map());
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedLoadingEntry, setSelectedLoadingEntry] = useState<LoadingEntryDetails | null>(null);
-  const [isEditPaddyModalOpen, setIsEditPaddyModalOpen] = useState(false);
-  const [selectedPaddyEntry, setSelectedPaddyEntry] = useState<PaddyEntryDetails | null>(null);
-  const [selectedLoadingIds, setSelectedLoadingIds] = useState<Set<number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [amaliTeams, setAmaliTeams] = useState<Map<number, AmaliTeam[]>>(new Map());
-  const [isViewAmaliModalOpen, setIsViewAmaliModalOpen] = useState(false);
-  const [selectedAmaliLoading, setSelectedAmaliLoading] = useState<LoadingEntryDetails | null>(null);
 
   useEffect(() => {
-    fetchLoadingEntries();
+    fetchAmaliUsers();
   }, []);
 
   useEffect(() => {
     if (selectedAmali) {
-      const filtered = loadingEntries.filter(entry => entry.amaliName === selectedAmali);
-      filtered.sort((a, b) => a.id - b.id);
-      setFilteredEntries(filtered);
+      fetchTeams(selectedAmali);
     } else {
-      const sorted = [...loadingEntries].sort((a, b) => a.id - b.id);
-      setFilteredEntries(sorted);
+      fetchAllTeams();
     }
-  }, [selectedAmali, loadingEntries]);
+    setSelectedIds(new Set());
+  }, [selectedAmali]);
 
-  const fetchLoadingEntries = async () => {
+  const fetchAmaliUsers = async () => {
     try {
-      setLoading(true);
-      const entries = await loadingService.getLoadingEntries();
-      setLoadingEntries(entries);
-
-      const uniqueAmali = Array.from(new Set(entries.map(entry => entry.amaliName).filter(Boolean)));
-      setAmaliList(uniqueAmali.sort());
-
-      if (uniqueAmali.length > 0 && !selectedAmali) {
-        setSelectedAmali(uniqueAmali[0]);
-      }
+      const users = await authService.getUsersByRole('amali');
+      setAmaliUsers(users);
     } catch (err) {
-      setError('Failed to load loading entries');
+      console.error('Failed to fetch amali users:', err);
+    }
+  };
+
+  const fetchTeams = async (amaliName: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const teams = await amaliTeamService.getAmaliTeamsByAmaliName(amaliName);
+      setAmaliTeams(teams);
+    } catch (err) {
+      setError('Failed to load amali assignments');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleRowExpansion = async (entryId: number) => {
-    const newExpandedRows = new Set(expandedRows);
-
-    if (expandedRows.has(entryId)) {
-      newExpandedRows.delete(entryId);
-    } else {
-      newExpandedRows.add(entryId);
-      if (!paddyDetails.has(entryId)) {
-        try {
-          const paddy = await paddyService.getPaddyByLoadingId(entryId.toString());
-          setPaddyDetails(prev => new Map(prev).set(entryId, paddy));
-        } catch (err) {
-          console.error('Failed to fetch paddy details:', err);
-        }
-      }
-      if (!amaliTeams.has(entryId)) {
-        try {
-          const teams = await amaliTeamService.getAmaliTeamsByLoading(entryId);
-          setAmaliTeams(prev => new Map(prev).set(entryId, teams));
-        } catch (err) {
-          console.error('Failed to fetch amali teams:', err);
-        }
-      }
+  const fetchAllTeams = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const teams = await amaliTeamService.getAllAmaliTeams();
+      setAmaliTeams(teams);
+    } catch (err) {
+      setError('Failed to load amali assignments');
+    } finally {
+      setLoading(false);
     }
-
-    setExpandedRows(newExpandedRows);
-  };
-
-  const handleEditClick = (entry: LoadingEntryDetails) => {
-    setSelectedLoadingEntry(entry);
-    setIsEditModalOpen(true);
-  };
-
-  const handleEditPaddyClick = (paddy: PaddyEntryDetails) => {
-    setSelectedPaddyEntry(paddy);
-    setIsEditPaddyModalOpen(true);
-  };
-
-  const handlePaddySuccess = async () => {
-    const expandedIds = Array.from(expandedRows);
-    const newPaddyDetailsMap = new Map<number, PaddyEntryDetails[]>();
-
-    for (const id of expandedIds) {
-      try {
-        const paddy = await paddyService.getPaddyByLoadingId(id.toString());
-        newPaddyDetailsMap.set(id, paddy);
-      } catch (err) {
-        console.error('Failed to refresh paddy details:', err);
-      }
-    }
-
-    setPaddyDetails(newPaddyDetailsMap);
   };
 
   const handleSelectAll = () => {
-    if (selectedLoadingIds.size === filteredEntries.length) {
-      setSelectedLoadingIds(new Set());
+    if (selectedIds.size === amaliTeams.length) {
+      setSelectedIds(new Set());
     } else {
-      setSelectedLoadingIds(new Set(filteredEntries.map(entry => entry.id)));
+      setSelectedIds(new Set(amaliTeams.map(t => t.id!).filter(Boolean)));
     }
   };
 
-  const handleSelectLoading = (loadingId: number) => {
-    const newSelection = new Set(selectedLoadingIds);
-    if (newSelection.has(loadingId)) {
-      newSelection.delete(loadingId);
-    } else {
-      newSelection.add(loadingId);
-    }
-    setSelectedLoadingIds(newSelection);
+  const handleSelect = (id: number) => {
+    const next = new Set(selectedIds);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelectedIds(next);
   };
 
-  const handleCalculateAmount = () => {
-    setIsPaymentModalOpen(true);
-  };
+  const getTypeLabel = (value: string) =>
+    LOADING_TYPES.find(t => t.value === value)?.label ?? value;
 
-  const handlePaymentSuccess = async () => {
-    setSelectedLoadingIds(new Set());
-    await fetchLoadingEntries();
-    const expandedIds = Array.from(expandedRows);
-    const newPaddyDetailsMap = new Map<number, PaddyEntryDetails[]>();
+  const totalSelectedAmount = amaliTeams
+    .filter(t => t.id && selectedIds.has(t.id))
+    .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
 
-    for (const id of expandedIds) {
-      try {
-        const paddy = await paddyService.getPaddyByLoadingId(id.toString());
-        newPaddyDetailsMap.set(id, paddy);
-      } catch (err) {
-        console.error('Failed to refresh paddy details:', err);
-      }
-    }
-
-    setPaddyDetails(newPaddyDetailsMap);
-  };
-
-  const getSelectedLoadings = (): LoadingEntryDetails[] => {
-    return filteredEntries.filter(entry => selectedLoadingIds.has(entry.id));
-  };
-
-  const handleSuccess = async () => {
-    await fetchLoadingEntries();
-    const expandedIds = Array.from(expandedRows);
-    const newPaddyDetailsMap = new Map<number, PaddyEntryDetails[]>();
-
-    for (const id of expandedIds) {
-      try {
-        const paddy = await paddyService.getPaddyByLoadingId(id.toString());
-        newPaddyDetailsMap.set(id, paddy);
-      } catch (err) {
-        console.error('Failed to refresh paddy details:', err);
-      }
-    }
-
-    setPaddyDetails(newPaddyDetailsMap);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-500 border-r-transparent"></div>
-      </div>
-    );
-  }
+  // Selected amali team rows
+  const selectedTeams = amaliTeams.filter(t => t.id && selectedIds.has(t.id));
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
             <button
@@ -205,310 +108,126 @@ export const Amali: React.FC = () => {
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Amali Details</h1>
           </div>
-          {selectedLoadingIds.size > 0 && (
+          {selectedIds.size > 0 && (
             <button
-              onClick={handleCalculateAmount}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              onClick={() => setIsPaymentModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
             >
               <Calculator className="h-5 w-5" />
-              Calculate Amount ({selectedLoadingIds.size})
+              Calculate Amount ({selectedIds.size}) — ₹{totalSelectedAmount.toFixed(2)}
             </button>
           )}
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">{error}</p>
-          </div>
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">{error}</div>
         )}
 
+        {/* Amali filter */}
         <div className="mb-6 bg-white p-4 rounded-lg shadow-md">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Amali
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Select Amali</label>
           <select
             value={selectedAmali}
-            onChange={(e) => setSelectedAmali(e.target.value)}
+            onChange={e => setSelectedAmali(e.target.value)}
             className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
           >
             <option value="">All Amali</option>
-            {amaliList.map((amali) => (
-              <option key={amali} value={amali}>
-                {amali}
-              </option>
+            {amaliUsers.map(u => (
+              <option key={u.id} value={u.name}>{u.name}</option>
             ))}
           </select>
         </div>
 
+        {/* Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {filteredEntries.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-500 border-r-transparent" />
+            </div>
+          ) : amaliTeams.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              <p>No loading entries found for the selected amali.</p>
+              No amali assignments found{selectedAmali ? ` for ${selectedAmali}` : ''}.
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                    <th className="px-4 py-3 w-10">
                       <input
                         type="checkbox"
-                        checked={selectedLoadingIds.size === filteredEntries.length && filteredEntries.length > 0}
+                        checked={selectedIds.size === amaliTeams.length && amaliTeams.length > 0}
                         onChange={handleSelectAll}
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer"
+                        className="h-4 w-4 text-green-600 border-gray-300 rounded cursor-pointer"
                       />
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Lorry Number
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Bags
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Weight
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Payment
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lorry</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rythu</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amali</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Loading Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate/Bag</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bags</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Weight (kg)</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Amount</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredEntries.map((entry) => (
-                    <React.Fragment key={entry.id}>
-                      <tr className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <input
-                            type="checkbox"
-                            checked={selectedLoadingIds.has(entry.id)}
-                            onChange={() => handleSelectLoading(entry.id)}
-                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer"
-                          />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <button
-                            onClick={() => toggleRowExpansion(entry.id)}
-                            className="text-gray-400 hover:text-gray-600"
-                          >
-                            {expandedRows.has(entry.id) ? (
-                              <ChevronDown className="h-5 w-5" />
-                            ) : (
-                              <ChevronRight className="h-5 w-5" />
-                            )}
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(entry.loadedDate).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {entry.lorryNumber}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {entry.totalNoOfBags || 0}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {entry.totalLoadWeight || 0} kg
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            entry.paymentDone
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {entry.paymentDone ? 'Done' : 'Pending'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleEditClick(entry)}
-                            className="text-blue-600 hover:text-blue-900 inline-flex items-center"
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </button>
-                        </td>
-                      </tr>
-                      {expandedRows.has(entry.id) && (
-                        <tr>
-                          <td colSpan={8} className="px-6 py-4 bg-gray-50">
-                            <div className="overflow-x-auto">
-                              <div className="flex justify-between items-center mb-3">
-                                <h4 className="text-sm font-semibold text-gray-700">Paddy Details</h4>
-                                <button
-                                  onClick={() => {
-                                    setSelectedAmaliLoading(entry);
-                                    setIsViewAmaliModalOpen(true);
-                                  }}
-                                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-                                >
-                                  <Users className="h-4 w-4 mr-1" />
-                                  View Amali Teams
-                                </button>
-                              </div>
-                              {paddyDetails.get(entry.id)?.length ? (
-                                <table className="min-w-full divide-y divide-gray-200">
-                                  <thead className="bg-gray-100">
-                                    <tr>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Rythu
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Bags
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        KGs per Bag
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Total Weight
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Amount/Bag
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Dealer Amount/Bag
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Load Type
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Status
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Actions
-                                      </th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="bg-white divide-y divide-gray-200">
-                                    {paddyDetails.get(entry.id)?.map((paddy) => (
-                                      <tr key={paddy.id}>
-                                        <td className="px-4 py-2 text-sm text-gray-900">
-                                          {paddy.rythu}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-900">
-                                          {paddy.bags}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-900">
-                                          {paddy.kgperBag}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-900">
-                                          {paddy.totalWeight} kg
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-900">
-                                          ₹{paddy.bagAmount}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-900">
-                                          ₹{paddy.dealerBagAmount}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm">
-                                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                            {paddy.loadType || 'potha'}
-                                          </span>
-                                        </td>
-                                        <td className="px-4 py-2 text-sm">
-                                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            paddy.status === 'completed'
-                                              ? 'bg-green-100 text-green-800'
-                                              : 'bg-yellow-100 text-yellow-800'
-                                          }`}>
-                                            {paddy.status || 'pending'}
-                                          </span>
-                                        </td>
-                                        <td className="px-4 py-2 text-sm font-medium">
-                                          <button
-                                            onClick={() => handleEditPaddyClick(paddy)}
-                                            className="text-blue-600 hover:text-blue-900 inline-flex items-center"
-                                          >
-                                            <Edit className="h-4 w-4 mr-1" />
-                                            Edit
-                                          </button>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              ) : (
-                                <p className="text-sm text-gray-500 italic">No paddy entries found for this loading.</p>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {amaliTeams.map(team => (
+                    <tr key={team.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={!!(team.id && selectedIds.has(team.id))}
+                          onChange={() => team.id && handleSelect(team.id)}
+                          className="h-4 w-4 text-green-600 border-gray-300 rounded cursor-pointer"
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-gray-500">
+                        {team.loadedDate ? new Date(team.loadedDate).toLocaleDateString() : '—'}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-900">{team.lorryNumber || '—'}</td>
+                      <td className="px-4 py-3 text-gray-900">{team.rythu || '—'}</td>
+                      <td className="px-4 py-3 text-gray-900">{team.amaliTeamName}</td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                          {getTypeLabel(team.loadingType)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-900">₹{team.ratePerBag.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-gray-900">{team.totalBags ?? 0}</td>
+                      <td className="px-4 py-3 text-gray-900">{team.totalWeight != null ? `${team.totalWeight} kg` : '—'}</td>
+                      <td className="px-4 py-3 text-gray-900">₹{(team.totalAmount ?? 0).toFixed(2)}</td>
+                    </tr>
                   ))}
                 </tbody>
+                <tfoot className="bg-gray-50">
+                  <tr>
+                    <td colSpan={9} className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
+                      Grand Total:
+                    </td>
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                      ₹{amaliTeams.reduce((s, t) => s + (t.totalAmount ?? 0), 0).toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           )}
         </div>
       </div>
 
-      <EditLoadingModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedLoadingEntry(null);
-        }}
-        onSuccess={handleSuccess}
-        loadingEntry={selectedLoadingEntry ? {
-          ...selectedLoadingEntry,
-          loadingId: selectedLoadingEntry.id
-        } : null}
-      />
-
-      <EditPaddyModal
-        isOpen={isEditPaddyModalOpen}
-        onClose={() => {
-          setIsEditPaddyModalOpen(false);
-          setSelectedPaddyEntry(null);
-        }}
-        onSuccess={handlePaddySuccess}
-        paddyEntry={selectedPaddyEntry ? {
-          id: selectedPaddyEntry.id,
-          lorryNumber: selectedPaddyEntry.lorryNumber,
-          bags: selectedPaddyEntry.bags,
-          kgsPerBag: selectedPaddyEntry.kgperBag,
-          bagAmount: selectedPaddyEntry.bagAmount,
-          dealerBagAmount: selectedPaddyEntry.dealerBagAmount,
-          loadedDate: selectedPaddyEntry.loadedDate,
-          totalWeight: selectedPaddyEntry.totalWeight,
-          loadType: selectedPaddyEntry.loadType,
-          userId: selectedPaddyEntry.userId,
-          dealerId: selectedPaddyEntry?.dealerId,
-          loadingId: selectedPaddyEntry?.loadingId
-        } : null}
-      />
-
       <AmaliPaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        onSuccess={handlePaymentSuccess}
-        selectedLoadings={getSelectedLoadings()}
+        onSuccess={() => {
+          setIsPaymentModalOpen(false);
+          setSelectedIds(new Set());
+          selectedAmali ? fetchTeams(selectedAmali) : fetchAllTeams();
+        }}
+        selectedLoadings={[]}
+        selectedTeams={selectedTeams}
       />
-
-      {selectedAmaliLoading && (
-        <ViewAmaliModal
-          isOpen={isViewAmaliModalOpen}
-          onClose={() => {
-            setIsViewAmaliModalOpen(false);
-            setSelectedAmaliLoading(null);
-          }}
-          loadingId={selectedAmaliLoading.id}
-          loadingDetails={{
-            lorryNumber: selectedAmaliLoading.lorryNumber,
-            loadedDate: selectedAmaliLoading.loadedDate,
-            dealerName: selectedAmaliLoading.delaerName,
-            amaliName: selectedAmaliLoading.amaliName,
-            totalNoOfBags: selectedAmaliLoading.totalNoOfBags
-          }}
-        />
-      )}
     </div>
   );
 };

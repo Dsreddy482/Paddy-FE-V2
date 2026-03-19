@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { amaliTeamService } from '../services/amaliTeam';
 import { AmaliTeam } from '../types/amaliTeam';
+import { LOADING_TYPES } from './AddPaddyAmaliModal';
 
 interface EditAmaliTeamModalProps {
   isOpen: boolean;
@@ -10,23 +11,6 @@ interface EditAmaliTeamModalProps {
   team: AmaliTeam;
 }
 
-const AMALI_TEAMS = [
-  'Team A',
-  'Team B',
-  'Team C',
-  'Team D',
-  'Team E',
-  'Team F',
-  'Team G',
-  'Team H'
-];
-
-const LOADING_TYPES = [
-  { value: 'potha', label: 'Potha' },
-  { value: 'kata', label: 'Kata' },
-  { value: 'loading', label: 'Loading' },
-  { value: 'combined', label: 'Combined' }
-];
 
 export default function EditAmaliTeamModal({
   isOpen,
@@ -76,19 +60,14 @@ export default function EditAmaliTeamModal({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Amali Team *
             </label>
-            <select
+            <input
+              type="text"
               value={formData.amaliTeamName}
               onChange={(e) => setFormData({ ...formData, amaliTeamName: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
-            >
-              <option value="">Select Team</option>
-              {AMALI_TEAMS.map((team) => (
-                <option key={team} value={team}>
-                  {team}
-                </option>
-              ))}
-            </select>
+              placeholder="Amali name"
+            />
           </div>
 
           <div>

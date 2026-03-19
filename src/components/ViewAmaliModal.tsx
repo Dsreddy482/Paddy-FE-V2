@@ -4,6 +4,7 @@ import { AmaliTeam } from '../types/amaliTeam';
 import { amaliTeamService } from '../services/amaliTeam';
 import AddAmaliTeamModal from './AddAmaliTeamModal';
 import EditAmaliTeamModal from './EditAmaliTeamModal';
+import { LOADING_TYPES } from './AddPaddyAmaliModal';
 
 interface ViewAmaliModalProps {
   isOpen: boolean;
@@ -71,15 +72,8 @@ export default function ViewAmaliModal({
     loadAmaliTeams();
   };
 
-  const getLoadingTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      potha: 'Potha',
-      kata: 'Kata',
-      loading: 'Loading',
-      combined: 'Combined'
-    };
-    return labels[type] || type;
-  };
+  const getLoadingTypeLabel = (type: string) =>
+    LOADING_TYPES.find(t => t.value === type)?.label ?? type;
 
   const totalAmount = amaliTeams.reduce((sum, team) => sum + (team.totalAmount || 0), 0);
 
